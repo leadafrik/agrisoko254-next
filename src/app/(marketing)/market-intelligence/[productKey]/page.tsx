@@ -35,11 +35,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const best = product.bestMarket
     ? `Best market: ${product.bestMarket.marketName} (${product.bestMarket.county}) at KES ${product.bestMarket.avgPrice.toLocaleString()}.`
     : null;
+  const updatedDate = product.lastUpdated
+    ? new Date(product.lastUpdated).toLocaleDateString("en-KE", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "recently";
+
   const descParts = [
     `Live ${product.productName.toLowerCase()} price signals across ${product.approvedMarkets} Kenyan markets.`,
     avg ? `Board average: ${avg} / ${product.unit}.` : null,
     best,
-    `${product.submissionsCount} reviewed field reports. Updated ${new Date(product.lastUpdated || "").toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" })}.`,
+    `${product.submissionsCount} reviewed field reports. Updated ${updatedDate}.`,
   ].filter(Boolean);
 
   return {
@@ -53,14 +61,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       `sell ${product.productName.toLowerCase()} kenya`,
       `${product.productName.toLowerCase()} price nairobi`,
       `agrisoko ${product.productName.toLowerCase()}`,
-    ] as string[],
+    ],
     alternates: {
       canonical: `https://www.agrisoko254.com/market-intelligence/${product.productKey}`,
     },
     openGraph: {
       type: "website",
       url: `https://www.agrisoko254.com/market-intelligence/${product.productKey}`,
-      title: `${product.productName} Prices Kenya — Live Market Board`,
+      title: `${product.productName} Prices Kenya - Live Market Board`,
       description: descParts.join(" "),
       images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     },
@@ -120,15 +128,26 @@ export default async function CommodityIntelligencePage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Market Intelligence", item: "https://www.agrisoko254.com/market-intelligence" },
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Market Intelligence",
+        item: "https://www.agrisoko254.com/market-intelligence",
+      },
       { "@type": "ListItem", position: 2, name: product.productName },
     ],
   };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <CommodityIntelligenceExplorer initialProduct={product} initialHistory={history} />
     </>
   );

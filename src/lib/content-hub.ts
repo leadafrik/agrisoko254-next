@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from "@/lib/endpoints";
 import {
   SEEDED_MAIZE_SEED_PRICE_SIGNAL,
   SEEDED_MAIZE_SNAPSHOT,
+  SEEDED_ONION_SNAPSHOT,
 } from "./market-intelligence-seed";
 
 export interface InsightPost {
@@ -30,6 +31,12 @@ const buildMarkdownTable = (
   const body = rows.map((row) => `| ${columns.map((column) => String(row[column] ?? "")).join(" | ")} |`);
   return [header, divider, ...body].join("\n");
 };
+
+const onionMarketRows = SEEDED_ONION_SNAPSHOT.markets.map((market) => ({
+  Location: `${market.marketName}, ${market.county}`,
+  "Price per kg": formatKes(market.avgPrice),
+  Trend: market.trendDirection === "up" ? "↑" : market.trendDirection === "down" ? "↓" : "→",
+}));
 
 const maizeMarketRows = SEEDED_MAIZE_SNAPSHOT.markets.map((market) => ({
   Location: `${market.marketName}, ${market.county}`,
@@ -88,7 +95,7 @@ This is exactly why the market-intelligence product matters. It is not enough to
     readTimeMinutes: 4,
     publishedAt: "2026-03-26T12:30:00.000Z",
     authorName: "Agrisoko Market Desk",
-    featured: false,
+    featured: true,
     tags: ["maize", "market intelligence", "price signals", "kenya"],
   },
   {
@@ -137,6 +144,50 @@ ${SEEDED_MAIZE_SEED_PRICE_SIGNAL.note}
     authorName: "Agrisoko Editorial Desk",
     featured: false,
     tags: ["maize seed", "policy", "input costs", "kenya"],
+  },
+  {
+    id: "local-insight-onion-spread-2026",
+    slug: "kenya-onion-price-spread-nairobi-versus-source",
+    title: "Kenya Onion Prices: Why Nairobi Pays KES 80 While Source Markets Get KES 40",
+    excerpt:
+      "March 2026 field signals show a KES 40–80/kg spread between Nairobi retail desks and Central Highlands wholesale quotes. For onion farmers and traders, that gap is the opportunity — and the risk.",
+    content: `Onion prices across Kenya in March 2026 tell a familiar but important story: where you sell matters as much as what you grow.
+
+${buildMarkdownTable(onionMarketRows, ["Location", "Price per kg", "Trend"])}
+
+## Reading the spread
+
+The gap between KES 40 at Central Highlands wholesale and KES 80 at Karen retail is not random. It reflects:
+
+1. **Transport and handling costs** — moving produce from source counties (Nyeri, Kirinyaga, Machakos) to Nairobi adds cost that retail prices absorb.
+2. **Grading and presentation** — urban retail buyers pay more for clean, well-dried, uniformly sized onions. The same stock presented differently commands different prices.
+3. **Timing and volume** — Nairobi retail desks buy smaller volumes more frequently; wholesale source markets absorb larger volumes at lower per-unit prices.
+
+## What Wamunyu and Isiolo are telling you
+
+Wamunyu (Machakos) is quoting KES 55–65/kg — materially above Nyeri and Kirinyaga supply zones. Isiolo is steady at KES 60. These are not destination retail markets. They're intermediate trading points that have been pulling demand from further supply zones.
+
+If you're in Nyeri or Kirinyaga and selling at KES 45–47, the next question is whether you can move stock to an intermediate buyer rather than the lowest local quote.
+
+## Three moves for onion farmers this week
+
+- **Check whether you're selling at source price or intermediate price.** The difference is often KES 10–20/kg on the same stock.
+- **Sort and grade before quoting.** Clean, uniform onions attract retail-style buyers even in wholesale settings.
+- **List with size and dryness stated clearly.** Buyers filtering on Agrisoko are looking for specifics — a vague "onions for sale" post competes on price alone.
+
+## The arbitrage window is real but narrow
+
+The KES 40 difference between source and retail does not go to the farmer by default. Traders, transport, and handling absorb most of it. The way farmers close that gap is by aggregating volume and reaching the first buyer above their local quote — not by waiting for retail prices to come to them.
+
+[Open the onion price board](/market-intelligence/onions)
+
+[List onions on Agrisoko](/create-listing/produce)`,
+    coverImage: null,
+    readTimeMinutes: 4,
+    publishedAt: "2026-03-26T15:00:00.000Z",
+    authorName: "Agrisoko Market Desk",
+    featured: false,
+    tags: ["onions", "market intelligence", "price signals", "nairobi", "kenya"],
   },
 ];
 

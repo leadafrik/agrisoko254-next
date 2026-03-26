@@ -36,7 +36,7 @@ import LivePricePulse from "@/components/intelligence/LivePricePulse";
 export const revalidate = 180;
 
 export const metadata: Metadata = {
-  title: "Agrisoko | Kenya's Agricultural Marketplace — Buy & Sell Direct",
+  title: "Agrisoko | Kenya's Agricultural Marketplace - Buy & Sell Direct",
   description:
     "Kenya's agricultural marketplace. Buy and sell maize, livestock, farm inputs, and services directly from verified farmers and traders. Live price signals across all 47 counties.",
   alternates: { canonical: "https://www.agrisoko254.com" },
@@ -68,8 +68,8 @@ const organizationSchema = {
     availableLanguage: ["English", "Swahili"],
   },
   sameAs: [
-    "https://www.facebook.com/agrisoko",
-    "https://twitter.com/agrisoko254",
+    "https://www.facebook.com/LeadAfrik",
+    "https://www.instagram.com/lead_afrik/",
   ],
   parentOrganization: {
     "@type": "Organization",
@@ -82,7 +82,7 @@ const websiteSchema = {
   "@type": "WebSite",
   name: "Agrisoko",
   url: "https://www.agrisoko254.com",
-  description: "Kenya's agricultural marketplace — produce, livestock, inputs, services, and live price intelligence.",
+  description: "Kenya's agricultural marketplace - produce, livestock, inputs, services, and live price intelligence.",
   inLanguage: "en-KE",
   potentialAction: {
     "@type": "SearchAction",
@@ -101,13 +101,13 @@ const categoryIconMap: Record<string, React.ComponentType<{ className?: string }
   services: Wrench,
 };
 
-// Full founder letter — matches PWA word-for-word
+// Full founder letter - aligned to the PWA message
 const founderLetterParagraphs = [
   "When I started Agrisoko, many people told me it would not work.",
-  "I grew up watching farmers work incredibly hard — waking before sunrise, tending their land through drought and disease — and then watching brokers take the largest share of the profit at the farm gate. A farmer who grew maize for four months might sell it for KES 28 per kilo. By the time it reached Nairobi, it sold for KES 55. The farmer saw none of that difference. The broker made it all.",
+  "I grew up watching farmers work incredibly hard - waking before sunrise, tending their land through drought and disease - and then watching brokers take the largest share of the profit at the farm gate. A farmer who grew maize for four months might sell it for KES 28 per kilo. By the time it reached Nairobi, it sold for KES 55. The farmer saw none of that difference. The broker made it all.",
   "I asked myself: what if the farmer could see the buyer directly? What if the buyer could trust the quality of what they were getting? What if we removed the unnecessary steps between the person who grew the food and the person who needed it?",
   "That question became Agrisoko.",
-  "We are not just building an app. We are building trust infrastructure for Kenyan agriculture — a place where a smallholder in Meru can reach a buyer in Mombasa, where a fresh produce trader in Limuru can post what she has and be found by restaurants in Nairobi, where a livestock farmer in Kajiado does not have to wait for someone to pass through his road to know what his animals are worth.",
+  "We are not just building an app. We are building trust infrastructure for Kenyan agriculture - a place where a smallholder in Meru can reach a buyer in Mombasa, where a fresh produce trader in Limuru can post what she has and be found by restaurants in Nairobi, where a livestock farmer in Kajiado does not have to wait for someone to pass through his road to know what his animals are worth.",
   "Agrisoko is building a future where farmers keep more of what they earn, buyers trade with confidence, and agriculture in Kenya becomes more direct, more trusted, and more connected.",
   "If you believe in that vision, join us. Sign up today. Tell a friend to tell a friend. And together, let us build the future of agriculture in Kenya.",
 ];

@@ -39,8 +39,40 @@ export default function ArticlePage({ params }: Props) {
 
   if (!article) notFound();
 
+  const canonicalUrl = `https://www.agrisoko254.com/learn/${params.category}/${params.slug}`;
+  const categoryUrl  = `https://www.agrisoko254.com/learn/${params.category}`;
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.description,
+    datePublished: article.publishedAt,
+    url: canonicalUrl,
+    mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
+    author: { "@type": "Organization", name: "Agrisoko" },
+    publisher: {
+      "@type": "Organization",
+      name: "Agrisoko",
+      logo: { "@type": "ImageObject", url: "https://www.agrisoko254.com/logo192.png" },
+    },
+    keywords: article.tags?.join(", "),
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Learn", item: "https://www.agrisoko254.com/learn" },
+      { "@type": "ListItem", position: 2, name: meta?.label ?? params.category, item: categoryUrl },
+      { "@type": "ListItem", position: 3, name: article.title },
+    ],
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-12">
         {/* Article */}
         <article>

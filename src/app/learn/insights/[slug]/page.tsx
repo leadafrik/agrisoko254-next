@@ -52,8 +52,40 @@ export default async function LearnInsightDetailPage({ params }: Props) {
 
   const related = posts.filter((candidate) => candidate.slug !== post.slug).slice(0, 4);
 
+  const canonicalUrl = `https://www.agrisoko254.com/learn/insights/${params.slug}`;
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: post.publishedAt ?? undefined,
+    url: canonicalUrl,
+    mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
+    author: { "@type": "Person", name: post.authorName ?? "Agrisoko" },
+    publisher: {
+      "@type": "Organization",
+      name: "Agrisoko",
+      logo: { "@type": "ImageObject", url: "https://www.agrisoko254.com/logo192.png" },
+    },
+    keywords: post.tags.join(", "),
+    ...(post.coverImage ? { image: post.coverImage } : {}),
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Learn", item: "https://www.agrisoko254.com/learn" },
+      { "@type": "ListItem", position: 2, name: "Insights", item: "https://www.agrisoko254.com/learn/insights" },
+      { "@type": "ListItem", position: 3, name: post.title },
+    ],
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12">
         <article>
           <nav className="mb-6 flex items-center gap-1 text-sm text-stone-500">

@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Agrisoko — Kenya's Agricultural Marketplace",
+    name: "Agrisoko - Kenya's Agricultural Marketplace",
     short_name: "Agrisoko",
     description:
       "Buy and sell produce, livestock, farm inputs, and services across Kenya. Live price intelligence, verified sellers, and direct trade.",
@@ -23,7 +23,6 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/og-image.png",
         sizes: "1200x630",
         type: "image/png",
-        label: "Agrisoko marketplace homepage",
       },
     ],
   };

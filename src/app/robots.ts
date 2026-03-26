@@ -21,12 +21,14 @@ export default function robots(): MetadataRoute.Robots {
           "/verify-id",
           "/welcome",
           "/seller/",
+          "/seller/orders",
+          "/sellers/orders",
           "/bulk/new",
+          "/bulk/seller/orders",
           "/request/new",
           "/api/",
         ],
       },
-      // Block AI training crawlers from price data and marketplace content
       {
         userAgent: "GPTBot",
         disallow: ["/"],
