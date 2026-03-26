@@ -2,20 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ListingActionPanel from "@/components/marketplace/ListingActionPanel";
+import ListingGallery from "@/components/marketplace/ListingGallery";
+import ListingSellerPanel from "@/components/marketplace/ListingSellerPanel";
+import ListingTypeDetails from "@/components/marketplace/ListingTypeDetails";
 import ListingCard from "@/components/marketplace/ListingCard";
 import { serverFetch } from "@/lib/api-server";
 import { API_BASE_URL } from "@/lib/endpoints";
 import {
   getCategoryByApi,
-  getInitials,
+  getDeliveryScopeLabel,
+  getListingEngagement,
   getListingImageUrls,
   getListingPriceLabel,
+  getListingTypeLabel,
   getLocationLabel,
-  getPrimaryImageUrl,
-  getUserDisplayName,
+  isListingBoosted,
   isVerifiedProfile,
   normalizeMarketplaceListing,
 } from "@/lib/marketplace";
+import { Eye, Bookmark, MessageCircle, Truck, Zap } from "lucide-react";
 
 interface Props {
   params: { id: string };
@@ -28,14 +33,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const rawListing = data?.data ?? data;
   if (!rawListing) return {};
   const listing = normalizeMarketplaceListing(rawListing);
-  const image = getPrimaryImageUrl(listing, { width: 1200, height: 630, fit: "fill" });
+  const images = getListingImageUrls(listing);
   return {
     title: listing.title || listing.name || "Marketplace listing",
     description: listing.description || "View listing details on Agrisoko.",
     openGraph: {
       title: listing.title || listing.name,
       description: listing.description || "View listing details on Agrisoko.",
-      images: image ? [image] : [],
+      images: images[0] ? [images[0]] : [],
     },
   };
 }
@@ -46,34 +51,34 @@ export default async function ListingDetailPage({ params }: Props) {
   if (!rawListing) notFound();
   const listing = normalizeMarketplaceListing(rawListing);
 
-  const heroImage = getPrimaryImageUrl(listing, { width: 1200, height: 750, fit: "fill" });
   const galleryImages = getListingImageUrls(listing);
-
   const category = getCategoryByApi(listing?.category);
   const location = getLocationLabel(listing);
   const seller = listing?.seller || listing?.owner || listing?.user;
-  const sellerName = getUserDisplayName(seller);
   const verified = isVerifiedProfile(seller) || listing?.verified || listing?.isVerified;
+  const boosted = isListingBoosted(listing);
+  const typeLabel = getListingTypeLabel(listing);
+  const deliveryLabel = getDeliveryScopeLabel(listing);
+  const engagement = getListingEngagement(listing);
+  const sellerId = seller?._id || seller?.id || listing?.userId;
+
   const relatedData = await serverFetch<any>(
-    `${API_BASE_URL}/unified-listings/trending?category=${category?.apiCategory || "produce"}&limit=4`,
+    `${API_BASE_URL}/unified-listings/trending?category=${category?.apiCategory || "produce"}&limit=5`,
     { revalidate: 60 }
   );
   const related = (relatedData?.listings ?? relatedData?.data ?? relatedData ?? []).filter(
     (item: any) => String(item?._id || item?.id) !== String(listing?._id || listing?.id)
-  );
+  ).slice(0, 4);
 
   return (
     <div className="page-shell py-10 sm:py-12">
+      {/* Breadcrumb */}
       <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-stone-500">
-        <Link href="/browse" className="hover:text-terra-600">
-          Browse
-        </Link>
+        <Link href="/browse" className="hover:text-terra-600">Browse</Link>
         <span>/</span>
         {category ? (
           <>
-            <Link href={`/browse/${category.slug}`} className="hover:text-terra-600">
-              {category.label}
-            </Link>
+            <Link href={`/browse/${category.slug}`} className="hover:text-terra-600">{category.label}</Link>
             <span>/</span>
           </>
         ) : null}
@@ -81,111 +86,107 @@ export default async function ListingDetailPage({ params }: Props) {
       </nav>
 
       <section className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
+        {/* Left: gallery + details */}
         <div className="space-y-6">
-          <div className="surface-card overflow-hidden">
-            <div className="aspect-[16/10] bg-stone-100">
-              {heroImage ? (
-                <img
-                  src={heroImage}
-                  alt={listing.title || listing.name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(160,69,46,0.14),_transparent_55%),linear-gradient(135deg,#fffdf8,#f2ece2)] text-sm font-semibold uppercase tracking-[0.2em] text-stone-400">
-                  Agrisoko
-                </div>
-              )}
-            </div>
-            {galleryImages.length > 1 ? (
-              <div className="grid grid-cols-4 gap-3 p-4">
-                {galleryImages.slice(1, 5).map((image: string, index: number) => (
-                  <div key={`${image}-${index}`} className="aspect-[4/3] overflow-hidden rounded-2xl bg-stone-100">
-                    <img
-                      src={getPrimaryImageUrl({ image }, { width: 480, height: 360, fit: "fill" }) || image}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : null}
+          {/* Gallery */}
+          <div className="surface-card overflow-hidden p-4">
+            <ListingGallery images={galleryImages} title={listing?.title || listing?.name} />
           </div>
 
+          {/* Title + info */}
           <div className="surface-card p-6">
-            <div className="flex flex-wrap items-center gap-3">
-              <p className="section-kicker">{category?.label || "Marketplace listing"}</p>
-              {verified ? (
-                <span className="rounded-full border border-forest-200 bg-forest-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-forest-700">
-                  Verified seller cues
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="section-kicker">{typeLabel || category?.label || "Marketplace listing"}</p>
+              {verified && (
+                <span className="rounded-full border border-forest-200 bg-forest-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-forest-700">
+                  Verified
                 </span>
-              ) : null}
+              )}
+              {boosted && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-[11px] font-semibold text-white">
+                  <Zap className="h-3 w-3" /> Boosted
+                </span>
+              )}
             </div>
-            <h1 className="mt-4 text-4xl font-bold text-stone-900">{listing?.title || listing?.name}</h1>
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
+
+            <h1 className="mt-3 text-3xl font-bold text-stone-900 sm:text-4xl">
+              {listing?.title || listing?.name}
+            </h1>
+
+            <p className="mt-2 text-2xl font-bold text-terra-700">
+              {getListingPriceLabel(listing)}
+            </p>
+
+            {/* Key stats row */}
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
               <div className="rounded-2xl bg-stone-50 px-4 py-3">
                 <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Location</p>
-                <p className="mt-1 font-semibold text-stone-900">{location || "Kenya"}</p>
-              </div>
-              <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Price</p>
-                <p className="mt-1 font-semibold text-stone-900">{getListingPriceLabel(listing)}</p>
+                <p className="mt-1 text-sm font-semibold text-stone-900">{location || "Kenya"}</p>
               </div>
               <div className="rounded-2xl bg-stone-50 px-4 py-3">
                 <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Availability</p>
-                <p className="mt-1 font-semibold text-stone-900">
+                <p className="mt-1 text-sm font-semibold text-stone-900">
                   {listing?.quantity ? `${listing.quantity} ${listing?.unit || ""}`.trim() : "Contact seller"}
                 </p>
               </div>
+              <div className="rounded-2xl bg-stone-50 px-4 py-3 flex items-center gap-2">
+                <Truck className="h-4 w-4 text-stone-400 shrink-0" />
+                <p className="text-sm font-semibold text-stone-900">{deliveryLabel}</p>
+              </div>
             </div>
 
+            {/* Description */}
             {listing?.description ? (
               <div className="mt-6">
-                <h2 className="text-2xl font-bold text-stone-900">Description</h2>
+                <h2 className="text-lg font-bold text-stone-900">Description</h2>
                 <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-stone-600">
                   {listing.description}
                 </p>
               </div>
             ) : null}
+
+            {/* Engagement */}
+            {(engagement.views > 0 || engagement.saves > 0 || engagement.reachOuts > 0) && (
+              <div className="mt-6 flex flex-wrap gap-5 border-t border-stone-100 pt-4 text-sm text-stone-500">
+                {engagement.views > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <Eye className="h-4 w-4" /> {engagement.views} views
+                  </span>
+                )}
+                {engagement.saves > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <Bookmark className="h-4 w-4" /> {engagement.saves} saves
+                  </span>
+                )}
+                {engagement.reachOuts > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <MessageCircle className="h-4 w-4" /> {engagement.reachOuts} reach-outs
+                  </span>
+                )}
+              </div>
+            )}
           </div>
+
+          {/* Type-specific details */}
+          <ListingTypeDetails listing={listing} />
         </div>
 
+        {/* Right: actions + seller */}
         <div className="space-y-6">
           <ListingActionPanel listing={listing} />
-
-          <div className="surface-card p-6">
-            <p className="section-kicker">Seller profile</p>
-            <div className="mt-4 flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-terra-100 text-base font-semibold text-terra-700">
-                {getInitials(sellerName)}
-              </div>
-              <div className="min-w-0">
-                <h2 className="truncate text-2xl font-bold text-stone-900">{sellerName}</h2>
-                <p className="truncate text-sm text-stone-500">
-                  {verified ? "Verified trust cues visible" : "Marketplace seller"}
-                </p>
-              </div>
-            </div>
-            <div className="mt-5 grid gap-3">
-              <Link href={`/sellers/${seller?._id || listing?.userId}`} className="secondary-button w-full">
-                View seller profile
-              </Link>
-            </div>
-          </div>
-
-          <div className="soft-panel p-6">
-            <h2 className="text-2xl font-bold text-stone-900">Trade with more context</h2>
-            <p className="mt-3 text-sm leading-relaxed text-stone-600">
-              This page keeps the listing, seller context, trust cues, and next action in one
-              place so buyers can decide faster and sellers get more serious conversations.
-            </p>
-          </div>
+          <ListingSellerPanel
+            seller={seller}
+            sellerId={String(sellerId || "")}
+            listingId={String(listing?._id || listing?.id || "")}
+          />
         </div>
       </section>
 
-      {related.length > 0 ? (
+      {/* Related listings */}
+      {related.length > 0 && (
         <section className="mt-16">
           <div className="mb-5 flex items-center justify-between gap-4">
-            <h2 className="text-3xl font-bold text-stone-900">Related listings</h2>
+            <h2 className="text-2xl font-bold text-stone-900">Related listings</h2>
             {category ? (
               <Link href={`/browse/${category.slug}`} className="text-sm font-semibold text-terra-600 hover:text-terra-700">
                 More {category.shortLabel.toLowerCase()}
@@ -193,12 +194,12 @@ export default async function ListingDetailPage({ params }: Props) {
             ) : null}
           </div>
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {related.slice(0, 4).map((item: any) => (
-              <ListingCard key={item._id || item.id} listing={item} />
+            {related.map((item: any) => (
+              <ListingCard key={item._id || item.id} listing={item} compact />
             ))}
           </div>
         </section>
-      ) : null}
+      )}
     </div>
   );
 }
