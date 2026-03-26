@@ -18,6 +18,9 @@ export interface User {
   fullName?: string;
   email?: string;
   phone?: string;
+  county?: string;
+  constituency?: string;
+  ward?: string;
   profilePicture?: string;
   role?: "user" | "admin" | "super_admin";
   userType?: string;
@@ -25,6 +28,7 @@ export interface User {
     phoneVerified?: boolean;
     emailVerified?: boolean;
     idVerified?: boolean;
+    selfieVerified?: boolean;
     isVerified?: boolean;
   };
 }

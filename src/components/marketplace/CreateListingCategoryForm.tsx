@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useEffect, useTransition } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
@@ -12,6 +13,25 @@ import {
   type SellerCategorySlug,
   formatKes,
 } from "@/lib/marketplace";
+import {
+  getConstituenciesByCounty,
+  getWardsByConstituency,
+  kenyaCounties,
+} from "@/data/kenyaCounties";
+import GooglePlacesInput from "@/components/map/GooglePlacesInput";
+import MapPicker from "@/components/map/MapPicker";
+import {
+  matchLocationCandidate,
+  type GooglePlaceSelection,
+} from "@/utils/googleMaps";
+import {
+  CheckCircle2,
+  ImagePlus,
+  MapPin,
+  ShieldCheck,
+  UploadCloud,
+  X,
+} from "lucide-react";
 
 type CreateListingCategoryFormProps = {
   category: {
@@ -21,6 +41,8 @@ type CreateListingCategoryFormProps = {
   };
 };
 
+type DeliveryScope = "countrywide" | "within_county" | "negotiable";
+
 type FormState = {
   title: string;
   description: string;
@@ -28,10 +50,46 @@ type FormState = {
   quantity: string;
   unit: string;
   county: string;
-  location: string;
+  constituency: string;
+  ward: string;
+  approximateLocation: string;
   contact: string;
-  imageUrl: string;
+  availableFrom: string;
+  deliveryScope: DeliveryScope;
+  latitude?: number;
+  longitude?: number;
+  images: File[];
 };
+
+const MAX_IMAGES = 5;
+
+const DELIVERY_SCOPE_OPTIONS: Array<{
+  value: DeliveryScope;
+  label: string;
+  helper: string;
+}> = [
+  {
+    value: "countrywide",
+    label: "Countrywide",
+    helper: "You can coordinate delivery beyond your county.",
+  },
+  {
+    value: "within_county",
+    label: "Within county",
+    helper: "You deliver only within your county or nearby towns.",
+  },
+  {
+    value: "negotiable",
+    label: "Negotiable",
+    helper: "You will agree delivery on a case-by-case basis.",
+  },
+];
+
+const buildImagePreview = (file: File) => ({
+  key: `${file.name}-${file.size}-${file.lastModified}`,
+  file,
+  url: URL.createObjectURL(file),
+});
 
 export default function CreateListingCategoryForm({
   category,
@@ -41,6 +99,11 @@ export default function CreateListingCategoryForm({
   const [isPending, startTransition] = useTransition();
 
   const details = CREATE_LISTING_CATEGORY_DETAILS[category.apiCategory];
+  const countyOptions = useMemo(() => kenyaCounties.map((county) => county.name), []);
+  const verifiedSeller = Boolean(
+    user?.verification?.idVerified || user?.verification?.isVerified
+  );
+
   const [form, setForm] = useState<FormState>({
     title: "",
     description: "",
@@ -48,63 +111,204 @@ export default function CreateListingCategoryForm({
     quantity: "",
     unit: details.unitOptions[0],
     county: "",
-    location: "",
+    constituency: "",
+    ward: "",
+    approximateLocation: "",
     contact: user?.phone || user?.email || "",
-    imageUrl: "",
+    availableFrom: "",
+    deliveryScope: "negotiable",
+    images: [],
   });
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [success, setSuccess] = useState<{
+    publishStatus: string;
+    listingId?: string;
+  } | null>(null);
+
+  const constituencyOptions = useMemo(
+    () => (form.county ? getConstituenciesByCounty(form.county) : []),
+    [form.county]
+  );
+  const wardOptions = useMemo(
+    () =>
+      form.county && form.constituency
+        ? getWardsByConstituency(form.county, form.constituency)
+        : [],
+    [form.county, form.constituency]
+  );
+
+  const previewImages = useMemo(
+    () => form.images.map((file) => buildImagePreview(file)),
+    [form.images]
+  );
+
+  useEffect(() => {
+    return () => {
+      previewImages.forEach((item) => URL.revokeObjectURL(item.url));
+    };
+  }, [previewImages]);
+
+  useEffect(() => {
+    if (!user?.phone && !user?.email) return;
+    setForm((current) => {
+      if (current.contact) return current;
+      return { ...current, contact: user?.phone || user?.email || "" };
+    });
+  }, [user?.email, user?.phone]);
+
+  useEffect(() => {
+    if (!form.county) {
+      setForm((current) => ({ ...current, constituency: "", ward: "" }));
+      return;
+    }
+
+    const validConstituency = constituencyOptions.some(
+      (item) => item.value === form.constituency
+    );
+
+    if (!validConstituency) {
+      setForm((current) => ({ ...current, constituency: "", ward: "" }));
+      return;
+    }
+
+    const validWard = wardOptions.some((item) => item.value === form.ward);
+    if (!validWard && form.ward) {
+      setForm((current) => ({ ...current, ward: "" }));
+    }
+  }, [constituencyOptions, form.constituency, form.county, form.ward, wardOptions]);
 
   const publishPreview = useMemo(() => {
     const price = Number(form.price);
     return Number.isFinite(price) && price > 0 ? formatKes(price) : "Set a price";
   }, [form.price]);
 
-  const handleChange = (field: keyof FormState, value: string) => {
-    setForm((current) => ({ ...current, [field]: value }));
+  const locationPreview = useMemo(() => {
+    return [
+      form.approximateLocation.trim(),
+      form.ward.trim(),
+      form.constituency.trim(),
+      form.county.trim(),
+    ]
+      .filter(Boolean)
+      .join(", ");
+  }, [form.approximateLocation, form.constituency, form.county, form.ward]);
+
+  const handleChange = (field: keyof FormState, value: string | File[]) => {
+    setForm((current) => ({ ...current, [field]: value } as FormState));
+  };
+
+  const handleImageSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+
+    const nextImages = [...form.images, ...files].slice(0, MAX_IMAGES);
+    setForm((current) => ({ ...current, images: nextImages }));
+    event.target.value = "";
+  };
+
+  const removeImage = (index: number) => {
+    setForm((current) => ({
+      ...current,
+      images: current.images.filter((_, imageIndex) => imageIndex !== index),
+    }));
+  };
+
+  const handlePlaceSelected = (selection: GooglePlaceSelection) => {
+    const matchedCounty =
+      matchLocationCandidate(selection.county, countyOptions) || form.county;
+    const matchedConstituency =
+      matchedCounty && selection.constituency
+        ? matchLocationCandidate(
+            selection.constituency,
+            getConstituenciesByCounty(matchedCounty)
+          ) || ""
+        : "";
+    const matchedWard =
+      matchedCounty && matchedConstituency && selection.ward
+        ? matchLocationCandidate(
+            selection.ward,
+            getWardsByConstituency(matchedCounty, matchedConstituency)
+          ) || ""
+        : "";
+
+    setForm((current) => ({
+      ...current,
+      county: matchedCounty,
+      constituency: matchedConstituency,
+      ward: matchedWard,
+      approximateLocation:
+        selection.formattedAddress || selection.approximateLocation || current.approximateLocation,
+      latitude: selection.coordinates?.lat,
+      longitude: selection.coordinates?.lng,
+    }));
+  };
+
+  const validate = () => {
+    if (!form.title.trim()) return "Add a clear listing title.";
+    if (!form.description.trim()) return "Describe what you are listing clearly.";
+    if (!form.price.trim()) return "Set the listing price.";
+    if (!form.county.trim()) return "Choose the county where the listing is based.";
+    if (!form.contact.trim()) return "Add the phone or email buyers should use.";
+    if (!form.images.length) return "Upload at least one real image for the listing.";
+    return "";
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
-    setSuccess("");
+    setSuccess(null);
+
+    const validationMessage = validate();
+    if (validationMessage) {
+      setError(validationMessage);
+      return;
+    }
+
+    const payload = new FormData();
+    payload.append("title", form.title.trim());
+    payload.append("description", form.description.trim());
+    payload.append("category", category.apiCategory);
+    payload.append("listingType", "sell");
+    payload.append("price", form.price.trim());
+    if (form.quantity.trim()) payload.append("quantity", form.quantity.trim());
+    if (form.unit.trim()) payload.append("unit", form.unit.trim());
+    payload.append("county", form.county.trim());
+    if (form.constituency.trim()) payload.append("constituency", form.constituency.trim());
+    if (form.ward.trim()) payload.append("ward", form.ward.trim());
+    if (form.approximateLocation.trim()) {
+      payload.append("approximateLocation", form.approximateLocation.trim());
+    }
+    if (typeof form.latitude === "number" && typeof form.longitude === "number") {
+      payload.append("latitude", String(form.latitude));
+      payload.append("longitude", String(form.longitude));
+    }
+    if (form.availableFrom) payload.append("availableFrom", form.availableFrom);
+    payload.append("deliveryScope", form.deliveryScope);
+    payload.append("contact", form.contact.trim());
+    form.images.forEach((image) => payload.append("images", image));
 
     try {
-      const created = await apiRequest(API_ENDPOINTS.unifiedListings.create, {
+      const response = await apiRequest(API_ENDPOINTS.products.create, {
         method: "POST",
-        body: JSON.stringify({
-          title: form.title.trim(),
-          description: form.description.trim(),
-          category: category.apiCategory,
-          type: category.apiCategory === "service" ? "service" : "product",
-          price: Number(form.price),
-          quantity: form.quantity ? Number(form.quantity) : undefined,
-          unit: form.unit,
-          contact: form.contact.trim(),
-          images: form.imageUrl.trim() ? [form.imageUrl.trim()] : [],
-          deliveryScope: "negotiable",
-          location: {
-            country: "KE",
-            region: form.county.trim(),
-            county: form.county.trim(),
-            approximateLocation: form.location.trim(),
-          },
-        }),
+        body: payload,
       });
 
-      const listingId = created?.listing?._id || created?.data?._id || created?._id;
-      if (!listingId) {
-        throw new Error("The listing was created but the listing ID was missing from the response.");
+      const listing = response?.data ?? response;
+      const publishStatus = String(listing?.publishStatus || "").toLowerCase();
+      const listingId = listing?._id ? String(listing._id) : undefined;
+
+      setSuccess({
+        publishStatus,
+        listingId,
+      });
+
+      if (publishStatus === "active") {
+        startTransition(() => {
+          if (listingId) {
+            router.push(`/listings/${listingId}`);
+          }
+        });
       }
-
-      await apiRequest(API_ENDPOINTS.unifiedListings.publish(listingId), {
-        method: "POST",
-      });
-
-      setSuccess("Listing published successfully. Redirecting to the live listing...");
-      startTransition(() => {
-        router.push(`/listings/${listingId}`);
-      });
     } catch (submitError: any) {
       setError(submitError?.message || "Unable to publish the listing right now.");
     }
@@ -120,11 +324,37 @@ export default function CreateListingCategoryForm({
         <span className="text-stone-900">{details.heading}</span>
       </nav>
 
-      <section className="grid gap-8 xl:grid-cols-[1fr_0.8fr]">
+      <section className="grid gap-8 xl:grid-cols-[1fr_0.9fr]">
         <form onSubmit={handleSubmit} className="surface-card p-6 sm:p-8">
           <p className="section-kicker">{category.label}</p>
           <h1 className="mt-4 text-4xl font-bold text-stone-900">{details.heading}</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">{details.intro}</p>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
+            {details.intro} Upload actual photos, pin the location if you can, and keep the copy
+            practical so buyers know what is real.
+          </p>
+
+          <div className="mt-6 rounded-[24px] border border-stone-200 bg-stone-50 p-4">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="mt-0.5 h-5 w-5 text-terra-600" />
+              <div className="text-sm text-stone-700">
+                <p className="font-semibold text-stone-900">
+                  {verifiedSeller
+                    ? "Your profile is verified. Listings can go live immediately."
+                    : "Your profile is not verified yet."}
+                </p>
+                <p className="mt-1 leading-relaxed text-stone-600">
+                  {verifiedSeller
+                    ? "Admin approval is still available for moderation, but verified listings are eligible to publish straight away."
+                    : "Unverified listings are submitted for admin review. Keep the county accurate and the photos clear so approval is faster."}
+                </p>
+                {!verifiedSeller ? (
+                  <Link href="/verify" className="mt-3 inline-flex text-sm font-semibold text-terra-600 hover:text-terra-700">
+                    Open verification
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          </div>
 
           {error ? (
             <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
@@ -133,12 +363,36 @@ export default function CreateListingCategoryForm({
           ) : null}
 
           {success ? (
-            <div className="mt-6 rounded-2xl border border-forest-200 bg-forest-50 px-4 py-3 text-sm font-medium text-forest-700">
-              {success}
+            <div className="mt-6 rounded-2xl border border-forest-200 bg-forest-50 px-4 py-4 text-sm text-forest-800">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5" />
+                <div>
+                  <p className="font-semibold">
+                    {success.publishStatus === "active"
+                      ? "Listing published successfully."
+                      : "Listing submitted for review."}
+                  </p>
+                  <p className="mt-1 leading-relaxed">
+                    {success.publishStatus === "active"
+                      ? "The listing is now live in the marketplace."
+                      : "Admin approval is required before this listing becomes public because the seller profile is not fully verified yet."}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    {success.publishStatus === "active" && success.listingId ? (
+                      <Link href={`/listings/${success.listingId}`} className="text-sm font-semibold text-forest-800 underline underline-offset-2">
+                        View live listing
+                      </Link>
+                    ) : null}
+                    <Link href="/browse" className="text-sm font-semibold text-forest-800 underline underline-offset-2">
+                      Browse marketplace
+                    </Link>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : null}
 
-          <div className="mt-8 grid gap-5">
+          <div className="mt-8 grid gap-6">
             <div>
               <label className="field-label">Listing title</label>
               <input
@@ -162,7 +416,7 @@ export default function CreateListingCategoryForm({
               />
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-5 md:grid-cols-3">
               <div>
                 <label className="field-label">Price in KES</label>
                 <input
@@ -180,7 +434,7 @@ export default function CreateListingCategoryForm({
                 <label className="field-label">{details.quantityLabel}</label>
                 <input
                   type="number"
-                  min="1"
+                  min="0"
                   step="1"
                   value={form.quantity}
                   onChange={(event) => handleChange("quantity", event.target.value)}
@@ -188,9 +442,6 @@ export default function CreateListingCategoryForm({
                   className="field-input"
                 />
               </div>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2">
               <div>
                 <label className="field-label">Unit</label>
                 <select
@@ -205,30 +456,126 @@ export default function CreateListingCategoryForm({
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="field-label">County</label>
-                <input
-                  type="text"
-                  value={form.county}
-                  onChange={(event) => handleChange("county", event.target.value)}
-                  placeholder="Example: Nakuru"
-                  className="field-input"
-                  required
+            </div>
+
+            <div className="rounded-[24px] border border-stone-200 bg-stone-50 p-5">
+              <div className="flex items-start gap-3">
+                <MapPin className="mt-1 h-5 w-5 text-terra-600" />
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-lg font-semibold text-stone-900">Location</h2>
+                  <p className="mt-1 text-sm leading-relaxed text-stone-600">
+                    County is required. Constituency and ward remain available, but the
+                    approximate location is the main matching signal for most marketplace use.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-5">
+                <GooglePlacesInput
+                  label="Search location"
+                  value={form.approximateLocation}
+                  onChange={(value) => handleChange("approximateLocation", value)}
+                  onPlaceSelected={handlePlaceSelected}
+                  helperText="Search a town, market, road, or landmark in Kenya. The form will try to auto-fill county, constituency, ward, and map coordinates."
                 />
+
+                <div className="grid gap-5 md:grid-cols-3">
+                  <div>
+                    <label className="field-label">County</label>
+                    <select
+                      value={form.county}
+                      onChange={(event) => handleChange("county", event.target.value)}
+                      className="field-select"
+                      required
+                    >
+                      <option value="">Select county</option>
+                      {countyOptions.map((countyName) => (
+                        <option key={countyName} value={countyName}>
+                          {countyName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">Constituency</label>
+                    <select
+                      value={form.constituency}
+                      onChange={(event) => handleChange("constituency", event.target.value)}
+                      className="field-select"
+                      disabled={!form.county}
+                    >
+                      <option value="">Optional</option>
+                      {constituencyOptions.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">Ward</label>
+                    <select
+                      value={form.ward}
+                      onChange={(event) => handleChange("ward", event.target.value)}
+                      className="field-select"
+                      disabled={!form.constituency}
+                    >
+                      <option value="">Optional</option>
+                      {wardOptions.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2">
+                  <div>
+                    <label className="field-label">Town / trading centre / landmark</label>
+                    <input
+                      type="text"
+                      value={form.approximateLocation}
+                      onChange={(event) =>
+                        handleChange("approximateLocation", event.target.value)
+                      }
+                      placeholder="Example: Wakulima Market, Kikuyu town, near main road"
+                      className="field-input"
+                    />
+                  </div>
+                  <div>
+                    <label className="field-label">Available from</label>
+                    <input
+                      type="date"
+                      value={form.availableFrom}
+                      onChange={(event) => handleChange("availableFrom", event.target.value)}
+                      className="field-input"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="field-label">Refine the pin on the map</label>
+                  <MapPicker
+                    onChange={(coords) =>
+                      setForm((current) => ({
+                        ...current,
+                        latitude: coords.lat,
+                        longitude: coords.lng,
+                      }))
+                    }
+                    defaultCenter={
+                      typeof form.latitude === "number" && typeof form.longitude === "number"
+                        ? { lat: form.latitude, lng: form.longitude }
+                        : undefined
+                    }
+                    height="260px"
+                  />
+                </div>
               </div>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
-              <div>
-                <label className="field-label">Approximate location</label>
-                <input
-                  type="text"
-                  value={form.location}
-                  onChange={(event) => handleChange("location", event.target.value)}
-                  placeholder="Town, ward, or trading centre"
-                  className="field-input"
-                />
-              </div>
               <div>
                 <label className="field-label">Contact phone or email</label>
                 <input
@@ -240,17 +587,92 @@ export default function CreateListingCategoryForm({
                   required
                 />
               </div>
+              <div>
+                <label className="field-label">Delivery scope</label>
+                <select
+                  value={form.deliveryScope}
+                  onChange={(event) =>
+                    handleChange("deliveryScope", event.target.value as DeliveryScope)
+                  }
+                  className="field-select"
+                >
+                  {DELIVERY_SCOPE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-2 text-xs text-stone-500">
+                  {
+                    DELIVERY_SCOPE_OPTIONS.find(
+                      (option) => option.value === form.deliveryScope
+                    )?.helper
+                  }
+                </p>
+              </div>
             </div>
 
             <div>
-              <label className="field-label">Optional image URL</label>
-              <input
-                type="url"
-                value={form.imageUrl}
-                onChange={(event) => handleChange("imageUrl", event.target.value)}
-                placeholder="https://..."
-                className="field-input"
-              />
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <label className="field-label">Listing images</label>
+                <span className="text-xs text-stone-500">
+                  {form.images.length}/{MAX_IMAGES} uploaded
+                </span>
+              </div>
+              <label className="flex cursor-pointer flex-col items-center justify-center rounded-[24px] border border-dashed border-stone-300 bg-stone-50 px-6 py-8 text-center transition hover:border-terra-300 hover:bg-white">
+                <UploadCloud className="h-8 w-8 text-terra-600" />
+                <p className="mt-3 text-sm font-semibold text-stone-900">
+                  Upload real photos, not URLs
+                </p>
+                <p className="mt-1 text-xs text-stone-500">
+                  JPG, PNG, or WebP. Up to {MAX_IMAGES} images.
+                </p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleImageSelection}
+                />
+              </label>
+
+              {previewImages.length > 0 ? (
+                <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {previewImages.map((item, index) => (
+                    <div
+                      key={item.key}
+                      className="overflow-hidden rounded-[24px] border border-stone-200 bg-white"
+                    >
+                      <div className="relative aspect-[4/3] bg-stone-100">
+                        <Image
+                          src={item.url}
+                          alt={`Listing upload ${index + 1}`}
+                          fill
+                          sizes="(max-width: 1024px) 50vw, 33vw"
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-stone-600">
+                        <span className="truncate">{item.file.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="inline-flex items-center gap-1 text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-4 rounded-[24px] border border-stone-200 bg-stone-50 px-4 py-5 text-sm text-stone-500">
+                  No photos uploaded yet. Listings with clear images feel substantially more
+                  credible and convert faster.
+                </div>
+              )}
             </div>
 
             <button type="submit" disabled={isPending} className="primary-button w-full">
@@ -276,18 +698,36 @@ export default function CreateListingCategoryForm({
               <div className="rounded-2xl bg-stone-50 px-4 py-3">
                 <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Coverage</p>
                 <p className="mt-1 font-semibold text-stone-900">
-                  {[form.location, form.county].filter(Boolean).join(", ") || "County not set yet"}
+                  {locationPreview || "County and town not set yet"}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Images</p>
+                <p className="mt-1 font-semibold text-stone-900">
+                  {form.images.length} image{form.images.length === 1 ? "" : "s"}
                 </p>
               </div>
             </div>
           </div>
 
           <div className="soft-panel p-6">
-            <h2 className="text-2xl font-bold text-stone-900">Good listing habits</h2>
+            <h2 className="text-2xl font-bold text-stone-900">Why this structure works</h2>
             <ul className="mt-4 space-y-3 text-sm leading-relaxed text-stone-600">
-              <li>Use a clear product or service name instead of vague marketing language.</li>
-              <li>State the county and quantity accurately so buyers can act quickly.</li>
-              <li>Describe actual quality, packaging, timing, and delivery expectations.</li>
+              <li>Photos are uploaded directly, so the listing matches the PWA trust posture.</li>
+              <li>County remains structured, but town and map pin reduce location friction.</li>
+              <li>Verified profiles can publish immediately while unverified sellers go to admin review.</li>
+            </ul>
+          </div>
+
+          <div className="surface-card p-6">
+            <div className="flex items-center gap-3">
+              <ImagePlus className="h-5 w-5 text-terra-600" />
+              <h2 className="text-2xl font-bold text-stone-900">Good listing habits</h2>
+            </div>
+            <ul className="mt-4 space-y-3 text-sm leading-relaxed text-stone-600">
+              <li>Show actual stock or the exact item buyers will receive.</li>
+              <li>Use the town or trading centre buyers already know, not only internal admin geography.</li>
+              <li>State packaging, quality, timing, and delivery reality instead of generic marketing copy.</li>
             </ul>
           </div>
         </aside>

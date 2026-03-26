@@ -50,7 +50,7 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
     Number.isFinite(n.price) &&
     n.price > 0;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (destination: "/cart" | "/checkout" = "/cart") => {
     addItem({
       listingId,
       title: n.title || n.name || "Listing",
@@ -63,7 +63,11 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
       sellerName,
       maxQuantity: typeof n.quantity === "number" ? n.quantity : undefined,
     });
-    router.push("/cart");
+    router.push(destination);
+  };
+
+  const handleBuyNow = () => {
+    handleAddToCart("/checkout");
   };
 
   const handleToggleFavorite = async () => {
@@ -131,9 +135,14 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
             onChange={(e) => setQuantity(Math.max(1, Number(e.target.value || 1)))}
             className="field-input"
           />
-          <button type="button" onClick={handleAddToCart} className="primary-button mt-3 w-full">
-            Add to cart
-          </button>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <button type="button" onClick={() => handleAddToCart("/cart")} className="secondary-button w-full">
+              Add to cart
+            </button>
+            <button type="button" onClick={handleBuyNow} className="primary-button w-full">
+              Buy now
+            </button>
+          </div>
         </div>
       )}
 

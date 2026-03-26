@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ListingActionPanel from "@/components/marketplace/ListingActionPanel";
 import ListingGallery from "@/components/marketplace/ListingGallery";
+import ListingMapSection from "@/components/marketplace/ListingMapSection";
 import ListingSellerPanel from "@/components/marketplace/ListingSellerPanel";
 import ListingTypeDetails from "@/components/marketplace/ListingTypeDetails";
 import ListingCard from "@/components/marketplace/ListingCard";
@@ -16,7 +17,6 @@ import {
   getListingPriceLabel,
   getListingTypeLabel,
   getLocationLabel,
-  getUserDisplayName,
   isListingBoosted,
   isVerifiedProfile,
   normalizeMarketplaceListing,
@@ -57,13 +57,14 @@ export default async function ListingDetailPage({ params }: Props) {
   const location = getLocationLabel(listing);
   const seller = listing?.seller || listing?.owner || listing?.user;
   const sellerId = seller?._id || seller?.id || listing?.userId;
-  const sellerName = getUserDisplayName(seller);
   const verified = isVerifiedProfile(seller) || listing?.verified || listing?.isVerified;
   const boosted = isListingBoosted(listing);
   const typeLabel = getListingTypeLabel(listing);
   const deliveryLabel = getDeliveryScopeLabel(listing);
   const engagement = getListingEngagement(listing);
   const listingId = String(listing?._id || listing?.id || "");
+  const latitude = Number(listing?.location?.coordinates?.lat);
+  const longitude = Number(listing?.location?.coordinates?.lng);
 
   // Parallel fetch: related + more from seller
   const [relatedData, sellerListingsData] = await Promise.all([
@@ -91,6 +92,13 @@ export default async function ListingDetailPage({ params }: Props) {
 
   return (
     <div className="page-shell py-8 sm:py-10">
+      <Link
+        href="/browse"
+        className="mb-4 inline-flex text-sm font-semibold text-terra-600 transition hover:text-terra-700"
+      >
+        Back to listings
+      </Link>
+
       {/* Breadcrumb */}
       <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-stone-500">
         <Link href="/browse" className="hover:text-terra-600 transition-colors">Browse</Link>
@@ -202,6 +210,10 @@ export default async function ListingDetailPage({ params }: Props) {
 
           {/* Type-specific details */}
           <ListingTypeDetails listing={listing} />
+
+          {Number.isFinite(latitude) && Number.isFinite(longitude) ? (
+            <ListingMapSection lat={latitude} lng={longitude} />
+          ) : null}
         </div>
 
         {/* RIGHT — sticky on xl */}
@@ -225,7 +237,7 @@ export default async function ListingDetailPage({ params }: Props) {
             <div>
               <p className="section-kicker">Same seller</p>
               <h2 className="mt-1 text-2xl font-bold text-stone-900">
-                More from {sellerName}
+                More from this seller
               </h2>
             </div>
             {sellerId && (
