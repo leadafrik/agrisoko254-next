@@ -180,13 +180,32 @@ export default function CommodityIntelligenceExplorer({ initialProduct, initialH
           </button>
         </div>
 
-        {/* Big average */}
-        <div className="mt-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-stone-400">Board average</p>
-          <p className="mt-1 font-mono text-5xl font-bold text-stone-900">
-            {product.overallAverage > 0 ? formatKes(product.overallAverage) : "—"}
-          </p>
-          <p className="mt-0.5 text-xs text-stone-400">/ {product.unit}</p>
+        {/* Big average + high/low */}
+        <div className="mt-5 flex flex-wrap items-end gap-6">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-stone-400">Board average</p>
+            <p className="mt-1 font-mono text-5xl font-bold text-stone-900">
+              {product.overallAverage > 0 ? formatKes(product.overallAverage) : "—"}
+            </p>
+            <p className="mt-0.5 text-xs text-stone-400">/ {product.unit}</p>
+          </div>
+          {product.bestMarket && product.weakestMarket && (
+            <div className="mb-1 flex items-center gap-4 text-sm">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-green-600">Highest</p>
+                <p className="mt-0.5 font-mono text-xl font-bold text-stone-900">
+                  {formatKes(product.bestMarket.avgPrice)}
+                </p>
+              </div>
+              <div className="h-8 w-px bg-stone-200" />
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-600">Lowest</p>
+                <p className="mt-0.5 font-mono text-xl font-bold text-stone-900">
+                  {formatKes(product.weakestMarket.avgPrice)}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* AI one-liner */}
