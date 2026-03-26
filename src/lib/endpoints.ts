@@ -46,6 +46,17 @@ export const API_ENDPOINTS = {
       delete: (id: string) => `${API_BASE_URL}/admin/blog/${id}`,
     },
   },
+  marketIntelligence: {
+    overview: `${API_BASE_URL}/market-intelligence/overview`,
+    byProduct: (productKey: string) =>
+      `${API_BASE_URL}/market-intelligence/products/${productKey}`,
+    submissions: `${API_BASE_URL}/market-intelligence/submissions`,
+    admin: {
+      submissions: `${API_BASE_URL}/admin/market-intelligence/submissions`,
+      review: (submissionId: string) =>
+        `${API_BASE_URL}/admin/market-intelligence/submissions/${submissionId}/review`,
+    },
+  },
   listings: {
     getAll:  `${API_BASE_URL}/listings`,
     getById: (id: string) => `${API_BASE_URL}/listings/${id}`,

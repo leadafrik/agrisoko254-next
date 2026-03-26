@@ -77,7 +77,7 @@ export default async function LearnIndexPage() {
               <h2 className="mt-2 text-xl font-bold text-stone-900">Editorial analysis, updates, and field commentary</h2>
             </Link>
             <Link
-              href="/learn/market-prices"
+              href="/market-intelligence"
               className="rounded-[24px] border border-white/80 bg-white/80 p-5 shadow-sm transition hover:-translate-y-1"
             >
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">

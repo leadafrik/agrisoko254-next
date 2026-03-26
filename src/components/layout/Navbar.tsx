@@ -26,6 +26,7 @@ import { useCart } from "@/contexts/CartContext";
 const navLinks = [
   { href: "/browse", label: "Marketplace" },
   { href: "/request", label: "Buy Requests" },
+  { href: "/market-intelligence", label: "Market Intel" },
   { href: "/learn", label: "Learn" },
   { href: "/b2b", label: "Bulk / B2B" },
   { href: "/about", label: "About" },
@@ -61,6 +62,7 @@ const sellLinks = [
 const isActive = (pathname: string, href: string) => {
   if (href === "/browse") return pathname === "/browse" || pathname.startsWith("/browse/") || pathname.startsWith("/listings/");
   if (href === "/request") return pathname === "/request" || pathname.startsWith("/request/");
+  if (href === "/market-intelligence") return pathname === "/market-intelligence" || pathname.startsWith("/market-intelligence/");
   if (href === "/learn") return pathname === "/learn" || pathname.startsWith("/learn/") || pathname.startsWith("/blog/");
   if (href === "/b2b") return pathname === "/b2b" || pathname.startsWith("/b2b/");
   return pathname === href;

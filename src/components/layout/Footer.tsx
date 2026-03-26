@@ -89,6 +89,11 @@ export default function Footer() {
                   Buy requests
                 </Link>
               </li>
+              <li>
+                <Link href="/market-intelligence" className="hover:text-terra-600">
+                  Market intelligence
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -110,6 +115,11 @@ export default function Footer() {
               <li>
                 <Link href="/learn/insights" className="hover:text-terra-600">
                   Market insights
+                </Link>
+              </li>
+              <li>
+                <Link href="/market-intelligence" className="hover:text-terra-600">
+                  Price intelligence
                 </Link>
               </li>
               <li>

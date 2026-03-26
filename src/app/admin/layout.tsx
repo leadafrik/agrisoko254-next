@@ -41,6 +41,7 @@ const NAV_GROUPS = [
   {
     label: "Content",
     items: [
+      { href: "/admin/market-intelligence", label: "Market Intelligence" },
       { href: "/admin/blog",           label: "Blog Posts" },
       { href: "/admin/broadcast",      label: "Broadcast Email" },
       { href: "/admin/content-editor", label: "Content Editor" },
