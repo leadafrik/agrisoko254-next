@@ -174,14 +174,14 @@ export default async function HomePage() {
                   </div>
                 </div>
 
-                {/* Right — price intelligence card (dark for data contrast) */}
-                <div className="rounded-[28px] bg-stone-900 p-6 text-white shadow-[0_24px_70px_-42px_rgba(28,25,23,0.62)]">
+                {/* Right — price intelligence card */}
+                <div className="rounded-[28px] bg-gradient-to-b from-[#1e1106] to-[#170e04] p-6 text-white shadow-[0_28px_80px_-28px_rgba(20,12,4,0.65)] ring-1 ring-[#4a2e0a]/40">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/55">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#c4a060]/70">
                         Today&apos;s price edges
                       </p>
-                      <h2 className="mt-2 text-xl font-bold">Live market intelligence</h2>
+                      <h2 className="mt-1.5 text-xl font-bold text-white">Live market intelligence</h2>
                     </div>
                     <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-green-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-green-400">
                       <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />
@@ -199,18 +199,18 @@ export default async function HomePage() {
                     }
                   `}</style>
 
-                  <div className="mt-5 space-y-2">
+                  <div className="mt-4 space-y-1.5">
                     {featuredSignals.length > 0 ? (
                       featuredSignals.map((signal, i) => (
                         <Link
                           key={signal.productKey}
                           href={`/market-intelligence/${signal.productKey}`}
-                          className="signal-row flex items-center justify-between gap-3 rounded-[20px] border border-white/10 bg-white/5 px-4 py-3.5 transition-colors hover:border-white/20 hover:bg-white/10"
+                          className="signal-row flex items-center justify-between gap-3 rounded-[18px] border border-[#4a2e0a]/40 bg-[#2a1508]/50 px-4 py-3 transition-colors hover:border-[#7a4e1a]/50 hover:bg-[#2a1508]/70"
                           style={{ animationDelay: `${i * 90}ms` }}
                         >
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-white">{signal.productName}</p>
-                            <p className="mt-0.5 truncate text-xs text-white/50">
+                            <p className="text-sm font-semibold text-white/90">{signal.productName}</p>
+                            <p className="mt-0.5 truncate text-[11px] text-[#c4a060]/60">
                               {signal.bestMarketName} · {signal.bestCounty}
                             </p>
                           </div>
@@ -219,12 +219,12 @@ export default async function HomePage() {
                               {formatKes(signal.bestPrice)}
                             </p>
                             <p
-                              className={`mt-0.5 text-xs font-medium ${
+                              className={`mt-0.5 text-[11px] font-semibold ${
                                 signal.trendDirection === "up"
                                   ? "text-green-400"
                                   : signal.trendDirection === "down"
                                     ? "text-red-400"
-                                    : "text-white/40"
+                                    : "text-white/30"
                               }`}
                             >
                               {formatTrendLabel(signal.trendDirection, signal.trendPercentage)}
@@ -233,23 +233,23 @@ export default async function HomePage() {
                         </Link>
                       ))
                     ) : (
-                      <div className="rounded-[20px] border border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-white/40">
+                      <div className="rounded-[18px] border border-[#4a2e0a]/30 bg-[#2a1508]/40 px-4 py-5 text-center text-sm text-white/30">
                         Price data grows as field contributors submit reports.
                       </div>
                     )}
                   </div>
 
-                  <div className="mt-5 flex items-center justify-between text-sm">
-                    <span className="text-white/45">
+                  <div className="mt-4 flex items-center justify-between border-t border-[#4a2e0a]/30 pt-4 text-xs">
+                    <span className="text-white/35">
                       {intelligence.isFallback
                         ? "Starter board while live submissions build"
                         : "Built from approved field submissions"}
                     </span>
                     <Link
                       href="/market-intelligence/submit"
-                      className="font-semibold text-amber-300 hover:text-amber-200"
+                      className="font-semibold text-amber-400 transition hover:text-amber-300"
                     >
-                      Share a price
+                      Share a price →
                     </Link>
                   </div>
                 </div>

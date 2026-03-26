@@ -100,9 +100,16 @@ export default function ListingCard({
         </div>
 
         <div className="flex flex-1 flex-col p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
-            {typeLabel || category?.shortLabel || "Listing"}
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
+              {typeLabel || category?.shortLabel || "Listing"}
+            </p>
+            {location && (
+              <span className="truncate rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[10px] font-medium text-stone-500">
+                {location}
+              </span>
+            )}
+          </div>
           <h2 className="mt-2 line-clamp-2 text-xl font-semibold text-stone-900 transition group-hover:text-terra-600">
             {title}
           </h2>

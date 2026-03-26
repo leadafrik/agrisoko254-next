@@ -9,6 +9,7 @@ import {
   getDeliveryScopeLabel,
   getListingPriceLabel,
   getListingTypeLabel,
+  getLocationLabel,
   getPrimaryImageUrl,
   isListingBoosted,
   isVerifiedProfile,
@@ -80,6 +81,7 @@ export default function TrendingSection({ category }: Props) {
           const boosted = isListingBoosted(item);
           const verified = isVerifiedProfile(item?.seller || item?.owner) || item?.isVerified;
           const deliveryLabel = getDeliveryScopeLabel(item);
+          const location = getLocationLabel(item);
 
           return (
             <Link
@@ -105,18 +107,25 @@ export default function TrendingSection({ category }: Props) {
                 )}
               </div>
               <div className="p-3">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {boosted && (
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-                      <Zap className="h-2.5 w-2.5" /> Boosted
+                <div className="flex items-center justify-between gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1">
+                    {boosted && (
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+                        <Zap className="h-2.5 w-2.5" /> Boosted
+                      </span>
+                    )}
+                    {verified && (
+                      <span className="rounded-full border border-forest-200 bg-forest-50 px-2 py-0.5 text-[10px] font-semibold text-forest-700">
+                        Verified
+                      </span>
+                    )}
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-terra-600">{typeLabel}</span>
+                  </div>
+                  {location && (
+                    <span className="shrink-0 truncate rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[10px] font-medium text-stone-500">
+                      {location}
                     </span>
                   )}
-                  {verified && (
-                    <span className="rounded-full border border-forest-200 bg-forest-50 px-2 py-0.5 text-[10px] font-semibold text-forest-700">
-                      Verified
-                    </span>
-                  )}
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-terra-600">{typeLabel}</span>
                 </div>
                 <p className="mt-1.5 line-clamp-2 text-sm font-semibold text-stone-900 leading-snug">{title}</p>
                 <p className="mt-1 text-base font-bold text-stone-900">{priceLabel}</p>
