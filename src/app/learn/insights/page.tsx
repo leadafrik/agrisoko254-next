@@ -50,40 +50,46 @@ export default async function LearnInsightsPage() {
       {featured ? (
         <Link
           href={`/learn/insights/${featured.slug}`}
-          className="block overflow-hidden rounded-[30px] border border-stone-200 bg-white shadow-[0_22px_70px_-54px_rgba(72,52,33,0.4)] transition hover:-translate-y-1"
+          className="group block overflow-hidden rounded-[30px] border border-stone-200 bg-white shadow-[0_22px_70px_-54px_rgba(72,52,33,0.4)] transition hover:-translate-y-0.5 hover:border-terra-200 hover:shadow-[0_28px_80px_-50px_rgba(72,52,33,0.5)]"
         >
           <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="p-7 sm:p-8">
+            <div className="p-7 sm:p-9">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
                 Featured insight
               </p>
-              <h2 className="mt-4 text-3xl font-bold text-stone-900 sm:text-4xl">{featured.title}</h2>
+              <h2 className="mt-4 text-3xl font-bold text-stone-900 transition group-hover:text-terra-700 sm:text-4xl">{featured.title}</h2>
               <p className="mt-4 max-w-2xl text-base leading-relaxed text-stone-600">
                 {featured.excerpt || "Agrisoko editorial insight."}
               </p>
-              <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-stone-500">
-                <span>{featured.readTimeMinutes} min read</span>
+              <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-stone-400">
+                {featured.readTimeMinutes ? <span>{featured.readTimeMinutes} min read</span> : null}
                 <span>{formatInsightDate(featured.publishedAt)}</span>
-                {featured.authorName ? <span>{featured.authorName}</span> : null}
+                {featured.authorName ? <span className="font-medium text-stone-600">{featured.authorName}</span> : null}
               </div>
             </div>
 
             {featured.coverImage ? (
-              <div className="relative min-h-[280px] bg-stone-100">
+              <div className="relative min-h-[280px] overflow-hidden bg-stone-100">
                 <Image
                   src={featured.coverImage}
                   alt={featured.title}
                   fill
-                  className="object-cover"
+                  className="object-cover transition duration-500 group-hover:scale-[1.02]"
                   sizes="(min-width: 1024px) 40vw, 100vw"
                 />
               </div>
-            ) : null}
+            ) : (
+              <div className="flex min-h-[280px] items-center justify-center bg-gradient-to-br from-[#FDF5F3] to-stone-100" />
+            )}
           </div>
         </Link>
       ) : (
-        <div className="rounded-[28px] border border-stone-200 bg-white p-8 text-center text-stone-500">
-          No insights have been published yet.
+        <div className="rounded-[28px] border border-stone-200 bg-white p-12 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-400">Coming soon</p>
+          <p className="mt-3 text-xl font-semibold text-stone-700">No insights published yet</p>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-stone-500">
+            The first article published from the admin panel will appear here automatically as the featured insight.
+          </p>
         </div>
       )}
 
@@ -94,29 +100,29 @@ export default async function LearnInsightsPage() {
               <Link
                 key={post.id}
                 href={`/learn/insights/${post.slug}`}
-                className="overflow-hidden rounded-[24px] border border-stone-200 bg-white transition hover:-translate-y-1 hover:border-terra-200"
+                className="group overflow-hidden rounded-[24px] border border-stone-200 bg-white transition duration-200 hover:-translate-y-0.5 hover:border-terra-200 hover:shadow-md"
               >
                 {post.coverImage ? (
-                  <div className="relative aspect-[16/10] bg-stone-100">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-stone-100">
                     <Image
                       src={post.coverImage}
                       alt={post.title}
                       fill
-                      className="object-cover"
+                      className="object-cover transition duration-500 group-hover:scale-[1.03]"
                       sizes="(min-width: 1280px) 24vw, (min-width: 640px) 45vw, 100vw"
                     />
                   </div>
-                ) : null}
+                ) : (
+                  <div className="aspect-[16/10] bg-gradient-to-br from-[#FDF5F3] to-stone-100" />
+                )}
                 <div className="p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
-                    Insight
-                  </p>
-                  <h3 className="mt-3 text-xl font-bold text-stone-900">{post.title}</h3>
-                  <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-stone-600">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terra-600">Insight</p>
+                  <h3 className="mt-2 line-clamp-2 text-lg font-bold text-stone-900 transition group-hover:text-terra-700">{post.title}</h3>
+                  <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-stone-500">
                     {post.excerpt || "Agrisoko editorial update."}
                   </p>
-                  <div className="mt-4 flex flex-wrap gap-3 text-sm text-stone-500">
-                    <span>{post.readTimeMinutes} min read</span>
+                  <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-stone-400">
+                    {post.readTimeMinutes ? <span>{post.readTimeMinutes} min read</span> : null}
                     <span>{formatInsightDate(post.publishedAt)}</span>
                   </div>
                 </div>

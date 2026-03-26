@@ -6,14 +6,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   Beef,
-  BookOpen,
   ChevronDown,
   CirclePlus,
-  LayoutGrid,
   Leaf,
   LogOut,
   Menu,
-  MessageSquare,
   Package,
   ShoppingCart,
   User,
@@ -226,15 +223,6 @@ export default function Navbar() {
                   )}
                 </Link>
 
-                {/* Messages icon */}
-                <Link
-                  href="/messages"
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-stone-500 transition hover:bg-stone-100 hover:text-stone-900"
-                  aria-label="Messages"
-                >
-                  <MessageSquare className="h-[18px] w-[18px]" />
-                </Link>
-
                 <div className="mx-1 h-5 w-px bg-stone-200" />
 
                 {/* List now CTA */}
@@ -272,7 +260,6 @@ export default function Navbar() {
                     <div className="my-1 border-t border-stone-100" />
                     {[
                       { href: "/profile", label: "Profile", Icon: User },
-                      { href: "/messages", label: "Messages", Icon: MessageSquare },
                       { href: "/cart", label: `Cart${itemCount > 0 ? ` (${itemCount})` : ""}`, Icon: ShoppingCart },
                     ].map(({ href, label, Icon }) => (
                       <Link
@@ -377,10 +364,9 @@ export default function Navbar() {
                       <p className="truncate text-xs text-stone-400">{user?.email || ""}</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-1.5">
+                  <div className="grid grid-cols-2 gap-1.5">
                     {[
                       { href: "/profile", label: "Profile", Icon: User },
-                      { href: "/messages", label: "Messages", Icon: MessageSquare },
                       { href: "/cart", label: itemCount > 0 ? `Cart (${itemCount})` : "Cart", Icon: ShoppingCart },
                     ].map(({ href, label, Icon }) => (
                       <Link
