@@ -32,6 +32,11 @@ export const metadata: Metadata = {
     description: "Buy and sell produce, livestock, farm inputs, and services in Kenya.",
     images: ["/og-image.png"],
   },
+  icons: {
+    icon: "/logo192.png",
+    apple: "/logo192.png",
+    shortcut: "/favicon.ico",
+  },
   robots: { index: true, follow: true },
   alternates: { canonical: "https://www.agrisoko254.com" },
 };

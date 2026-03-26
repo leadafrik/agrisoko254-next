@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Eye, Bookmark, MessageCircle, ShoppingCart, Zap } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
@@ -55,6 +56,9 @@ export default function ListingCard({
   const lastActive = formatLastActive(seller?.lastActive || seller?.updatedAt || n?.updatedAt);
   const responseTime = seller?.responseTime || seller?.responseTimeLabel || null;
   const hasEngagement = engagement.views > 0 || engagement.saves > 0 || engagement.reachOuts > 0;
+  const imageSizes = compact
+    ? "(min-width: 1280px) 22rem, (min-width: 640px) 50vw, 100vw"
+    : "(min-width: 1280px) 20rem, (min-width: 640px) 50vw, 100vw";
 
   if (compact) {
     return (
@@ -64,7 +68,15 @@ export default function ListingCard({
       >
         <div className="aspect-[4/3] bg-stone-100">
           {image ? (
-            <img src={image} alt={title} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
+            <div className="relative h-full w-full">
+              <Image
+                src={image}
+                alt={title}
+                fill
+                sizes={imageSizes}
+                className="object-cover transition duration-300 group-hover:scale-[1.03]"
+              />
+            </div>
           ) : (
             <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(160,69,46,0.14),_transparent_55%),linear-gradient(135deg,#fffdf8,#f2ece2)] text-sm font-semibold uppercase tracking-[0.2em] text-stone-400">
               Agrisoko
@@ -92,7 +104,15 @@ export default function ListingCard({
       {/* Image */}
       <Link href={listingHref} className="block aspect-[4/3] overflow-hidden bg-stone-100">
         {image ? (
-          <img src={image} alt={title} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
+          <div className="relative h-full w-full">
+            <Image
+              src={image}
+              alt={title}
+              fill
+              sizes={imageSizes}
+              className="object-cover transition duration-300 group-hover:scale-[1.03]"
+            />
+          </div>
         ) : (
           <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(160,69,46,0.14),_transparent_55%),linear-gradient(135deg,#fffdf8,#f2ece2)] text-sm font-semibold uppercase tracking-[0.2em] text-stone-400">
             Agrisoko
@@ -135,7 +155,15 @@ export default function ListingCard({
         {showSeller && (
           <div className="mt-3 flex items-center gap-2">
             {sellerAvatar ? (
-              <img src={sellerAvatar} alt={sellerName} className="h-7 w-7 rounded-full object-cover border border-stone-200" />
+              <div className="relative h-7 w-7 overflow-hidden rounded-full border border-stone-200">
+                <Image
+                  src={sellerAvatar}
+                  alt={sellerName}
+                  fill
+                  sizes="28px"
+                  className="object-cover"
+                />
+              </div>
             ) : (
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-terra-100 text-[10px] font-semibold text-terra-700">
                 {getInitials(sellerName)}

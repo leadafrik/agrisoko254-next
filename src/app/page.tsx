@@ -46,21 +46,34 @@ export default async function HomePage() {
               <div>
                 <p className="section-kicker">Built in Kenya for agricultural trade</p>
                 <h1 className="mt-4 text-4xl font-bold text-stone-900 sm:text-5xl lg:text-6xl">
-                  Buy and sell produce across Kenya with more trust and less friction.
+                  Find verified produce and suppliers across Kenya without middlemen.
                 </h1>
                 <p className="mt-5 max-w-2xl text-lg leading-relaxed text-stone-600">
-                  Agrisoko helps farmers, traders, institutional buyers, input suppliers, and
-                  service providers move from discovery to direct contact without broker-heavy
-                  detours. Browse live supply, review real buyer demand, and keep practical market
-                  guidance close at hand.
+                  Browse trusted listings, compare sellers, and close direct deals faster. Agrisoko
+                  keeps live supply, buyer demand, and practical market guidance in one serious
+                  marketplace workflow.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Link href="/browse" className="primary-button">
-                    Browse marketplace
+                    Browse listings
                   </Link>
-                  <Link href="/login?mode=signup" className="secondary-button">
-                    Create account
+                  <Link
+                    href="/login?mode=signup&redirect=%2Fcreate-listing%2Fproduce"
+                    className="secondary-button"
+                  >
+                    List produce free
                   </Link>
+                </div>
+                <div className="mt-5 flex flex-wrap gap-3 text-sm text-stone-600">
+                  <span className="rounded-full border border-stone-200 bg-white/80 px-3 py-1.5 font-medium">
+                    Listings are free right now
+                  </span>
+                  <span className="rounded-full border border-stone-200 bg-white/80 px-3 py-1.5 font-medium">
+                    {typeof activeListings === "number" ? `${activeListings.toLocaleString()} listings live` : "Live listings updated regularly"}
+                  </span>
+                  <span className="rounded-full border border-stone-200 bg-white/80 px-3 py-1.5 font-medium">
+                    {SUPPORTED_DELIVERY_COUNTIES.length} checkout counties
+                  </span>
                 </div>
               </div>
 
