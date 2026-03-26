@@ -25,6 +25,7 @@ export default function AdminBoostsPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [workingId, setWorkingId] = useState("");
   const [stats, setStats] = useState({ total: 0, submitted: 0, approved: 0 });
+  const [noteInputs, setNoteInputs] = useState<Record<string, string>>({});
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -51,11 +52,12 @@ export default function AdminBoostsPage() {
     setWorkingId(boostId);
     setError("");
     try {
-      const note = window.prompt("Admin note (optional):") || undefined;
+      const note = noteInputs[boostId]?.trim() || undefined;
       await apiRequest(API_ENDPOINTS.boosts.admin.review(boostId), {
         method: "POST",
         body: JSON.stringify({ action, adminNote: note }),
       });
+      setNoteInputs((prev) => { const next = { ...prev }; delete next[boostId]; return next; });
       await loadItems();
     } catch (err: any) {
       setError(err?.message || "Unable to update boost request.");
@@ -161,6 +163,13 @@ export default function AdminBoostsPage() {
                       <span className="text-sm text-stone-600">Boost fee</span>
                       <span className="text-lg font-semibold text-terra-600">KES {(item.amount || 0).toLocaleString()}</span>
                     </div>
+                    <textarea
+                      rows={2}
+                      value={noteInputs[item._id] || ""}
+                      onChange={(e) => setNoteInputs((prev) => ({ ...prev, [item._id]: e.target.value }))}
+                      placeholder="Admin note (optional)…"
+                      className="w-full rounded-xl border border-stone-200 px-3 py-2 text-xs text-stone-700 focus:outline-none focus:border-terra-300"
+                    />
                     <div className="grid gap-2 sm:grid-cols-2">
                       <button type="button" disabled={!canApprove || busy} onClick={() => handleReview(item._id, "approve")} className="rounded-xl bg-terra-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-terra-600 disabled:opacity-60">Approve boost</button>
                       <button type="button" disabled={!canApprove || busy} onClick={() => handleReview(item._id, "reject")} className="rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60">Reject</button>

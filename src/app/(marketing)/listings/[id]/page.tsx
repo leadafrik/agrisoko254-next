@@ -16,11 +16,12 @@ import {
   getListingPriceLabel,
   getListingTypeLabel,
   getLocationLabel,
+  getUserDisplayName,
   isListingBoosted,
   isVerifiedProfile,
   normalizeMarketplaceListing,
 } from "@/lib/marketplace";
-import { Eye, Bookmark, MessageCircle, Truck, Zap } from "lucide-react";
+import { Eye, Bookmark, MessageCircle, Truck, Zap, CheckCircle, MapPin } from "lucide-react";
 
 interface Props {
   params: { id: string };
@@ -55,51 +56,73 @@ export default async function ListingDetailPage({ params }: Props) {
   const category = getCategoryByApi(listing?.category);
   const location = getLocationLabel(listing);
   const seller = listing?.seller || listing?.owner || listing?.user;
+  const sellerId = seller?._id || seller?.id || listing?.userId;
+  const sellerName = getUserDisplayName(seller);
   const verified = isVerifiedProfile(seller) || listing?.verified || listing?.isVerified;
   const boosted = isListingBoosted(listing);
   const typeLabel = getListingTypeLabel(listing);
   const deliveryLabel = getDeliveryScopeLabel(listing);
   const engagement = getListingEngagement(listing);
-  const sellerId = seller?._id || seller?.id || listing?.userId;
+  const listingId = String(listing?._id || listing?.id || "");
 
-  const relatedData = await serverFetch<any>(
-    `${API_BASE_URL}/unified-listings/trending?category=${category?.apiCategory || "produce"}&limit=5`,
-    { revalidate: 60 }
-  );
-  const related = (relatedData?.listings ?? relatedData?.data ?? relatedData ?? []).filter(
-    (item: any) => String(item?._id || item?.id) !== String(listing?._id || listing?.id)
-  ).slice(0, 4);
+  // Parallel fetch: related + more from seller
+  const [relatedData, sellerListingsData] = await Promise.all([
+    serverFetch<any>(
+      `${API_BASE_URL}/unified-listings/trending?category=${category?.apiCategory || "produce"}&limit=6`,
+      { revalidate: 60 }
+    ),
+    sellerId
+      ? serverFetch<any>(
+          `${API_BASE_URL}/unified-listings?userId=${sellerId}&limit=5&status=approved`,
+          { revalidate: 60 }
+        )
+      : Promise.resolve(null),
+  ]);
+
+  const related = (relatedData?.listings ?? relatedData?.data ?? relatedData ?? [])
+    .filter((item: any) => String(item?._id || item?.id) !== listingId)
+    .slice(0, 4);
+
+  const sellerListings = ((sellerListingsData?.data ?? sellerListingsData?.listings ?? sellerListingsData ?? []) as any[])
+    .filter((item: any) => String(item?._id || item?.id) !== listingId)
+    .slice(0, 4);
+
+  const hasEngagement = engagement.views > 0 || engagement.saves > 0 || engagement.reachOuts > 0;
 
   return (
-    <div className="page-shell py-10 sm:py-12">
+    <div className="page-shell py-8 sm:py-10">
       {/* Breadcrumb */}
       <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-stone-500">
-        <Link href="/browse" className="hover:text-terra-600">Browse</Link>
-        <span>/</span>
+        <Link href="/browse" className="hover:text-terra-600 transition-colors">Browse</Link>
+        <span className="text-stone-300">/</span>
         {category ? (
           <>
-            <Link href={`/browse/${category.slug}`} className="hover:text-terra-600">{category.label}</Link>
-            <span>/</span>
+            <Link href={`/browse/${category.slug}`} className="hover:text-terra-600 transition-colors">{category.label}</Link>
+            <span className="text-stone-300">/</span>
           </>
         ) : null}
-        <span className="truncate text-stone-900">{listing?.title || listing?.name}</span>
+        <span className="truncate text-stone-700 font-medium">{listing?.title || listing?.name}</span>
       </nav>
 
-      <section className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
-        {/* Left: gallery + details */}
-        <div className="space-y-6">
+      {/* Main layout */}
+      <div className="grid gap-8 xl:grid-cols-[1.15fr_0.85fr]">
+        {/* LEFT */}
+        <div className="space-y-5 min-w-0">
           {/* Gallery */}
-          <div className="surface-card overflow-hidden p-4">
+          <div className="overflow-hidden rounded-[28px] border border-stone-200 bg-white p-4 shadow-[0_20px_50px_-30px_rgba(120,83,47,0.25)]">
             <ListingGallery images={galleryImages} title={listing?.title || listing?.name} />
           </div>
 
-          {/* Title + info */}
-          <div className="surface-card p-6">
+          {/* Title + core info */}
+          <div className="overflow-hidden rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_20px_50px_-30px_rgba(120,83,47,0.15)]">
+            {/* Type + badges row */}
             <div className="flex flex-wrap items-center gap-2">
-              <p className="section-kicker">{typeLabel || category?.label || "Marketplace listing"}</p>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
+                {typeLabel || category?.label || "Marketplace listing"}
+              </span>
               {verified && (
-                <span className="rounded-full border border-forest-200 bg-forest-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-forest-700">
-                  Verified
+                <span className="inline-flex items-center gap-1 rounded-full border border-forest-200 bg-forest-50 px-2.5 py-1 text-[11px] font-semibold text-forest-700">
+                  <CheckCircle className="h-3 w-3" /> Verified
                 </span>
               )}
               {boosted && (
@@ -109,58 +132,68 @@ export default async function ListingDetailPage({ params }: Props) {
               )}
             </div>
 
-            <h1 className="mt-3 text-3xl font-bold text-stone-900 sm:text-4xl">
+            <h1 className="mt-3 text-2xl font-bold text-stone-900 sm:text-3xl leading-snug">
               {listing?.title || listing?.name}
             </h1>
 
-            <p className="mt-2 text-2xl font-bold text-terra-700">
+            <p className="mt-2 text-2xl font-bold text-terra-600">
               {getListingPriceLabel(listing)}
             </p>
 
-            {/* Key stats row */}
+            {/* Stats row */}
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Location</p>
-                <p className="mt-1 text-sm font-semibold text-stone-900">{location || "Kenya"}</p>
+              {location ? (
+                <div className="flex items-center gap-2.5 rounded-2xl bg-stone-50 px-4 py-3">
+                  <MapPin className="h-4 w-4 shrink-0 text-stone-400" />
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.16em] text-stone-400">Location</p>
+                    <p className="text-sm font-semibold text-stone-900">{location}</p>
+                  </div>
+                </div>
+              ) : null}
+              <div className="flex items-center gap-2.5 rounded-2xl bg-stone-50 px-4 py-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-stone-400">Availability</p>
+                  <p className="text-sm font-semibold text-stone-900">
+                    {listing?.quantity ? `${listing.quantity}${listing?.unit ? ` ${listing.unit}` : ""}` : "Contact seller"}
+                  </p>
+                </div>
               </div>
-              <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Availability</p>
-                <p className="mt-1 text-sm font-semibold text-stone-900">
-                  {listing?.quantity ? `${listing.quantity} ${listing?.unit || ""}`.trim() : "Contact seller"}
-                </p>
-              </div>
-              <div className="rounded-2xl bg-stone-50 px-4 py-3 flex items-center gap-2">
-                <Truck className="h-4 w-4 text-stone-400 shrink-0" />
-                <p className="text-sm font-semibold text-stone-900">{deliveryLabel}</p>
+              <div className="flex items-center gap-2.5 rounded-2xl bg-stone-50 px-4 py-3">
+                <Truck className="h-4 w-4 shrink-0 text-stone-400" />
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-stone-400">Delivery</p>
+                  <p className="text-sm font-semibold text-stone-900">{deliveryLabel}</p>
+                </div>
               </div>
             </div>
 
             {/* Description */}
             {listing?.description ? (
-              <div className="mt-6">
-                <h2 className="text-lg font-bold text-stone-900">Description</h2>
-                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-stone-600">
+              <div className="mt-6 border-t border-stone-100 pt-5">
+                <h2 className="text-base font-bold text-stone-900">About this listing</h2>
+                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-stone-600">
                   {listing.description}
                 </p>
               </div>
             ) : null}
 
             {/* Engagement */}
-            {(engagement.views > 0 || engagement.saves > 0 || engagement.reachOuts > 0) && (
-              <div className="mt-6 flex flex-wrap gap-5 border-t border-stone-100 pt-4 text-sm text-stone-500">
+            {hasEngagement && (
+              <div className="mt-5 flex flex-wrap gap-5 border-t border-stone-100 pt-4 text-sm text-stone-400">
                 {engagement.views > 0 && (
                   <span className="flex items-center gap-1.5">
-                    <Eye className="h-4 w-4" /> {engagement.views} views
+                    <Eye className="h-4 w-4" /> {engagement.views.toLocaleString()} views
                   </span>
                 )}
                 {engagement.saves > 0 && (
                   <span className="flex items-center gap-1.5">
-                    <Bookmark className="h-4 w-4" /> {engagement.saves} saves
+                    <Bookmark className="h-4 w-4" /> {engagement.saves.toLocaleString()} saves
                   </span>
                 )}
                 {engagement.reachOuts > 0 && (
                   <span className="flex items-center gap-1.5">
-                    <MessageCircle className="h-4 w-4" /> {engagement.reachOuts} reach-outs
+                    <MessageCircle className="h-4 w-4" /> {engagement.reachOuts.toLocaleString()} reach-outs
                   </span>
                 )}
               </div>
@@ -171,25 +204,60 @@ export default async function ListingDetailPage({ params }: Props) {
           <ListingTypeDetails listing={listing} />
         </div>
 
-        {/* Right: actions + seller */}
-        <div className="space-y-6">
-          <ListingActionPanel listing={listing} />
-          <ListingSellerPanel
-            seller={seller}
-            sellerId={String(sellerId || "")}
-            listingId={String(listing?._id || listing?.id || "")}
-          />
+        {/* RIGHT — sticky on xl */}
+        <div className="space-y-5">
+          <div className="xl:sticky xl:top-24 space-y-5">
+            <ListingActionPanel listing={listing} />
+            <ListingSellerPanel
+              seller={seller}
+              sellerId={String(sellerId || "")}
+              listingId={listingId}
+            />
+          </div>
         </div>
-      </section>
+      </div>
+
+      {/* More from seller */}
+      {sellerListings.length > 0 && (
+        <section className="mt-14">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <p className="section-kicker">Same seller</p>
+              <h2 className="mt-1 text-2xl font-bold text-stone-900">
+                More from {sellerName}
+              </h2>
+            </div>
+            {sellerId && (
+              <Link
+                href={`/sellers/${sellerId}`}
+                className="text-sm font-semibold text-terra-600 hover:text-terra-700 transition-colors"
+              >
+                View all
+              </Link>
+            )}
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {sellerListings.map((item: any) => (
+              <ListingCard key={item._id || item.id} listing={item} compact />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Related listings */}
       {related.length > 0 && (
-        <section className="mt-16">
+        <section className="mt-14">
           <div className="mb-5 flex items-center justify-between gap-4">
-            <h2 className="text-2xl font-bold text-stone-900">Related listings</h2>
+            <div>
+              <p className="section-kicker">{category?.label || "Similar"}</p>
+              <h2 className="mt-1 text-2xl font-bold text-stone-900">Related listings</h2>
+            </div>
             {category ? (
-              <Link href={`/browse/${category.slug}`} className="text-sm font-semibold text-terra-600 hover:text-terra-700">
-                More {category.shortLabel.toLowerCase()}
+              <Link
+                href={`/browse/${category.slug}`}
+                className="text-sm font-semibold text-terra-600 hover:text-terra-700 transition-colors"
+              >
+                Browse {category.shortLabel.toLowerCase()}
               </Link>
             ) : null}
           </div>

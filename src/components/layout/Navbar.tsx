@@ -11,6 +11,7 @@ import {
   Leaf,
   LogOut,
   Menu,
+  MessageSquare,
   Package,
   ShoppingCart,
   User,
@@ -209,13 +210,22 @@ export default function Navbar() {
           <div className="hidden items-center gap-2 lg:flex">
             {isAuthenticated ? (
               <>
+                {/* Messages icon */}
+                <Link
+                  href="/messages"
+                  className="relative flex h-9 w-9 items-center justify-center rounded-xl text-stone-500 transition hover:bg-stone-100 hover:text-stone-900"
+                  aria-label="Messages"
+                >
+                  <MessageSquare className="h-[18px] w-[18px]" />
+                </Link>
+
                 {/* Cart icon */}
                 <Link
                   href="/cart"
                   className="relative flex h-9 w-9 items-center justify-center rounded-xl text-stone-500 transition hover:bg-stone-100 hover:text-stone-900"
                   aria-label="Cart"
                 >
-                  <ShoppingCart className="h-4.5 w-4.5 h-[18px] w-[18px]" />
+                  <ShoppingCart className="h-[18px] w-[18px]" />
                   {itemCount > 0 && (
                     <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-terra-500 text-[10px] font-bold text-white">
                       {itemCount > 9 ? "9+" : itemCount}
@@ -260,6 +270,7 @@ export default function Navbar() {
                     <div className="my-1 border-t border-stone-100" />
                     {[
                       { href: "/profile", label: "Profile", Icon: User },
+                      { href: "/messages", label: "Messages", Icon: MessageSquare },
                       { href: "/cart", label: `Cart${itemCount > 0 ? ` (${itemCount})` : ""}`, Icon: ShoppingCart },
                     ].map(({ href, label, Icon }) => (
                       <Link
@@ -364,9 +375,10 @@ export default function Navbar() {
                       <p className="truncate text-xs text-stone-400">{user?.email || ""}</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-1.5">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {[
                       { href: "/profile", label: "Profile", Icon: User },
+                      { href: "/messages", label: "Messages", Icon: MessageSquare },
                       { href: "/cart", label: itemCount > 0 ? `Cart (${itemCount})` : "Cart", Icon: ShoppingCart },
                     ].map(({ href, label, Icon }) => (
                       <Link

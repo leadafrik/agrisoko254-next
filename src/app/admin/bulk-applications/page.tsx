@@ -12,6 +12,7 @@ export default function AdminBulkApplicationsPage() {
   const [roleFilter, setRoleFilter] = useState("");
   const [search, setSearch] = useState("");
   const [summary, setSummary] = useState({ pending: 0, approved: 0, rejected: 0 });
+  const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
 
   const loadApplications = useCallback(async () => {
     try {
@@ -33,13 +34,17 @@ export default function AdminBulkApplicationsPage() {
 
   useEffect(() => { loadApplications(); }, [loadApplications]);
 
+  const clearNote = (id: string) =>
+    setReviewNotes((prev) => { const next = { ...prev }; delete next[id]; return next; });
+
   const handleApprove = async (id: string) => {
-    const notes = window.prompt("Approval notes (optional):") || undefined;
+    const notes = reviewNotes[id]?.trim() || undefined;
     try {
       await apiRequest(API_ENDPOINTS.bulkApplications.admin.approve(id), {
         method: "POST",
         body: JSON.stringify({ reviewNotes: notes }),
       });
+      clearNote(id);
       await loadApplications();
     } catch (err: any) {
       setError(err?.message || "Failed to approve application.");
@@ -47,12 +52,13 @@ export default function AdminBulkApplicationsPage() {
   };
 
   const handleReject = async (id: string) => {
-    const notes = window.prompt("Rejection reason (recommended):") || "Application requires more details.";
+    const notes = reviewNotes[id]?.trim() || "Application requires more details.";
     try {
       await apiRequest(API_ENDPOINTS.bulkApplications.admin.reject(id), {
         method: "POST",
         body: JSON.stringify({ reviewNotes: notes }),
       });
+      clearNote(id);
       await loadApplications();
     } catch (err: any) {
       setError(err?.message || "Failed to reject application.");
@@ -139,9 +145,18 @@ export default function AdminBulkApplicationsPage() {
                 {item.notes && <p className="mt-3 text-sm text-stone-600"><span className="font-semibold text-stone-800">Application notes:</span> {item.notes}</p>}
                 {item.reviewNotes && <p className="mt-1 text-sm text-stone-600"><span className="font-semibold text-stone-800">Review notes:</span> {item.reviewNotes}</p>}
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button onClick={() => handleApprove(item._id)} className="rounded-xl bg-terra-500 px-4 py-2 text-sm font-semibold text-white hover:bg-terra-600">Approve</button>
-                  <button onClick={() => handleReject(item._id)} className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Reject</button>
+                <div className="mt-4 space-y-2">
+                  <textarea
+                    rows={2}
+                    value={reviewNotes[item._id] || ""}
+                    onChange={(e) => setReviewNotes((prev) => ({ ...prev, [item._id]: e.target.value }))}
+                    placeholder="Review notes (optional for approve, recommended for reject)…"
+                    className="w-full rounded-xl border border-stone-200 px-3 py-2 text-xs text-stone-700 focus:outline-none focus:border-terra-300"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <button onClick={() => handleApprove(item._id)} className="rounded-xl bg-terra-500 px-4 py-2 text-sm font-semibold text-white hover:bg-terra-600">Approve</button>
+                    <button onClick={() => handleReject(item._id)} className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Reject</button>
+                  </div>
                 </div>
               </article>
             ))}
