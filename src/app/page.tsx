@@ -19,6 +19,7 @@ import Footer from "@/components/layout/Footer";
 import ListingCard from "@/components/marketplace/ListingCard";
 import RequestCard from "@/components/marketplace/RequestCard";
 import MarketplaceSupportStrip from "@/components/common/MarketplaceSupportStrip";
+import { HeroAuthCTA, BottomAuthCTA } from "@/components/common/HomepageAuthCTA";
 import { serverFetch } from "@/lib/api-server";
 import { API_BASE_URL } from "@/lib/endpoints";
 import {
@@ -111,14 +112,7 @@ export default async function HomePage() {
                   Browse trusted listings, compare sellers, and close direct deals faster. Agrisoko keeps live supply, buyer demand, and practical market guidance in one serious marketplace.
                 </p>
 
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/browse" className="primary-button">
-                    Browse listings
-                  </Link>
-                  <Link href="/login?mode=signup&redirect=%2Fcreate-listing%2Fproduce" className="secondary-button">
-                    List produce free
-                  </Link>
-                </div>
+                <HeroAuthCTA />
 
                 {/* Stat chips */}
                 <div className="mt-5 flex flex-wrap gap-2 text-sm text-stone-600">
@@ -476,20 +470,7 @@ export default async function HomePage() {
                   Farmers should earn more. Buyers should find reliable produce. Agriculture should work with more trust, more visibility, and less broker leakage.
                 </p>
               </div>
-              <div className="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
-                <Link
-                  href="/login?mode=signup&redirect=%2Fcreate-listing%2Fproduce"
-                  className="inline-flex min-h-[48px] w-full items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-terra-700 transition hover:bg-[#FFF7F4] sm:w-auto"
-                >
-                  List produce free
-                </Link>
-                <Link
-                  href="/browse"
-                  className="inline-flex min-h-[48px] w-full items-center justify-center rounded-xl border border-white/50 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10 sm:w-auto"
-                >
-                  Browse listings
-                </Link>
-              </div>
+              <BottomAuthCTA />
             </div>
           </div>
         </section>

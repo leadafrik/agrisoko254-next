@@ -75,8 +75,17 @@ const matchesPrice = (listing: any, minPrice?: number, maxPrice?: number) => {
   return true;
 };
 
-const isVerified = (item: any) =>
-  Boolean(item?.verified || item?.isVerified || item?.seller?.isVerified || item?.owner?.isVerified);
+const isVerified = (item: any) => {
+  if (item?.verified || item?.isVerified) return true;
+  const party = item?.seller || item?.owner || item?.user;
+  if (!party) return false;
+  return Boolean(
+    party?.isVerified ||
+    party?.verified ||
+    party?.verification?.isVerified ||
+    party?.verification?.idVerified
+  );
+};
 
 const isBoosted = (item: any) =>
   Boolean(item?.monetization?.premiumBadge || item?.boosted || item?.isBoosted);

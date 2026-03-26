@@ -8,6 +8,7 @@ import {
   Beef,
   ChevronDown,
   CirclePlus,
+  LayoutDashboard,
   Leaf,
   LogOut,
   Menu,
@@ -67,7 +68,7 @@ const isActive = (pathname: string, href: string) => {
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { itemCount } = useCart();
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -272,6 +273,7 @@ export default function Navbar() {
                       { href: "/profile", label: "Profile", Icon: User },
                       { href: "/messages", label: "Messages", Icon: MessageSquare },
                       { href: "/cart", label: `Cart${itemCount > 0 ? ` (${itemCount})` : ""}`, Icon: ShoppingCart },
+                      ...(isAdmin ? [{ href: "/admin", label: "Admin Console", Icon: LayoutDashboard }] : []),
                     ].map(({ href, label, Icon }) => (
                       <Link
                         key={href}
