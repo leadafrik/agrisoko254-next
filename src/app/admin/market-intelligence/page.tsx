@@ -58,7 +58,7 @@ export default function AdminMarketIntelligencePage() {
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [form, setForm] = useState(defaultAdminForm);
   const [saving, setSaving] = useState(false);
-  const [seedingBaseline, setSeedingBaseline] = useState(false);
+  const [seedingBaseline, setSeedingBaseline] = useState<"maize" | "onions" | null>(null);
   const [seedMessage, setSeedMessage] = useState("");
 
   const selectedProduct =
@@ -132,23 +132,29 @@ export default function AdminMarketIntelligencePage() {
     }
   };
 
-  const handleSeedBaseline = async () => {
-    setSeedingBaseline(true);
+  const handleSeedBaseline = async (commodity: "maize" | "onions") => {
+    setSeedingBaseline(commodity);
     setSeedMessage("");
     try {
+      const endpoint =
+        commodity === "maize"
+          ? API_ENDPOINTS.marketIntelligence.admin.seedMaizeBaseline
+          : API_ENDPOINTS.marketIntelligence.admin.seedOnionBaseline;
       const response = await adminApiRequest(
-        API_ENDPOINTS.marketIntelligence.admin.seedMaizeBaseline,
+        endpoint,
         { method: "POST" }
       );
       setSeedMessage(
         response?.message ||
-          `Imported ${response?.data?.imported || 0} maize baseline entries into the database.`
+          `Imported ${response?.data?.imported || 0} ${commodity} baseline entries into the database.`
       );
       await fetchSubmissions(statusFilter);
     } catch (error: any) {
-      setSeedMessage(error?.message || "Unable to import the maize baseline right now.");
+      setSeedMessage(
+        error?.message || `Unable to import the ${commodity} baseline right now.`
+      );
     } finally {
-      setSeedingBaseline(false);
+      setSeedingBaseline(null);
     }
   };
 
@@ -164,11 +170,19 @@ export default function AdminMarketIntelligencePage() {
           <div className="mt-4 flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => void handleSeedBaseline()}
-              disabled={seedingBaseline}
+              onClick={() => void handleSeedBaseline("maize")}
+              disabled={Boolean(seedingBaseline)}
               className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:opacity-60"
             >
-              {seedingBaseline ? "Importing..." : "Import maize baseline"}
+              {seedingBaseline === "maize" ? "Importing..." : "Import maize baseline"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleSeedBaseline("onions")}
+              disabled={Boolean(seedingBaseline)}
+              className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:opacity-60"
+            >
+              {seedingBaseline === "onions" ? "Importing..." : "Import onion baseline"}
             </button>
             {seedMessage ? (
               <p className="self-center text-sm text-stone-500">{seedMessage}</p>

@@ -2,6 +2,8 @@ import {
   SEEDED_INTELLIGENCE_UPDATED_AT,
   SEEDED_MAIZE_RECENT_CONTRIBUTIONS,
   SEEDED_MAIZE_SNAPSHOT,
+  SEEDED_ONION_RECENT_CONTRIBUTIONS,
+  SEEDED_ONION_SNAPSHOT,
 } from "./market-intelligence-seed";
 
 export type IntelligenceCategory = "produce" | "livestock" | "inputs";
@@ -136,7 +138,7 @@ export const TRACKED_INTELLIGENCE_PRODUCTS = [
   { key: "maize", name: "Maize", category: "produce", defaultUnit: "90kg bag" },
   { key: "beans", name: "Beans", category: "produce", defaultUnit: "90kg bag" },
   { key: "tomatoes", name: "Tomatoes", category: "produce", defaultUnit: "crate" },
-  { key: "onions", name: "Onions", category: "produce", defaultUnit: "net bag" },
+  { key: "onions", name: "Onions", category: "produce", defaultUnit: "kg" },
   { key: "potatoes", name: "Potatoes", category: "produce", defaultUnit: "120kg bag" },
   { key: "beef", name: "Beef Cattle", category: "livestock", defaultUnit: "kg live weight" },
   { key: "broilers", name: "Broilers", category: "livestock", defaultUnit: "kg live weight" },
@@ -158,6 +160,10 @@ export const TRACKED_INTELLIGENCE_MARKETS = [
   { county: "Meru", marketName: "Meru Town Market" },
   { county: "Kiambu", marketName: "Limuru Market" },
   { county: "Kajiado", marketName: "Kiserian Market" },
+  { county: "Nyeri", marketName: "Kiawara Onion Desk" },
+  { county: "Machakos", marketName: "Wamunyu Onion Desk" },
+  { county: "Isiolo", marketName: "Isiolo Onion Desk" },
+  { county: "Kirinyaga", marketName: "Ngurubani Onion Desk" },
 ] as const;
 
 const nowIso = SEEDED_INTELLIGENCE_UPDATED_AT;
@@ -347,86 +353,10 @@ const fallbackProduceBoard: IntelligenceProductSnapshot[] = [
     isFallback: true,
   },
   {
-    productKey: "onions",
-    productName: "Onions",
-    category: "produce",
-    unit: "net bag",
-    submissionsCount: 11,
-    approvedMarkets: 3,
-    lastUpdated: nowIso,
-    overallAverage: 3285,
-    overallTrendDirection: "up",
-    overallTrendPercentage: 4.2,
-    bestMarket: {
-      marketKey: "onions-kisumu",
-      marketName: "Kibuye Market",
-      county: "Kisumu",
-      avgPrice: 3600,
-      minPrice: 3520,
-      maxPrice: 3690,
-      submissionsCount: 3,
-      currentWindowCount: 3,
-      lastUpdated: nowIso,
-      trendDirection: "up",
-      trendPercentage: 6.0,
-    },
-    weakestMarket: {
-      marketKey: "onions-kajiado",
-      marketName: "Kiserian Market",
-      county: "Kajiado",
-      avgPrice: 2900,
-      minPrice: 2810,
-      maxPrice: 2980,
-      submissionsCount: 4,
-      currentWindowCount: 4,
-      lastUpdated: nowIso,
-      trendDirection: "stable",
-      trendPercentage: 1.3,
-    },
-    markets: [
-      {
-        marketKey: "onions-kisumu",
-        marketName: "Kibuye Market",
-        county: "Kisumu",
-        avgPrice: 3600,
-        minPrice: 3520,
-        maxPrice: 3690,
-        submissionsCount: 3,
-        currentWindowCount: 3,
-        lastUpdated: nowIso,
-        trendDirection: "up",
-        trendPercentage: 6.0,
-      },
-      {
-        marketKey: "onions-nairobi",
-        marketName: "Wakulima Market",
-        county: "Nairobi",
-        avgPrice: 3355,
-        minPrice: 3270,
-        maxPrice: 3440,
-        submissionsCount: 4,
-        currentWindowCount: 4,
-        lastUpdated: nowIso,
-        trendDirection: "up",
-        trendPercentage: 4.7,
-      },
-      {
-        marketKey: "onions-kajiado",
-        marketName: "Kiserian Market",
-        county: "Kajiado",
-        avgPrice: 2900,
-        minPrice: 2810,
-        maxPrice: 2980,
-        submissionsCount: 4,
-        currentWindowCount: 4,
-        lastUpdated: nowIso,
-        trendDirection: "stable",
-        trendPercentage: 1.3,
-      },
-    ],
-    insight:
-      "Onions are moving better in Kisumu and Nairobi than in Kajiado. Traders closer to western demand are getting the strongest signals.",
-    isFallback: true,
+    ...SEEDED_ONION_SNAPSHOT,
+    bestMarket: { ...SEEDED_ONION_SNAPSHOT.bestMarket },
+    weakestMarket: { ...SEEDED_ONION_SNAPSHOT.weakestMarket },
+    markets: SEEDED_ONION_SNAPSHOT.markets.map((market) => ({ ...market })),
   },
 ];
 
@@ -874,6 +804,7 @@ const fallbackFertilizerBoard: IntelligenceProductSnapshot[] = [
 
 const fallbackRecentContributions: IntelligenceContribution[] = [
   ...SEEDED_MAIZE_RECENT_CONTRIBUTIONS.map((entry) => ({ ...entry })),
+  ...SEEDED_ONION_RECENT_CONTRIBUTIONS.map((entry) => ({ ...entry })),
   {
     id: "fallback-2",
     productKey: "tomatoes",
@@ -903,7 +834,7 @@ const fallbackRecentContributions: IntelligenceContribution[] = [
 const FALLBACK_OVERVIEW: IntelligenceOverview = {
   generatedAt: nowIso,
   meta: {
-    approvedSubmissions: 81,
+    approvedSubmissions: 91,
     trackedProducts: fallbackProduceBoard.length + fallbackLivestockBoard.length + fallbackFertilizerBoard.length,
     trackedMarkets: TRACKED_INTELLIGENCE_MARKETS.length,
     commoditiesCovered: [
@@ -952,13 +883,13 @@ const FALLBACK_OVERVIEW: IntelligenceOverview = {
     {
       productKey: "onions",
       productName: "Onions",
-      trendDirection: "up",
-      trendPercentage: 4.2,
-      bestCounty: "Kisumu",
-      bestMarketName: "Kibuye Market",
-      bestPrice: 3600,
+      trendDirection: "stable",
+      trendPercentage: 1.8,
+      bestCounty: "Nairobi",
+      bestMarketName: "Karen Retail Desk",
+      bestPrice: 80,
       summary:
-        "Onions are strongest in Kisumu and Nairobi, with Kajiado trailing the market average.",
+        "Onions show a strong urban-versus-source spread, with Nairobi retail far above Nyeri, Kirinyaga, and broader wholesale desks.",
     },
   ],
   recentContributions: fallbackRecentContributions,

@@ -64,6 +64,7 @@ export const API_ENDPOINTS = {
       review: (submissionId: string) =>
         `${API_BASE_URL}/admin/market-intelligence/submissions/${submissionId}/review`,
       seedMaizeBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/maize-baseline`,
+      seedOnionBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/onion-baseline`,
     },
   },
   listings: {
