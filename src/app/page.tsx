@@ -40,10 +40,15 @@ const categoryIconMap: Record<string, React.ComponentType<{ className?: string }
   services: Wrench,
 };
 
-const founderLetter = [
-  "When we started Agrisoko, the problem was already obvious. Farmers were doing the hard work while the information advantage stayed elsewhere.",
-  "A grower could harvest maize, tomatoes, onions, or beans and still have no clear sense of what the better market was paying that week. Many sold because they had to, not because the timing was right.",
-  "Agrisoko exists to change that. We want verified trade, clearer prices, better timing, and a platform that treats Kenyan agriculture with seriousness.",
+// Full founder letter — matches PWA word-for-word
+const founderLetterParagraphs = [
+  "When I started Agrisoko, many people told me it would not work.",
+  "I grew up watching farmers work incredibly hard — waking before sunrise, tending their land through drought and disease — and then watching brokers take the largest share of the profit at the farm gate. A farmer who grew maize for four months might sell it for KES 28 per kilo. By the time it reached Nairobi, it sold for KES 55. The farmer saw none of that difference. The broker made it all.",
+  "I asked myself: what if the farmer could see the buyer directly? What if the buyer could trust the quality of what they were getting? What if we removed the unnecessary steps between the person who grew the food and the person who needed it?",
+  "That question became Agrisoko.",
+  "We are not just building an app. We are building trust infrastructure for Kenyan agriculture — a place where a smallholder in Meru can reach a buyer in Mombasa, where a fresh produce trader in Limuru can post what she has and be found by restaurants in Nairobi, where a livestock farmer in Kajiado does not have to wait for someone to pass through his road to know what his animals are worth.",
+  "Agrisoko is building a future where farmers keep more of what they earn, buyers trade with confidence, and agriculture in Kenya becomes more direct, more trusted, and more connected.",
+  "If you believe in that vision, join us. Sign up today. Tell a friend to tell a friend. And together, let us build the future of agriculture in Kenya.",
 ];
 
 function formatBlogDate(value?: string) {
@@ -69,7 +74,7 @@ export default async function HomePage() {
   const featuredSignals = intelligence.topSignals.slice(0, 4);
   const produceBoard = intelligence.produceBoard.slice(0, 6);
 
-  // Duplicate for seamless CSS marquee (2× → animate to -50%)
+  // Duplicate for seamless CSS marquee
   const tickerItems = produceBoard.length > 0 ? [...produceBoard, ...produceBoard] : [];
 
   return (
@@ -77,154 +82,148 @@ export default async function HomePage() {
       <Navbar />
       <main>
 
-        {/* ━━━━━━━━━━━━━━━━━━ HERO ━━━━━━━━━━━━━━━━━━ */}
-        <section
-          style={{
-            background:
-              "radial-gradient(ellipse at 65% 0%, rgba(34,80,15,0.4) 0%, transparent 52%), radial-gradient(ellipse at 5% 100%, rgba(100,40,10,0.3) 0%, transparent 48%), linear-gradient(160deg, #0e1a08 0%, #1a120a 48%, #0d0b07 100%)",
-          }}
-          className="relative overflow-hidden border-b border-white/8 pb-0 pt-20 sm:pt-24 lg:pt-28"
-        >
-          <div className="page-shell pb-16 sm:pb-20">
-            <div className="grid gap-12 lg:grid-cols-[1fr_440px] lg:items-start">
+        {/* ━━━━━━━━━━━━━━━━━━ HERO — warm, agricultural ━━━━━━━━━━━━━━━━━━ */}
+        <section className="border-b border-stone-200 bg-[linear-gradient(180deg,#fffdf8_0%,#f7efe4_56%,#faf7f2_100%)]">
+          <div className="page-shell py-10 sm:py-14">
+            <div className="hero-panel p-6 sm:p-8 lg:p-10">
+              <div className="grid gap-8 xl:grid-cols-[1.04fr_0.96fr] xl:items-start">
 
-              {/* ── Left: copy ── */}
-              <div className="max-w-2xl">
-                {/* Live status pill */}
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/6 px-3.5 py-1.5 text-xs font-semibold text-white/70">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-70" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
-                  </span>
-                  {activeListings > 0
-                    ? `${activeListings.toLocaleString()} listings live right now`
-                    : "Listings updated daily"}
-                </div>
-
-                <h1 className="mt-7 text-[clamp(2.4rem,5.5vw,4rem)] font-bold leading-[1.02] tracking-tight text-white">
-                  Most Kenyan farmers sell without knowing what the&nbsp;
-                  <span className="text-amber-300">market paid yesterday.</span>
-                </h1>
-
-                <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/60">
-                  Agrisoko gives you live prices from real field submissions, verified listings from
-                  known sellers, and direct paths to buyers — so you decide when and where to sell.
-                </p>
-
-                <div className="mt-8 flex flex-wrap items-center gap-3">
-                  <HeroAuthCTA />
-                </div>
-
-                <div className="mt-5 flex flex-wrap gap-5">
-                  <Link
-                    href="/market-intelligence"
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-300/80 transition hover:text-amber-300"
-                  >
-                    See today&apos;s prices <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                  <Link
-                    href="/b2b"
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/35 transition hover:text-white/65"
-                  >
-                    Bulk workflows <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-
-                {/* Stats */}
-                <div className="mt-10 grid grid-cols-3 gap-6 border-t border-white/10 pt-8">
-                  <div>
-                    <p className="text-4xl font-bold text-white sm:text-5xl">
-                      {activeListings > 0 ? activeListings.toLocaleString() : "—"}
-                    </p>
-                    <p className="mt-1.5 text-xs font-medium text-white/40">Active listings</p>
+                {/* Left — copy */}
+                <div className="max-w-3xl">
+                  {/* Live status pill */}
+                  <div className="inline-flex items-center gap-2 rounded-full border border-terra-200 bg-terra-50 px-3.5 py-1.5 text-xs font-semibold text-terra-700">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terra-400 opacity-60" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-terra-500" />
+                    </span>
+                    {activeListings > 0
+                      ? `${activeListings.toLocaleString()} listings live right now`
+                      : "Listings updated daily"}
                   </div>
-                  <div>
-                    <p className="text-4xl font-bold text-white sm:text-5xl">
-                      {intelligence.meta.approvedSubmissions > 0
-                        ? intelligence.meta.approvedSubmissions.toLocaleString()
-                        : "—"}
-                    </p>
-                    <p className="mt-1.5 text-xs font-medium text-white/40">Price reports</p>
+
+                  <h1 className="mt-5 text-balance text-4xl font-bold leading-[1.02] text-stone-900 sm:text-5xl lg:text-6xl">
+                    Most Kenyan farmers sell without knowing what the{" "}
+                    <span className="text-terra-600">market paid yesterday.</span>
+                  </h1>
+
+                  <p className="mt-5 max-w-2xl text-lg leading-relaxed text-stone-600">
+                    Agrisoko gives you live prices from real field submissions, verified listings
+                    from known sellers, and direct paths to buyers — so you decide when and where
+                    to sell.
+                  </p>
+
+                  <div className="mt-7">
+                    <HeroAuthCTA />
                   </div>
-                  <div>
-                    <p className="text-4xl font-bold text-white sm:text-5xl">
-                      {SUPPORTED_DELIVERY_COUNTIES.length}
-                    </p>
-                    <p className="mt-1.5 text-xs font-medium text-white/40">Counties</p>
+
+                  <div className="mt-4 flex flex-wrap gap-4">
+                    <Link
+                      href="/market-intelligence"
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-terra-600 hover:text-terra-700"
+                    >
+                      See today&apos;s market prices <ArrowRight className="h-4 w-4" />
+                    </Link>
+                    <Link
+                      href="/b2b"
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-stone-500 hover:text-stone-800"
+                    >
+                      Bulk workflows <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+
+                  {/* Stats chips */}
+                  <div className="mt-6 flex flex-wrap gap-2 text-sm text-stone-600">
+                    <span className="rounded-full border border-stone-200 bg-white/80 px-3 py-1.5 font-medium">
+                      {activeListings > 0
+                        ? `${activeListings.toLocaleString()} active listings`
+                        : "Active listings updated frequently"}
+                    </span>
+                    {intelligence.meta.approvedSubmissions > 0 && (
+                      <span className="rounded-full border border-stone-200 bg-white/80 px-3 py-1.5 font-medium">
+                        {intelligence.meta.approvedSubmissions.toLocaleString()} approved price reports
+                      </span>
+                    )}
+                    <span className="rounded-full border border-stone-200 bg-white/80 px-3 py-1.5 font-medium">
+                      {SUPPORTED_DELIVERY_COUNTIES.length} checkout counties
+                    </span>
                   </div>
                 </div>
-              </div>
 
-              {/* ── Right: live price card ── */}
-              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 lg:sticky lg:top-24">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/35">
-                      Market intelligence
-                    </p>
-                    <h2 className="mt-1 text-base font-bold text-white">Live price edges</h2>
-                  </div>
-                  <span className="flex items-center gap-1.5 rounded-full bg-green-500/12 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-green-400">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />
-                    Live
-                  </span>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  {featuredSignals.length > 0 ? (
-                    featuredSignals.map((signal) => (
-                      <Link
-                        key={signal.productKey}
-                        href={`/market-intelligence/${signal.productKey}`}
-                        className="flex items-center justify-between gap-3 rounded-[18px] border border-white/8 bg-white/4 px-4 py-3.5 transition hover:border-white/15 hover:bg-white/8"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-white">{signal.productName}</p>
-                          <p className="mt-0.5 truncate text-[11px] text-white/40">
-                            {signal.bestMarketName} · {signal.bestCounty}
-                          </p>
-                        </div>
-                        <div className="shrink-0 text-right">
-                          <p className="font-mono text-sm font-bold text-amber-300">
-                            {formatKes(signal.bestPrice)}
-                          </p>
-                          <p
-                            className={`mt-0.5 text-[11px] font-medium ${
-                              signal.trendDirection === "up"
-                                ? "text-green-400"
-                                : signal.trendDirection === "down"
-                                  ? "text-red-400"
-                                  : "text-white/35"
-                            }`}
-                          >
-                            {formatTrendLabel(signal.trendDirection, signal.trendPercentage)}
-                          </p>
-                        </div>
-                      </Link>
-                    ))
-                  ) : (
-                    <div className="rounded-[18px] border border-white/8 bg-white/4 px-4 py-6 text-center text-sm text-white/35">
-                      Price data grows as field contributors submit reports.
+                {/* Right — price intelligence card (dark for data contrast) */}
+                <div className="rounded-[28px] bg-stone-900 p-6 text-white shadow-[0_24px_70px_-42px_rgba(28,25,23,0.62)]">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/55">
+                        Today&apos;s price edges
+                      </p>
+                      <h2 className="mt-2 text-xl font-bold">Live market intelligence</h2>
                     </div>
-                  )}
-                </div>
+                    <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-green-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-green-400">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />
+                      Live
+                    </span>
+                  </div>
 
-                <div className="mt-4 flex items-center justify-between border-t border-white/8 pt-4">
-                  <p className="text-[11px] text-white/30">Field-sourced submissions</p>
-                  <Link
-                    href="/market-intelligence/submit"
-                    className="text-xs font-semibold text-amber-300/70 transition hover:text-amber-300"
-                  >
-                    Share a price →
-                  </Link>
+                  <div className="mt-5 space-y-2">
+                    {featuredSignals.length > 0 ? (
+                      featuredSignals.map((signal) => (
+                        <Link
+                          key={signal.productKey}
+                          href={`/market-intelligence/${signal.productKey}`}
+                          className="flex items-center justify-between gap-3 rounded-[20px] border border-white/10 bg-white/5 px-4 py-3.5 transition hover:border-white/20 hover:bg-white/10"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-white">{signal.productName}</p>
+                            <p className="mt-0.5 truncate text-xs text-white/50">
+                              {signal.bestMarketName} · {signal.bestCounty}
+                            </p>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="font-mono text-base font-bold text-amber-300">
+                              {formatKes(signal.bestPrice)}
+                            </p>
+                            <p
+                              className={`mt-0.5 text-xs font-medium ${
+                                signal.trendDirection === "up"
+                                  ? "text-green-400"
+                                  : signal.trendDirection === "down"
+                                    ? "text-red-400"
+                                    : "text-white/40"
+                              }`}
+                            >
+                              {formatTrendLabel(signal.trendDirection, signal.trendPercentage)}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <div className="rounded-[20px] border border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-white/40">
+                        Price data grows as field contributors submit reports.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between text-sm">
+                    <span className="text-white/45">
+                      {intelligence.isFallback
+                        ? "Starter board while live submissions build"
+                        : "Built from approved field submissions"}
+                    </span>
+                    <Link
+                      href="/market-intelligence/submit"
+                      className="font-semibold text-amber-300 hover:text-amber-200"
+                    >
+                      Share a price
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ── Scrolling price ticker ── */}
+          {/* Scrolling price ticker */}
           {tickerItems.length > 0 && (
-            <div className="overflow-hidden border-t border-white/8 bg-white/4 py-3">
+            <div className="overflow-hidden border-t border-stone-200 bg-stone-900 py-2.5">
               <style>{`
                 @keyframes agrisoko-ticker {
                   0%   { transform: translateX(0); }
@@ -253,7 +252,7 @@ export default async function HomePage() {
                           ? "text-green-400"
                           : item.overallTrendDirection === "down"
                             ? "text-red-400"
-                            : "text-white/25"
+                            : "text-white/30"
                       }`}
                     >
                       {item.overallTrendDirection === "up"
@@ -309,7 +308,7 @@ export default async function HomePage() {
                 </Link>
               </div>
 
-              {/* Right sidebar: market board + demand */}
+              {/* Sidebar: price board + demand */}
               <div className="space-y-4">
                 {/* Price board */}
                 <div className="overflow-hidden rounded-[26px] border border-stone-200 bg-white shadow-[0_20px_60px_-36px_rgba(120,83,47,0.35)]">
@@ -340,7 +339,7 @@ export default async function HomePage() {
                               <p className="text-[11px] text-stone-400">{item.bestMarket.county}</p>
                             )}
                           </div>
-                          <div className="flex shrink-0 items-center gap-2.5">
+                          <div className="flex shrink-0 items-center gap-2">
                             <p className="font-mono text-sm font-bold text-terra-600">
                               {item.bestMarket?.avgPrice ? formatKes(item.bestMarket.avgPrice) : "—"}
                             </p>
@@ -459,201 +458,143 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ━━━━━━━━━━━━━━━━━━ WHY AGRISOKO (dark) ━━━━━━━━━━━━━━━━━━ */}
-        <section
-          style={{
-            background:
-              "linear-gradient(160deg, #0e1a08 0%, #1a120a 60%, #0d0b07 100%)",
-          }}
-          className="py-20 sm:py-24"
-        >
+        {/* ━━━━━━━━━━━━━━━━━━ WHY AGRISOKO ━━━━━━━━━━━━━━━━━━ */}
+        <section className="border-b border-stone-100 py-16">
           <div className="page-shell">
-            <div className="mb-12 text-center">
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/35">
-                Why Agrisoko
-              </p>
-              <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
-                A professional trade layer,
-                <br className="hidden sm:block" /> not just a listings directory
+            <div className="mb-10 text-center">
+              <p className="section-kicker">Why Agrisoko</p>
+              <h2 className="mt-3 text-3xl font-bold text-stone-900 sm:text-4xl">
+                A professional trade layer, not just a listings directory
               </h2>
-              <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/50">
+              <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-stone-600">
                 The information advantage in Kenyan agricultural markets has been held by
                 intermediaries for too long. That changes here.
               </p>
             </div>
-
             <div className="grid gap-4 md:grid-cols-3">
               {[
                 {
                   Icon: ShieldCheck,
                   title: "Verified trust signals",
                   copy: "ID-verified sellers, profile verification, and listing context help serious buyers judge credibility before they pick up the phone.",
-                  accent: "text-amber-300",
-                  iconBg: "bg-amber-300/10",
                 },
                 {
                   Icon: BarChart3,
                   title: "Live market intelligence",
                   copy: "Price submissions, best-market signals, and trend direction from field contributors — not stale averages from three months ago.",
-                  accent: "text-green-400",
-                  iconBg: "bg-green-400/10",
                 },
                 {
                   Icon: MessageCircle,
                   title: "Direct market access",
                   copy: "Farmers, traders, buyers, agrovets, and service providers connect without the broker layer eating into every margin.",
-                  accent: "text-sky-400",
-                  iconBg: "bg-sky-400/10",
                 },
-              ].map(({ Icon, title, copy, accent, iconBg }) => (
-                <div
-                  key={title}
-                  className="rounded-[24px] border border-white/8 bg-white/4 p-6"
-                >
-                  <span
-                    className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${iconBg} ${accent}`}
-                  >
+              ].map(({ Icon, title, copy }) => (
+                <div key={title} className="surface-card p-6">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-terra-50 text-terra-700">
                     <Icon className="h-5 w-5" />
                   </span>
-                  <h3 className={`mt-4 text-xl font-bold ${accent}`}>{title}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-white/50">{copy}</p>
+                  <h3 className="mt-4 text-xl font-bold text-stone-900">{title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-stone-600">{copy}</p>
                 </div>
               ))}
             </div>
-
-            {/* Real stats in dark section */}
-            {(activeListings > 0 ||
-              intelligence.meta.approvedSubmissions > 0) && (
-              <div className="mt-10 grid grid-cols-3 gap-6 border-t border-white/8 pt-10">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-white sm:text-4xl">
-                    {activeListings > 0 ? activeListings.toLocaleString() : "—"}
-                  </p>
-                  <p className="mt-2 text-xs text-white/35">Active listings</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-white sm:text-4xl">
-                    {intelligence.meta.approvedSubmissions > 0
-                      ? intelligence.meta.approvedSubmissions.toLocaleString()
-                      : "—"}
-                  </p>
-                  <p className="mt-2 text-xs text-white/35">Approved price reports</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-white sm:text-4xl">
-                    {SUPPORTED_DELIVERY_COUNTIES.length}
-                  </p>
-                  <p className="mt-2 text-xs text-white/35">Counties with checkout</p>
-                </div>
-              </div>
-            )}
           </div>
         </section>
 
-        {/* ━━━━━━━━━━━━━━━━━━ FOUNDER + INSIGHTS ━━━━━━━━━━━━━━━━━━ */}
-        <section className="border-b border-stone-100 py-16">
-          <div className="page-shell">
-            <div className="grid gap-10 xl:grid-cols-[0.95fr_1.05fr]">
+        {/* ━━━━━━━━━━━━━━━━━━ FOUNDER LETTER — matches PWA ━━━━━━━━━━━━━━━━━━ */}
+        <section className="mx-auto max-w-7xl px-4 py-8 sm:py-10">
+          <div className="max-w-4xl">
+            <p className="section-kicker">A note from Stephen</p>
+          </div>
+          <div className="relative mt-6 max-w-4xl rotate-[-0.9deg] rounded-[2rem] border border-[#bfd0b8] bg-[#e6f0e0] px-5 py-6 text-slate-900 shadow-[0_8px_16px_rgba(92,122,99,0.08)] sm:px-7 sm:py-7">
+            <div className="absolute left-1/2 top-0 h-10 w-24 -translate-x-1/2 -translate-y-1/2 rotate-[2deg] rounded-b-2xl bg-[#f1f6ee]" />
+            <p className="home-handwritten text-[1.85rem] font-semibold leading-none text-[#38503b] sm:text-[2.1rem]">
+              Why we started Agrisoko
+            </p>
+            <div className="home-handwritten mt-4 space-y-3 text-[1.28rem] leading-[1.22] text-slate-900 sm:text-[1.46rem]">
+              {founderLetterParagraphs.map((paragraph) => (
+                <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+              ))}
+            </div>
+            <p className="home-handwritten mt-5 text-[1.5rem] font-semibold text-[#38503b] sm:text-[1.72rem]">
+              Stephen
+            </p>
+          </div>
+        </section>
 
-              {/* Founder letter */}
-              <div className="surface-card p-7 sm:p-9">
-                <p className="section-kicker">A note from Stephen</p>
-                <h2 className="mt-4 text-3xl font-bold text-stone-900">
-                  We are building a trusted market,
-                  <br className="hidden sm:block" /> not a prettier interface.
-                </h2>
-                <div className="mt-5 space-y-4 text-sm leading-relaxed text-stone-600">
-                  {founderLetter.map((paragraph) => (
-                    <p key={paragraph.slice(0, 40)}>{paragraph}</p>
-                  ))}
+        {/* ━━━━━━━━━━━━━━━━━━ INSIGHTS ━━━━━━━━━━━━━━━━━━ */}
+        {posts.length > 0 && (
+          <section className="border-t border-stone-100 py-16">
+            <div className="page-shell">
+              <div className="mb-6 flex items-end justify-between gap-4">
+                <div>
+                  <p className="section-kicker">Learn &amp; insights</p>
+                  <h2 className="mt-2 text-3xl font-bold text-stone-900">
+                    Editorial close to market action
+                  </h2>
                 </div>
-                <p className="mt-6 text-sm font-bold text-stone-900">Stephen</p>
                 <Link
-                  href="/about"
-                  className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-terra-600 hover:text-terra-700"
+                  href="/learn"
+                  className="hidden shrink-0 text-sm font-semibold text-terra-600 hover:text-terra-700 sm:inline-flex"
                 >
-                  About Agrisoko <ArrowRight className="h-4 w-4" />
+                  Open learn hub →
                 </Link>
               </div>
-
-              {/* Insights */}
-              <div>
-                <div className="mb-6 flex items-end justify-between gap-4">
-                  <div>
-                    <p className="section-kicker">Learn &amp; insights</p>
-                    <h2 className="mt-2 text-3xl font-bold text-stone-900">
-                      Editorial close to market action
-                    </h2>
-                  </div>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {posts.map((post: any) => (
                   <Link
-                    href="/learn"
-                    className="hidden shrink-0 text-sm font-semibold text-terra-600 hover:text-terra-700 sm:inline-flex"
+                    key={post._id || post.slug}
+                    href={`/learn/insights/${post.slug}`}
+                    className="group surface-card overflow-hidden transition duration-200 hover:-translate-y-1 hover:border-terra-200 hover:shadow-md"
                   >
-                    Open learn hub →
+                    <div className="aspect-[16/10] overflow-hidden bg-stone-100">
+                      {post.coverImage ? (
+                        <div className="relative h-full w-full">
+                          <Image
+                            src={post.coverImage}
+                            alt={post.title || "Insight"}
+                            fill
+                            sizes="(min-width: 1280px) 24vw, (min-width: 640px) 45vw, 100vw"
+                            className="object-cover transition duration-500 group-hover:scale-[1.04]"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#f8efe2] to-stone-100">
+                          <NotebookText className="h-8 w-8 text-terra-300" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      {(post.tags || []).length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {(post.tags as string[]).slice(0, 2).map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full bg-terra-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-terra-600"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <h3 className="mt-2.5 line-clamp-2 text-base font-bold text-stone-900">
+                        {post.title}
+                      </h3>
+                      {post.excerpt && (
+                        <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-stone-500">
+                          {post.excerpt}
+                        </p>
+                      )}
+                      <p className="mt-3 text-[11px] text-stone-400">
+                        {formatBlogDate(post.publishedAt || post.createdAt)}
+                      </p>
+                    </div>
                   </Link>
-                </div>
-                {posts.length > 0 ? (
-                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {posts.map((post: any) => (
-                      <Link
-                        key={post._id || post.slug}
-                        href={`/learn/insights/${post.slug}`}
-                        className="group surface-card overflow-hidden transition duration-200 hover:-translate-y-1 hover:border-terra-200 hover:shadow-md"
-                      >
-                        <div className="aspect-[16/10] overflow-hidden bg-stone-100">
-                          {post.coverImage ? (
-                            <div className="relative h-full w-full">
-                              <Image
-                                src={post.coverImage}
-                                alt={post.title || "Insight"}
-                                fill
-                                sizes="(min-width: 1280px) 24vw, (min-width: 640px) 45vw, 100vw"
-                                className="object-cover transition duration-500 group-hover:scale-[1.04]"
-                              />
-                            </div>
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#f8efe2] to-stone-100">
-                              <NotebookText className="h-8 w-8 text-terra-300" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-4">
-                          {(post.tags || []).length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              {(post.tags as string[]).slice(0, 2).map((tag) => (
-                                <span
-                                  key={tag}
-                                  className="rounded-full bg-terra-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-terra-600"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          <h3 className="mt-2.5 line-clamp-2 text-base font-bold text-stone-900">
-                            {post.title}
-                          </h3>
-                          {post.excerpt && (
-                            <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-stone-500">
-                              {post.excerpt}
-                            </p>
-                          )}
-                          <p className="mt-3 text-[11px] text-stone-400">
-                            {formatBlogDate(post.publishedAt || post.createdAt)}
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-[24px] border border-stone-200 bg-white p-6 text-sm text-stone-500">
-                    Editorial insights from the admin desk will appear here automatically.
-                  </div>
-                )}
+                ))}
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         <div className="page-shell py-10">
           <MarketplaceSupportStrip />

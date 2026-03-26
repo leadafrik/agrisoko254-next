@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -157,4 +159,10 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+.home-handwritten,
+.home-handwritten p,
+.home-handwritten span {
+  font-family: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive !important;
 }
