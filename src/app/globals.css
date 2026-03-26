@@ -3,15 +3,102 @@
 @tailwind utilities;
 
 :root {
-  --background: #FAF7F2;
+  --background: #faf7f2;
   --foreground: #1a1a1a;
+  --surface: #ffffff;
+  --surface-muted: #f7f2ea;
+  --border-soft: #e7ddd0;
+  --terra-glow: rgba(160, 69, 46, 0.14);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
+  min-height: 100vh;
   color: var(--foreground);
-  background: var(--background);
+  background:
+    radial-gradient(circle at top left, rgba(160, 69, 46, 0.1), transparent 32%),
+    radial-gradient(circle at top right, rgba(39, 174, 96, 0.09), transparent 28%),
+    linear-gradient(180deg, #fffdf9 0%, var(--background) 24%, #f7f1e8 100%);
   font-family: "Sora", "Segoe UI", Tahoma, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+@layer base {
+  * {
+    @apply border-stone-200;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight;
+  }
+
+  a {
+    @apply transition-colors;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .surface-card {
+    @apply rounded-[30px] border border-stone-200 bg-white shadow-[0_20px_60px_-36px_rgba(120,83,47,0.45)];
+  }
+
+  .surface-panel {
+    @apply rounded-[26px] border border-stone-200 bg-[linear-gradient(180deg,#fffdf8_0%,#fff_100%)];
+  }
+
+  .soft-panel {
+    @apply rounded-[26px] border border-stone-200 bg-[#f8f3eb] shadow-[0_18px_45px_-34px_rgba(120,83,47,0.38)];
+  }
+
+  .hero-panel {
+    @apply overflow-hidden rounded-[34px] border border-stone-200 bg-[radial-gradient(circle_at_top_left,rgba(160,69,46,0.14),transparent_38%),radial-gradient(circle_at_top_right,rgba(39,174,96,0.12),transparent_32%),linear-gradient(135deg,#fffdf8_0%,#fff_45%,#f5efe6_100%)] shadow-[0_26px_80px_-38px_rgba(120,83,47,0.46)];
+  }
+
+  .section-kicker {
+    @apply inline-flex items-center rounded-full border border-terra-200 bg-terra-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-700;
+  }
+
+  .primary-button {
+    @apply inline-flex min-h-[48px] items-center justify-center rounded-xl bg-terra-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-terra-600;
+  }
+
+  .secondary-button {
+    @apply inline-flex min-h-[48px] items-center justify-center rounded-xl border border-stone-200 bg-white px-5 py-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-50;
+  }
+
+  .ghost-button {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-stone-600 transition hover:bg-white hover:text-terra-600;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-stone-700;
+  }
+
+  .field-input {
+    @apply w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:border-terra-300 focus:ring-2 focus:ring-terra-100;
+  }
+
+  .field-select {
+    @apply w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:border-terra-300 focus:ring-2 focus:ring-terra-100;
+  }
+
+  .field-textarea {
+    @apply field-input min-h-[120px] resize-y;
+  }
+
+  .metric-chip {
+    @apply rounded-2xl border border-stone-200 bg-white px-4 py-3 shadow-[0_12px_30px_-26px_rgba(120,83,47,0.45)];
+  }
 }
 
 @layer utilities {

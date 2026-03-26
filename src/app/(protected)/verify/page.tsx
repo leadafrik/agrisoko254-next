@@ -1,38 +1,73 @@
 "use client";
 
-import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function VerifyPage() {
   const { user } = useAuth();
 
   const steps = [
-    { label: "Phone verified", done: !!user?.verification?.phoneVerified },
-    { label: "ID uploaded", done: !!user?.verification?.idVerified },
-    { label: "Profile verified", done: !!user?.verification?.isVerified },
+    {
+      label: "Account created",
+      done: Boolean(user),
+      helper: "You can browse and trade without waiting for verification.",
+    },
+    {
+      label: "Phone on file",
+      done: Boolean(user?.phone),
+      helper: "A working phone number helps with checkout, contact, and trust signals.",
+    },
+    {
+      label: "Identity review",
+      done: Boolean(user?.verification?.idVerified || user?.verification?.isVerified),
+      helper: "Optional ID review improves trust and marketplace credibility.",
+    },
   ];
 
   return (
-    <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <h1 className="text-2xl font-bold font-display text-stone-900 mb-2">Account Verification</h1>
-      <p className="text-stone-500 mb-8">Verified sellers get more trust and visibility on Agrisoko.</p>
+    <div className="page-shell py-10 sm:py-12">
+      <section className="hero-panel p-6 sm:p-8">
+        <p className="section-kicker">Verification</p>
+        <h1 className="mt-4 text-4xl font-bold text-stone-900">Strengthen trust on your Agrisoko account</h1>
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
+          Verification stays optional, but stronger trust signals help buyers move faster and take
+          listings more seriously.
+        </p>
+      </section>
 
-      <div className="space-y-3 mb-8">
-        {steps.map((s) => (
-          <div key={s.label} className={`flex items-center gap-3 p-4 rounded-xl border ${s.done ? "bg-forest-50 border-forest-200" : "bg-white border-stone-100"}`}>
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${s.done ? "bg-forest-500 text-white" : "bg-stone-200 text-stone-500"}`}>
-              {s.done ? "✓" : "–"}
-            </span>
-            <span className={`font-medium text-sm ${s.done ? "text-forest-700" : "text-stone-600"}`}>{s.label}</span>
+      <section className="mt-8 grid gap-4 md:grid-cols-3">
+        {steps.map((step) => (
+          <div
+            key={step.label}
+            className={`surface-card p-6 ${step.done ? "border-forest-200" : ""}`}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-2xl font-bold text-stone-900">{step.label}</h2>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
+                  step.done ? "bg-forest-50 text-forest-700" : "bg-stone-100 text-stone-500"
+                }`}
+              >
+                {step.done ? "Done" : "Pending"}
+              </span>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-stone-600">{step.helper}</p>
           </div>
         ))}
-      </div>
+      </section>
 
-      {!user?.verification?.idVerified && (
-        <Link href="/verify-id" className="block w-full bg-terra-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-terra-600 transition-colors">
-          Upload ID Documents
-        </Link>
-      )}
+      <section className="mt-8">
+        <div className="soft-panel p-6">
+          <h2 className="text-2xl font-bold text-stone-900">Upload identity documents</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
+            Submit your ID front, ID back, and selfie for review. The status page shows whether
+            your documents are pending, approved, or need attention.
+          </p>
+          <Link href="/verify-id" className="primary-button mt-5">
+            Open ID verification
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

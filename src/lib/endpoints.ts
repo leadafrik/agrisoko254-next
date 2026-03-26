@@ -56,6 +56,11 @@ export const API_ENDPOINTS = {
   },
   unifiedListings: {
     countActive: `${API_BASE_URL}/unified-listings/count/active`,
+    list: (params?: URLSearchParams | string) =>
+      `${API_BASE_URL}/unified-listings${params ? `?${String(params)}` : ""}`,
+    create: `${API_BASE_URL}/unified-listings`,
+    publish: (id: string) => `${API_BASE_URL}/unified-listings/${id}/publish`,
+    myListings: `${API_BASE_URL}/unified-listings/user/my-listings`,
     trending: (category?: string, limit = 8) => {
       const p = new URLSearchParams({ limit: String(limit) });
       if (category && category !== "all") p.set("category", category);
@@ -73,14 +78,50 @@ export const API_ENDPOINTS = {
     my:       `${API_BASE_URL}/orders/my`,
     byId:     (id: string) => `${API_BASE_URL}/orders/${id}`,
     seller: {
-      list:  `${API_BASE_URL}/orders/seller/my`,
-      byId:  (id: string) => `${API_BASE_URL}/orders/seller/${id}`,
+      list:        `${API_BASE_URL}/orders/seller/my`,
+      byId:        (id: string) => `${API_BASE_URL}/orders/seller/${id}`,
+      fulfillment: (id: string) => `${API_BASE_URL}/orders/seller/${id}/fulfillment`,
+    },
+    requestOfferCheckout: {
+      get:    (responseId: string) => `${API_BASE_URL}/orders/request-offer-checkout/${responseId}`,
+      submit: (responseId: string) => `${API_BASE_URL}/orders/request-offer-checkout/${responseId}/submit`,
+    },
+    bulkOfferCheckout: {
+      get:    (orderId: string) => `${API_BASE_URL}/orders/bulk-offer-checkout/${orderId}`,
+      submit: (orderId: string) => `${API_BASE_URL}/orders/bulk-offer-checkout/${orderId}/submit`,
+    },
+    admin: {
+      list:    `${API_BASE_URL}/admin/orders`,
+      byId:    (id: string) => `${API_BASE_URL}/admin/orders/${id}`,
+      payment: (id: string) => `${API_BASE_URL}/admin/orders/${id}/payment`,
+      status:  (id: string) => `${API_BASE_URL}/admin/orders/${id}/status`,
     },
   },
   bulkOrders: {
-    list:       `${API_BASE_URL}/bulk-orders`,
-    create:     `${API_BASE_URL}/bulk-orders`,
-    getById:    (id: string) => `${API_BASE_URL}/bulk-orders/${id}`,
+    list:        `${API_BASE_URL}/bulk-orders`,
+    create:      `${API_BASE_URL}/bulk-orders`,
+    adminList:   `${API_BASE_URL}/admin/bulk-orders`,
+    getById:     (id: string) => `${API_BASE_URL}/bulk-orders/${id}`,
+    bids: {
+      place:          (orderId: string) => `${API_BASE_URL}/bulk-orders/${orderId}/bids`,
+      accept:         (orderId: string, bidId: string) => `${API_BASE_URL}/bulk-orders/${orderId}/bids/${bidId}/accept`,
+      reject:         (orderId: string, bidId: string) => `${API_BASE_URL}/bulk-orders/${orderId}/bids/${bidId}/reject`,
+      counterOffer:   (orderId: string, bidId: string) => `${API_BASE_URL}/bulk-orders/${orderId}/bids/${bidId}/counter-offer`,
+      respondCounter: (orderId: string, bidId: string) => `${API_BASE_URL}/bulk-orders/${orderId}/bids/${bidId}/respond-counter`,
+    },
+    close:       (id: string) => `${API_BASE_URL}/bulk-orders/${id}/close`,
+    complete:    (id: string) => `${API_BASE_URL}/bulk-orders/${id}/complete`,
+    sellerAccept:(id: string) => `${API_BASE_URL}/bulk-orders/${id}/seller-accept`,
+    sellerOrders:`${API_BASE_URL}/bulk-orders/seller/awarded`,
+  },
+  bulkApplications: {
+    myStatus: `${API_BASE_URL}/bulk-applications/status/my`,
+    submit:   `${API_BASE_URL}/bulk-applications/apply`,
+    admin: {
+      list:    `${API_BASE_URL}/admin/bulk-applications`,
+      approve: (id: string) => `${API_BASE_URL}/admin/bulk-applications/${id}/approve`,
+      reject:  (id: string) => `${API_BASE_URL}/admin/bulk-applications/${id}/reject`,
+    },
   },
   messages: {
     send:     `${API_BASE_URL}/messages`,
@@ -104,6 +145,10 @@ export const API_ENDPOINTS = {
       list:   `${API_BASE_URL}/admin/boosts`,
       review: (id: string) => `${API_BASE_URL}/admin/boosts/${id}/review`,
     },
+  },
+  verification: {
+    idStatus: `${API_BASE_URL}/verification/id/status`,
+    submitDocuments: `${API_BASE_URL}/verification/id/submit-documents`,
   },
   payments: {
     initiateStk: `${API_BASE_URL}/payments/stk/initiate`,

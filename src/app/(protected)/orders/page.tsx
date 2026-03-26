@@ -19,7 +19,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     apiRequest(API_ENDPOINTS.orders.my)
-      .then((d) => setOrders(d?.orders ?? d ?? []))
+      .then((d) => setOrders(d?.data ?? d?.orders ?? d ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

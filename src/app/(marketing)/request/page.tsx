@@ -1,65 +1,110 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import RequestCard from "@/components/marketplace/RequestCard";
+import SectionHeading from "@/components/marketplace/SectionHeading";
 import { serverFetch } from "@/lib/api-server";
 import { API_BASE_URL } from "@/lib/endpoints";
 
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Buy Requests — Find Buyers for Your Farm Produce",
-  description: "Browse buyer requests from buyers across Kenya looking for farm produce, livestock, and agricultural products.",
+  title: "Buyer Requests | Active Demand Across Kenya",
+  description:
+    "Browse active buyer requests on Agrisoko and see what buyers across Kenya are looking for right now.",
 };
 
-export default async function BuyerRequestsPage() {
-  const data = await serverFetch<any>(`${API_BASE_URL}/buyer-requests?limit=30`, { revalidate: 60 });
-  const requests = data?.requests ?? data ?? [];
+const getFirst = (value?: string | string[]) => (Array.isArray(value) ? value[0] : value);
+
+export default async function BuyerRequestsPage({
+  searchParams,
+}: {
+  searchParams?: Record<string, string | string[] | undefined>;
+}) {
+  const county = getFirst(searchParams?.county) || "";
+  const category = getFirst(searchParams?.category) || "";
+
+  const params = new URLSearchParams({
+    limit: "18",
+    status: "active",
+  });
+
+  if (county) params.set("county", county);
+  if (category) params.set("category", category);
+
+  const data = await serverFetch<any>(`${API_BASE_URL}/buyer-requests?${params.toString()}`, {
+    revalidate: 60,
+  });
+  const requests = Array.isArray(data?.data) ? data.data : Array.isArray(data?.requests) ? data.requests : Array.isArray(data) ? data : [];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold font-display text-stone-900 mb-1">Buy Requests</h1>
-          <p className="text-stone-500">Buyers looking for produce across Kenya — respond if you can supply</p>
-        </div>
-        <Link href="/request/new"
-          className="bg-terra-500 text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-terra-600 transition-colors">
-          + Post Request
-        </Link>
-      </div>
+    <div className="page-shell py-10 sm:py-12">
+      <section className="hero-panel p-6 sm:p-8">
+        <SectionHeading
+          eyebrow="Demand board"
+          title="See what buyers need before you decide what to post"
+          description="Buyer requests keep the marketplace demand-led. Suppliers can scan active demand, find county-level opportunities, and respond where they can genuinely deliver."
+          actions={
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link href="/request/new" className="primary-button">
+                Post a request
+              </Link>
+              <Link href="/browse" className="secondary-button">
+                Browse listings
+              </Link>
+            </div>
+          }
+        />
 
-      {requests.length > 0 ? (
-        <div className="space-y-4">
-          {requests.map((req: any) => (
-            <Link key={req._id} href={`/request/${req._id}`}
-              className="block bg-white rounded-xl border border-stone-100 p-5 hover:border-terra-200 hover:shadow-sm transition-all group">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <p className="text-xs text-terra-600 font-semibold uppercase tracking-wide mb-1">{req.category}</p>
-                  <h2 className="font-semibold text-stone-800 group-hover:text-terra-600">{req.title}</h2>
-                  {req.description && (
-                    <p className="text-sm text-stone-500 mt-1 line-clamp-2">{req.description}</p>
-                  )}
-                  <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-stone-400">
-                    {req.location && <span>📍 {req.location}</span>}
-                    {req.quantity && <span>📦 {req.quantity}</span>}
-                    {req.budget && <span>💰 KES {req.budget.toLocaleString()}</span>}
-                  </div>
-                </div>
-                <span className="shrink-0 bg-forest-50 text-forest-700 text-xs font-semibold px-3 py-1 rounded-full border border-forest-200">
-                  Open
-                </span>
-              </div>
+        <form className="mt-8 grid gap-3 rounded-[28px] border border-stone-200 bg-white p-4 shadow-sm md:grid-cols-3">
+          <input type="text" name="county" defaultValue={county} placeholder="Filter by county" className="field-input" />
+          <select name="category" defaultValue={category} className="field-select">
+            <option value="">All categories</option>
+            <option value="produce">Produce</option>
+            <option value="livestock">Livestock</option>
+            <option value="inputs">Inputs</option>
+            <option value="service">Services</option>
+          </select>
+          <button type="submit" className="primary-button w-full">
+            Apply filters
+          </button>
+        </form>
+      </section>
+
+      <section className="mt-8">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <p className="text-sm text-stone-500">
+            {requests.length} active request{requests.length === 1 ? "" : "s"} shown
+          </p>
+          {(county || category) && (
+            <Link href="/request" className="text-sm font-semibold text-terra-600 hover:text-terra-700">
+              Reset filters
             </Link>
-          ))}
+          )}
         </div>
-      ) : (
-        <div className="text-center py-20 text-stone-400">
-          <p className="text-lg mb-4">No buy requests yet.</p>
-          <Link href="/request/new" className="bg-terra-500 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-terra-600">
-            Post the first request
-          </Link>
-        </div>
-      )}
+
+        {requests.length > 0 ? (
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {requests.map((request: any) => (
+              <RequestCard key={request._id || request.id} request={request} />
+            ))}
+          </div>
+        ) : (
+          <div className="surface-card p-10 text-center">
+            <h2 className="text-2xl font-bold text-stone-900">No buyer requests match those filters</h2>
+            <p className="mt-3 text-sm text-stone-600">
+              Reset the filters or post a fresh request to start the demand signal.
+            </p>
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link href="/request" className="secondary-button">
+                View all requests
+              </Link>
+              <Link href="/request/new" className="primary-button">
+                Post a request
+              </Link>
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

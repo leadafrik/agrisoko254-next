@@ -26,6 +26,7 @@ const nextConfig = {
 
   async redirects() {
     return [
+      { source: "/home",          destination: "/",              permanent: true },
       { source: "/marketplace",   destination: "/browse",        permanent: true },
       { source: "/listings",      destination: "/browse",        permanent: true },
       { source: "/find-services", destination: "/browse/services", permanent: true },
@@ -33,6 +34,11 @@ const nextConfig = {
       { source: "/terms",         destination: "/legal/terms",   permanent: true },
       { source: "/contact",       destination: "/about",         permanent: true },
       { source: "/help",          destination: "/about",         permanent: true },
+      { source: "/seller/:id",    destination: "/sellers/:id",   permanent: true },
+      { source: "/l/:id",         destination: "/listings/:id",  permanent: true },
+      { source: "/r/:id",         destination: "/request/:id",   permanent: true },
+      { source: "/share/listing/:id", destination: "/listings/:id", permanent: true },
+      { source: "/share/request/:id", destination: "/request/:id", permanent: true },
     ];
   },
 

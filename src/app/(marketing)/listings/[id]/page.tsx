@@ -1,102 +1,188 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ListingActionPanel from "@/components/marketplace/ListingActionPanel";
+import ListingCard from "@/components/marketplace/ListingCard";
 import { serverFetch } from "@/lib/api-server";
 import { API_BASE_URL } from "@/lib/endpoints";
+import {
+  formatKes,
+  getCategoryByApi,
+  getInitials,
+  getLocationLabel,
+  getUserDisplayName,
+  isVerifiedProfile,
+} from "@/lib/marketplace";
 
-interface Props { params: { id: string } }
+interface Props {
+  params: { id: string };
+}
 
 export const revalidate = 60;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await serverFetch<any>(`${API_BASE_URL}/unified-listings/${params.id}`, { revalidate: 60 });
-  if (!data) return {};
+  const listing = data?.data ?? data;
+  if (!listing) return {};
   return {
-    title: data.title,
-    description: data.description ?? `Buy ${data.title} in Kenya on Agrisoko`,
+    title: listing.title || listing.name || "Marketplace listing",
+    description: listing.description || "View listing details on Agrisoko.",
     openGraph: {
-      title: data.title,
-      images: data.images?.[0] ? [data.images[0]] : [],
+      title: listing.title || listing.name,
+      description: listing.description || "View listing details on Agrisoko.",
+      images: listing.images?.[0] ? [listing.images[0]] : [],
     },
   };
 }
 
 export default async function ListingDetailPage({ params }: Props) {
   const data = await serverFetch<any>(`${API_BASE_URL}/unified-listings/${params.id}`, { revalidate: 60 });
-  if (!data) notFound();
+  const listing = data?.data ?? data;
+
+  if (!listing) notFound();
+
+  const category = getCategoryByApi(listing?.category);
+  const location = getLocationLabel(listing);
+  const seller = listing?.seller || listing?.owner || listing?.user;
+  const sellerName = getUserDisplayName(seller);
+  const verified = isVerifiedProfile(seller) || listing?.verified || listing?.isVerified;
+  const relatedData = await serverFetch<any>(
+    `${API_BASE_URL}/unified-listings/trending?category=${category?.apiCategory || "produce"}&limit=4`,
+    { revalidate: 60 }
+  );
+  const related = (relatedData?.listings ?? relatedData?.data ?? relatedData ?? []).filter(
+    (item: any) => String(item?._id || item?.id) !== String(listing?._id || listing?.id)
+  );
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <nav className="text-sm text-stone-500 mb-6 flex items-center gap-1">
-        <Link href="/browse" className="hover:text-terra-600">Browse</Link>
+    <div className="page-shell py-10 sm:py-12">
+      <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-stone-500">
+        <Link href="/browse" className="hover:text-terra-600">
+          Browse
+        </Link>
         <span>/</span>
-        <span className="text-stone-800 truncate max-w-xs">{data.title}</span>
+        {category ? (
+          <>
+            <Link href={`/browse/${category.slug}`} className="hover:text-terra-600">
+              {category.label}
+            </Link>
+            <span>/</span>
+          </>
+        ) : null}
+        <span className="truncate text-stone-900">{listing?.title || listing?.name}</span>
       </nav>
 
-      <div className="lg:grid lg:grid-cols-[1fr_380px] lg:gap-10">
-        {/* Images */}
-        <div>
-          {data.images?.[0] ? (
-            <div className="rounded-xl overflow-hidden bg-stone-100 aspect-[4/3]">
-              <img src={data.images[0]} alt={data.title} className="w-full h-full object-cover" />
+      <section className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="space-y-6">
+          <div className="surface-card overflow-hidden">
+            <div className="aspect-[16/10] bg-stone-100">
+              {listing?.images?.[0] ? (
+                <img src={listing.images[0]} alt={listing.title || listing.name} className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(160,69,46,0.14),_transparent_55%),linear-gradient(135deg,#fffdf8,#f2ece2)] text-sm font-semibold uppercase tracking-[0.2em] text-stone-400">
+                  Agrisoko
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="rounded-xl bg-stone-100 aspect-[4/3] flex items-center justify-center text-stone-300 text-5xl">🌾</div>
-          )}
-          {data.images?.length > 1 && (
-            <div className="flex gap-2 mt-3 overflow-x-auto">
-              {data.images.slice(1).map((img: string, i: number) => (
-                <img key={i} src={img} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0" />
-              ))}
-            </div>
-          )}
-
-          {data.description && (
-            <div className="mt-8">
-              <h2 className="font-semibold text-stone-800 mb-2">Description</h2>
-              <p className="text-stone-600 leading-relaxed whitespace-pre-line">{data.description}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Details panel */}
-        <div className="mt-8 lg:mt-0">
-          <p className="text-xs text-terra-600 font-semibold uppercase tracking-wide mb-1">{data.category}</p>
-          <h1 className="text-2xl font-bold font-display text-stone-900 mb-3">{data.title}</h1>
-          {data.price && (
-            <p className="text-3xl font-bold text-stone-900 mb-4">KES {data.price.toLocaleString()}</p>
-          )}
-          {data.location && (
-            <p className="text-sm text-stone-500 mb-6">📍 {data.location}</p>
-          )}
-
-          {/* Contact CTA */}
-          <div className="bg-earth rounded-xl p-5 space-y-3">
-            <Link href={`/messages?seller=${data.seller?._id ?? data.userId}`}
-              className="block w-full bg-terra-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-terra-600 transition-colors">
-              Message Seller
-            </Link>
-            <Link href="/login?mode=signup"
-              className="block w-full border border-stone-200 bg-white text-stone-700 text-center py-3 rounded-lg font-semibold hover:bg-stone-50 transition-colors text-sm">
-              Sign up to contact
-            </Link>
+            {listing?.images?.length > 1 ? (
+              <div className="grid grid-cols-4 gap-3 p-4">
+                {listing.images.slice(1, 5).map((image: string, index: number) => (
+                  <div key={`${image}-${index}`} className="aspect-[4/3] overflow-hidden rounded-2xl bg-stone-100">
+                    <img src={image} alt="" className="h-full w-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
 
-          {/* Seller info */}
-          {(data.seller ?? data.user) && (
-            <div className="mt-5 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-terra-100 text-terra-700 flex items-center justify-center font-bold text-sm">
-                {(data.seller?.name ?? data.user?.name ?? "S")[0]}
+          <div className="surface-card p-6">
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="section-kicker">{category?.label || "Marketplace listing"}</p>
+              {verified ? (
+                <span className="rounded-full border border-forest-200 bg-forest-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-forest-700">
+                  Verified seller cues
+                </span>
+              ) : null}
+            </div>
+            <h1 className="mt-4 text-4xl font-bold text-stone-900">{listing?.title || listing?.name}</h1>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Location</p>
+                <p className="mt-1 font-semibold text-stone-900">{location || "Kenya"}</p>
               </div>
-              <div>
-                <p className="font-semibold text-stone-800 text-sm">{data.seller?.name ?? data.user?.name}</p>
-                <Link href={`/sellers/${data.seller?._id ?? data.userId}`}
-                  className="text-xs text-terra-600 hover:underline">View profile</Link>
+              <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Price</p>
+                <p className="mt-1 font-semibold text-stone-900">{formatKes(listing?.price) || "Negotiable"}</p>
+              </div>
+              <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Availability</p>
+                <p className="mt-1 font-semibold text-stone-900">
+                  {listing?.quantity ? `${listing.quantity} ${listing?.unit || ""}`.trim() : "Contact seller"}
+                </p>
               </div>
             </div>
-          )}
+
+            {listing?.description ? (
+              <div className="mt-6">
+                <h2 className="text-2xl font-bold text-stone-900">Description</h2>
+                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-stone-600">
+                  {listing.description}
+                </p>
+              </div>
+            ) : null}
+          </div>
         </div>
-      </div>
+
+        <div className="space-y-6">
+          <ListingActionPanel listing={listing} />
+
+          <div className="surface-card p-6">
+            <p className="section-kicker">Seller profile</p>
+            <div className="mt-4 flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-terra-100 text-base font-semibold text-terra-700">
+                {getInitials(sellerName)}
+              </div>
+              <div className="min-w-0">
+                <h2 className="truncate text-2xl font-bold text-stone-900">{sellerName}</h2>
+                <p className="truncate text-sm text-stone-500">
+                  {verified ? "Verified trust cues visible" : "Marketplace seller"}
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-3">
+              <Link href={`/sellers/${seller?._id || listing?.userId}`} className="secondary-button w-full">
+                View seller profile
+              </Link>
+            </div>
+          </div>
+
+          <div className="soft-panel p-6">
+            <h2 className="text-2xl font-bold text-stone-900">Why this page matters</h2>
+            <p className="mt-3 text-sm leading-relaxed text-stone-600">
+              The detail page keeps the strongest PWA behavior: category clarity, seller context,
+              marketplace trust cues, and a direct path into message or checkout flows.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {related.length > 0 ? (
+        <section className="mt-16">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <h2 className="text-3xl font-bold text-stone-900">Related listings</h2>
+            {category ? (
+              <Link href={`/browse/${category.slug}`} className="text-sm font-semibold text-terra-600 hover:text-terra-700">
+                More {category.shortLabel.toLowerCase()}
+              </Link>
+            ) : null}
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {related.slice(0, 4).map((item: any) => (
+              <ListingCard key={item._id || item.id} listing={item} />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

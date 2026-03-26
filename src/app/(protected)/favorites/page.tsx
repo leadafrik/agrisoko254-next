@@ -11,7 +11,7 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     apiRequest(API_ENDPOINTS.favorites.list)
-      .then((d) => setFavorites(d?.favorites ?? d ?? []))
+      .then((d) => setFavorites(d?.data ?? d?.favorites ?? d ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
