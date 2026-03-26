@@ -5,6 +5,7 @@ import Link from "next/link";
 
 export default function ProfilePage() {
   const { user, logout, isLoading } = useAuth();
+  const displayName = user?.fullName || user?.name || "Agrisoko user";
 
   if (isLoading) return <div className="flex items-center justify-center min-h-screen text-stone-400">Loading...</div>;
 
@@ -14,14 +15,14 @@ export default function ProfilePage() {
 
       <div className="bg-white rounded-xl border border-stone-100 p-6 mb-6 flex items-center gap-5">
         {user?.profilePicture ? (
-          <img src={user.profilePicture} alt={user.name} className="w-16 h-16 rounded-full object-cover" />
+          <img src={user.profilePicture} alt={displayName} className="w-16 h-16 rounded-full object-cover" />
         ) : (
           <div className="w-16 h-16 rounded-full bg-terra-100 text-terra-700 flex items-center justify-center text-2xl font-bold">
-            {user?.name?.[0]}
+            {displayName[0]}
           </div>
         )}
         <div>
-          <p className="text-lg font-bold text-stone-800">{user?.name}</p>
+          <p className="text-lg font-bold text-stone-800">{displayName}</p>
           <p className="text-sm text-stone-500">{user?.phone ?? user?.email}</p>
           {user?.verification?.isVerified && (
             <span className="text-xs bg-forest-100 text-forest-700 px-2 py-0.5 rounded-full font-medium mt-1 inline-block">✓ Verified</span>

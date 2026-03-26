@@ -1,0 +1,104 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, BadgeCheck, Camera, CirclePlus, ClipboardList, Leaf, MessageCircle, Search, Users, X } from "lucide-react";
+import { useFirstVisit } from "@/hooks/useFirstVisit";
+import { useAuth } from "@/contexts/AuthContext";
+
+type Path = "buyer" | "seller" | null;
+
+const BUYER_STEPS = [
+  { icon: <Search className="h-5 w-5 text-terra-600" />, title: "Browse listings", description: "Search by category, keyword, or county to find produce, livestock, inputs, and services." },
+  { icon: <MessageCircle className="h-5 w-5 text-terra-600" />, title: "Contact sellers directly", description: "No middlemen. Reach sellers via WhatsApp or the platform and agree on price and delivery." },
+  { icon: <ClipboardList className="h-5 w-5 text-terra-600" />, title: "Or post a buy request", description: "Tell sellers what you need and your budget, then let them come to you." },
+];
+
+const SELLER_STEPS = [
+  { icon: <Camera className="h-5 w-5 text-terra-600" />, title: "Create a free listing", description: "Add clear photos, a price, quantity, and your county. Takes about two minutes." },
+  { icon: <Users className="h-5 w-5 text-terra-600" />, title: "Buyers contact you", description: "Interested buyers message you directly. No commissions, no fees to close a deal." },
+  { icon: <BadgeCheck className="h-5 w-5 text-terra-600" />, title: "Build trust with a verified profile", description: "Complete your profile and verify your ID to get a trust badge and more inquiries." },
+];
+
+export default function WelcomeModal() {
+  const { user } = useAuth();
+  const { shouldShow, dismiss } = useFirstVisit();
+  const router = useRouter();
+  const [path, setPath] = useState<Path>(null);
+
+  if (!shouldShow || !user) return null;
+
+  const firstName = ((user as any).name || (user as any).fullName || "").split(" ")[0] || "there";
+  const steps = path === "buyer" ? BUYER_STEPS : SELLER_STEPS;
+
+  const handleGo = () => {
+    dismiss();
+    router.push(path === "buyer" ? "/browse" : "/create-listing");
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/50 p-0 sm:items-center sm:p-4" onClick={dismiss}>
+      <div className="w-full max-w-md overflow-hidden rounded-t-[2rem] bg-white shadow-2xl sm:rounded-[2rem]" onClick={(e) => e.stopPropagation()}>
+        {!path ? (
+          <div className="p-6 sm:p-8">
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-terra-600">Welcome to Agrisoko</p>
+                <h2 className="mt-1 text-2xl font-bold text-stone-900">Hi {firstName}, what are you here to do?</h2>
+              </div>
+              <button onClick={dismiss} className="inline-flex min-h-[36px] min-w-[36px] shrink-0 items-center justify-center rounded-full border border-stone-200 text-stone-500 hover:bg-stone-100">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="grid gap-3">
+              {[
+                { id: "buyer" as Path, icon: <Leaf className="h-6 w-6 text-terra-600" />, title: "Browse and buy", desc: "Find produce, livestock, inputs, and services across Kenya." },
+                { id: "seller" as Path, icon: <CirclePlus className="h-6 w-6 text-terra-600" />, title: "List my produce", desc: "Post a listing and reach verified buyers across Kenya. Free right now." },
+              ].map((opt) => (
+                <button key={opt.id} onClick={() => setPath(opt.id)} className="flex items-center gap-4 rounded-2xl border-2 border-stone-200 bg-stone-50 p-4 text-left transition hover:border-terra-300 hover:bg-terra-50 active:scale-[0.98]">
+                  <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-terra-50">{opt.icon}</span>
+                  <div>
+                    <p className="font-semibold text-stone-900">{opt.title}</p>
+                    <p className="mt-0.5 text-sm text-stone-600">{opt.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <button onClick={dismiss} className="mt-4 w-full text-center text-sm text-stone-500 hover:text-stone-700">I&apos;ll explore on my own</button>
+          </div>
+        ) : (
+          <div className="p-6 sm:p-8">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <button onClick={() => setPath(null)} className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 hover:text-stone-800">
+                <ArrowLeft className="h-4 w-4" /> Back
+              </button>
+              <button onClick={dismiss} className="inline-flex min-h-[36px] min-w-[36px] shrink-0 items-center justify-center rounded-full border border-stone-200 text-stone-500 hover:bg-stone-100">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-terra-600">Here&apos;s how it works</p>
+            <h2 className="mt-1 text-xl font-bold text-stone-900">{path === "buyer" ? "Finding what you need" : "Getting your first listing live"}</h2>
+            <ol className="mt-5 space-y-4">
+              {steps.map((step, i) => (
+                <li key={step.title} className="flex items-start gap-4">
+                  <div className="flex flex-col items-center">
+                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-terra-50">{step.icon}</span>
+                    {i < steps.length - 1 && <span className="mt-1 w-px bg-stone-100" style={{ minHeight: 16 }} />}
+                  </div>
+                  <div className="pb-1 pt-1">
+                    <p className="font-semibold text-stone-900"><span className="mr-1.5 text-xs font-bold text-terra-600">{i + 1}.</span>{step.title}</p>
+                    <p className="mt-0.5 text-sm leading-relaxed text-stone-500">{step.description}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <button onClick={handleGo} className="mt-6 w-full rounded-xl bg-terra-500 py-3 text-sm font-semibold text-white transition hover:bg-terra-600 active:scale-[0.98]">
+              {path === "buyer" ? "Browse listings ->" : "Create my first listing ->"}
+            </button>
+            <button onClick={dismiss} className="mt-3 w-full text-center text-sm text-stone-500 hover:text-stone-700">I&apos;ll explore on my own</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

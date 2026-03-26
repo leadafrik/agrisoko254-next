@@ -30,7 +30,7 @@ export default function BulkAccessPage() {
   const [success, setSuccess] = useState("");
   const [form, setForm] = useState({
     role: "buyer",
-    contactName: user?.name || "",
+    contactName: user?.fullName || user?.name || "",
     organizationName: "",
     institutionType: "other",
     county: "",

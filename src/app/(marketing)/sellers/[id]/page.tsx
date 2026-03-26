@@ -57,8 +57,8 @@ export default async function SellerProfilePage({ params }: Props) {
             <div className="metric-chip">
               <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Profile note</p>
               <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                Use seller pages to judge consistency, not just a single listing. This mirrors the
-                stronger trust patterns from the PWA marketplace.
+                Use seller pages to judge consistency, not just a single listing. Trading history,
+                active inventory, and verification cues help buyers move faster.
               </p>
             </div>
           </div>

@@ -18,8 +18,8 @@ export default function CreateListingPage() {
         <p className="section-kicker">Create listing</p>
         <h1 className="mt-4 text-4xl font-bold text-stone-900">Choose what you want to publish</h1>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-stone-600">
-          This flow keeps the PWA category structure but tightens the form path. Pick the correct
-          category first so the listing form can stay focused and professional.
+          Pick the right category first so the listing form stays focused, faster to complete, and
+          easier for buyers to understand.
         </p>
       </section>
 

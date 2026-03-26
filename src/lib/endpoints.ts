@@ -26,6 +26,15 @@ export const API_ENDPOINTS = {
     logout:             `${API_BASE_URL}/auth/logout`,
     adminInviteComplete:`${API_BASE_URL}/auth/admin-invite/complete`,
   },
+  config: {
+    public: `${API_BASE_URL}/public-config/public`,
+  },
+  chat: {
+    start: `${API_BASE_URL}/chat/start`,
+    history: (chatId: string) => `${API_BASE_URL}/chat/${chatId}/history`,
+    message: (chatId: string) => `${API_BASE_URL}/chat/${chatId}/message`,
+    escalate: (chatId: string) => `${API_BASE_URL}/chat/${chatId}/escalate`,
+  },
   blog: {
     list:   `${API_BASE_URL}/blog`,
     bySlug: (slug: string) => `${API_BASE_URL}/blog/${slug}`,

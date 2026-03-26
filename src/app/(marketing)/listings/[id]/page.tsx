@@ -25,8 +25,9 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await serverFetch<any>(`${API_BASE_URL}/unified-listings/${params.id}`, { revalidate: 60 });
-  const listing = normalizeMarketplaceListing(data?.data ?? data);
-  if (!listing) return {};
+  const rawListing = data?.data ?? data;
+  if (!rawListing) return {};
+  const listing = normalizeMarketplaceListing(rawListing);
   const image = getPrimaryImageUrl(listing, { width: 1200, height: 630, fit: "fill" });
   return {
     title: listing.title || listing.name || "Marketplace listing",
@@ -41,9 +42,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ListingDetailPage({ params }: Props) {
   const data = await serverFetch<any>(`${API_BASE_URL}/unified-listings/${params.id}`, { revalidate: 60 });
-  const listing = normalizeMarketplaceListing(data?.data ?? data);
+  const rawListing = data?.data ?? data;
+  if (!rawListing) notFound();
+  const listing = normalizeMarketplaceListing(rawListing);
 
-  if (!listing) notFound();
+  const heroImage = getPrimaryImageUrl(listing, { width: 1200, height: 750, fit: "fill" });
+  const galleryImages = getListingImageUrls(listing);
 
   const category = getCategoryByApi(listing?.category);
   const location = getLocationLabel(listing);
@@ -80,9 +84,9 @@ export default async function ListingDetailPage({ params }: Props) {
         <div className="space-y-6">
           <div className="surface-card overflow-hidden">
             <div className="aspect-[16/10] bg-stone-100">
-              {getPrimaryImageUrl(listing, { width: 1200, height: 750, fit: "fill" }) ? (
+              {heroImage ? (
                 <img
-                  src={getPrimaryImageUrl(listing, { width: 1200, height: 750, fit: "fill" }) || ""}
+                  src={heroImage}
                   alt={listing.title || listing.name}
                   className="h-full w-full object-cover"
                 />
@@ -92,11 +96,9 @@ export default async function ListingDetailPage({ params }: Props) {
                 </div>
               )}
             </div>
-            {getListingImageUrls(listing).length > 1 ? (
+            {galleryImages.length > 1 ? (
               <div className="grid grid-cols-4 gap-3 p-4">
-                {getListingImageUrls(listing)
-                  .slice(1, 5)
-                  .map((image: string, index: number) => (
+                {galleryImages.slice(1, 5).map((image: string, index: number) => (
                   <div key={`${image}-${index}`} className="aspect-[4/3] overflow-hidden rounded-2xl bg-stone-100">
                     <img
                       src={getPrimaryImageUrl({ image }, { width: 480, height: 360, fit: "fill" }) || image}
@@ -171,10 +173,10 @@ export default async function ListingDetailPage({ params }: Props) {
           </div>
 
           <div className="soft-panel p-6">
-            <h2 className="text-2xl font-bold text-stone-900">Why this page matters</h2>
+            <h2 className="text-2xl font-bold text-stone-900">Trade with more context</h2>
             <p className="mt-3 text-sm leading-relaxed text-stone-600">
-              The detail page keeps the strongest PWA behavior: category clarity, seller context,
-              marketplace trust cues, and a direct path into message or checkout flows.
+              This page keeps the listing, seller context, trust cues, and next action in one
+              place so buyers can decide faster and sellers get more serious conversations.
             </p>
           </div>
         </div>
