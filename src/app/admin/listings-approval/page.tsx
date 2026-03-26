@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
@@ -31,7 +32,11 @@ export default function AdminListingsApprovalPage() {
         <div className="space-y-4">
           {listings.map((l: any) => (
             <div key={l._id} className="bg-white rounded-xl border border-stone-100 p-5 flex items-start gap-4">
-              {l.images?.[0] && <img src={l.images[0]} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0" />}
+              {l.images?.[0] ? (
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg">
+                  <Image src={l.images[0]} alt="" fill sizes="80px" className="object-cover" />
+                </div>
+              ) : null}
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-stone-800">{l.title}</p>
                 <p className="text-xs text-stone-500 mt-0.5">{l.category} · {l.location}</p>

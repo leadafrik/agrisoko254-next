@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
@@ -132,7 +133,15 @@ export default function AdminProfileVerificationPage() {
                     <div key={label as string}>
                       <p className="mb-2 text-sm font-medium text-stone-600">{label}</p>
                       <a href={url as string} target="_blank" rel="noopener noreferrer">
-                        <img src={url as string} alt={label as string} className="h-36 w-full rounded-xl border border-stone-200 object-cover" />
+                        <div className="relative h-36 w-full overflow-hidden rounded-xl border border-stone-200">
+                          <Image
+                            src={url as string}
+                            alt={label as string}
+                            fill
+                            sizes="(min-width: 640px) 30vw, 100vw"
+                            className="object-cover"
+                          />
+                        </div>
                       </a>
                     </div>
                   ) : null)}

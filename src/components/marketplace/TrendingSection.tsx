@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiRequest } from "@/lib/api";
@@ -88,7 +89,15 @@ export default function TrendingSection({ category }: Props) {
             >
               <div className="aspect-[4/3] overflow-hidden bg-stone-100">
                 {image ? (
-                  <img src={image} alt={title} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                  <div className="relative h-full w-full">
+                    <Image
+                      src={image}
+                      alt={title}
+                      fill
+                      sizes="224px"
+                      className="object-cover transition duration-300 group-hover:scale-105"
+                    />
+                  </div>
                 ) : (
                   <div className="flex h-full items-center justify-center bg-[linear-gradient(135deg,#fffdf8,#f2ece2)] text-xs uppercase tracking-widest text-stone-400">
                     Agrisoko

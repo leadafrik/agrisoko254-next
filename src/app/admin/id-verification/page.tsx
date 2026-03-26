@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
@@ -47,7 +48,15 @@ export default function AdminIDVerificationPage() {
                 {["idFront", "idBack", "selfie"].map((doc) => u.verification?.[doc] && (
                   <a key={doc} href={u.verification[doc]} target="_blank" rel="noopener noreferrer"
                     className="block w-28 h-20 rounded-lg overflow-hidden border border-stone-200 hover:border-terra-300 transition-colors">
-                    <img src={u.verification[doc]} alt={doc} className="w-full h-full object-cover" />
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={u.verification[doc]}
+                        alt={doc}
+                        fill
+                        sizes="112px"
+                        className="object-cover"
+                      />
+                    </div>
                   </a>
                 ))}
               </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -81,7 +82,9 @@ export default function ListingSellerPanel({ seller, listingId, sellerId }: Prop
 
       <div className="flex items-start gap-4">
         {avatar ? (
-          <img src={avatar} alt={name} className="h-14 w-14 rounded-full object-cover border-2 border-stone-200 shrink-0" />
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-stone-200">
+            <Image src={avatar} alt={name} fill sizes="56px" className="object-cover" />
+          </div>
         ) : (
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-terra-100 text-base font-semibold text-terra-700 shrink-0">
             {getInitials(name)}
