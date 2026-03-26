@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CheckCircle2, MapPin, Star } from "lucide-react";
 import ListingCard from "@/components/marketplace/ListingCard";
+import SellerProfileActions from "@/components/marketplace/SellerProfileActions";
 import { serverFetch } from "@/lib/api-server";
 import { API_BASE_URL } from "@/lib/endpoints";
-import { formatLongDate, getInitials, getUserDisplayName, isVerifiedProfile } from "@/lib/marketplace";
+import {
+  formatLastActive,
+  formatLongDate,
+  getInitials,
+  getUserDisplayName,
+  isVerifiedProfile,
+} from "@/lib/marketplace";
+import { normalizeKenyanPhone } from "@/lib/phone";
 
 interface Props {
   params: { id: string };
@@ -23,62 +33,131 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function SellerProfilePage({ params }: Props) {
-  const data = await serverFetch<any>(`${API_BASE_URL}/users/${params.id}`, { revalidate: 60 });
-  if (!data) notFound();
+  const [profileData, listingsData] = await Promise.all([
+    serverFetch<any>(`${API_BASE_URL}/users/${params.id}`, { revalidate: 60 }),
+    serverFetch<any>(
+      `${API_BASE_URL}/unified-listings?userId=${params.id}&limit=12&status=approved`,
+      { revalidate: 60 }
+    ).catch(() => null),
+  ]);
 
-  const user = data?.user ?? data;
-  const listings = Array.isArray(data?.listings) ? data.listings : [];
+  if (!profileData) notFound();
+
+  const user = profileData?.user ?? profileData;
+  const rawListings = listingsData?.data ?? listingsData?.listings ?? listingsData ?? [];
+  const listings = Array.isArray(rawListings) ? rawListings : [];
   const verified = isVerifiedProfile(user);
+
+  const avatar = user?.profilePicture || user?.avatar || null;
+  const displayName = getUserDisplayName(user);
+  const county = user?.county || user?.location?.county || user?.address?.county || null;
+  const lastActive = formatLastActive(user?.lastActive || user?.updatedAt);
+  const responseTime = user?.responseTime || user?.responseTimeLabel || null;
+
+  const rawPhone = String(user?.phone || user?.contact || "").trim();
+  const whatsappPhone = normalizeKenyanPhone(rawPhone);
+
+  const ratings = user?.ratings || user?.ratingSummary || null;
+  const avgRating = Number(ratings?.average ?? ratings?.avg ?? user?.averageRating ?? 0);
+  const ratingCount = Number(ratings?.count ?? ratings?.total ?? user?.ratingCount ?? 0);
+
+  const followerCount = Number(user?.followers?.length ?? user?.followerCount ?? 0);
 
   return (
     <div className="page-shell py-10 sm:py-12">
+      {/* Profile hero */}
       <section className="hero-panel p-6 sm:p-8">
-        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-          <div className="flex items-center gap-5">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-terra-100 text-2xl font-semibold text-terra-700">
-              {getInitials(getUserDisplayName(user))}
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+          {/* Avatar */}
+          <div className="flex-shrink-0">
+            {avatar ? (
+              <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-stone-200 shadow-sm sm:h-28 sm:w-28">
+                <Image src={avatar} alt={displayName} fill sizes="112px" className="object-cover" />
+              </div>
+            ) : (
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-terra-100 text-2xl font-bold text-terra-700 sm:h-28 sm:w-28">
+                {getInitials(displayName)}
+              </div>
+            )}
+          </div>
+
+          {/* Info */}
+          <div className="min-w-0 flex-1">
+            <p className="section-kicker">Seller profile</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">{displayName}</h1>
+              {verified && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-forest-200 bg-forest-50 px-2.5 py-1 text-xs font-semibold text-forest-700">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Verified
+                </span>
+              )}
             </div>
-            <div className="min-w-0">
-              <p className="section-kicker">Seller profile</p>
-              <h1 className="mt-3 truncate text-4xl font-bold text-stone-900">{getUserDisplayName(user)}</h1>
-              <p className="mt-2 text-sm text-stone-500">
-                {verified ? "Verified cues visible" : "Marketplace seller"}{" "}
-                {user?.createdAt ? `| Joined ${formatLongDate(user.createdAt)}` : ""}
-              </p>
+
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-500">
+              {county && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {county}
+                </span>
+              )}
+              {avgRating > 0 && (
+                <span className="flex items-center gap-1">
+                  <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                  <span className="font-semibold text-stone-700">{avgRating.toFixed(1)}</span>
+                  {ratingCount > 0 && (
+                    <span className="text-stone-400">({ratingCount.toLocaleString()})</span>
+                  )}
+                </span>
+              )}
+              {user?.createdAt && (
+                <span>Joined {formatLongDate(user.createdAt)}</span>
+              )}
+              {(responseTime || lastActive) && (
+                <span>
+                  {[responseTime && `Responds ${responseTime}`, lastActive]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
+              )}
+            </div>
+
+            {user?.bio && (
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-stone-600">{user.bio}</p>
+            )}
+
+            <div className="mt-4">
+              <SellerProfileActions
+                sellerId={String(user._id || user.id || params.id)}
+                initialFollowerCount={followerCount}
+                whatsappPhone={whatsappPhone}
+              />
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="metric-chip">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Active listings</p>
-              <p className="mt-2 text-3xl font-bold text-stone-900">{listings.length}</p>
-              <p className="mt-1 text-sm text-stone-600">Current marketplace items from this seller profile.</p>
+          {/* Stats */}
+          <div className="flex flex-row gap-3 sm:flex-col sm:items-end">
+            <div className="metric-chip min-w-[90px] text-center">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Listings</p>
+              <p className="mt-1 text-3xl font-bold text-stone-900">{listings.length}</p>
             </div>
-            <div className="metric-chip">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Profile note</p>
-              <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                Use seller pages to judge consistency, not just a single listing. Trading history,
-                active inventory, and verification cues help buyers move faster.
-              </p>
-            </div>
+            {ratingCount > 0 && (
+              <div className="metric-chip min-w-[90px] text-center">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500">Rating</p>
+                <p className="mt-1 text-3xl font-bold text-stone-900">{avgRating.toFixed(1)}</p>
+                <p className="text-[10px] text-stone-400">{ratingCount} review{ratingCount !== 1 ? "s" : ""}</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {user?.bio ? (
-        <section className="mt-8">
-          <div className="surface-card p-6">
-            <h2 className="text-2xl font-bold text-stone-900">About this seller</h2>
-            <p className="mt-3 text-sm leading-relaxed text-stone-600">{user.bio}</p>
-          </div>
-        </section>
-      ) : null}
-
+      {/* Listings */}
       <section className="mt-10">
         <div className="mb-5 flex items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold text-stone-900">Listings from this seller</h2>
-            <p className="mt-2 text-sm text-stone-500">
+            <p className="mt-1 text-sm text-stone-500">
               Active marketplace inventory published under this profile.
             </p>
           </div>
@@ -97,7 +176,7 @@ export default async function SellerProfilePage({ params }: Props) {
           <div className="surface-card p-10 text-center">
             <h2 className="text-2xl font-bold text-stone-900">No active listings right now</h2>
             <p className="mt-3 text-sm text-stone-600">
-              This seller profile does not currently have live marketplace inventory.
+              This seller does not currently have live marketplace inventory.
             </p>
           </div>
         )}
