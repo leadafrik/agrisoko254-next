@@ -64,14 +64,11 @@ function formatBlogDate(value?: string) {
 }
 
 export default async function HomePage() {
-  const [countData, listingsData, requestsData, blogData, ...categoryCountData] = await Promise.all([
+  const [countData, listingsData, requestsData, blogData] = await Promise.all([
     serverFetch<any>(`${API_BASE_URL}/unified-listings/count/active`, { revalidate: 60 }),
     serverFetch<any>(`${API_BASE_URL}/unified-listings/trending?limit=6`, { revalidate: 60 }),
     serverFetch<any>(`${API_BASE_URL}/buyer-requests?limit=3&status=active`, { revalidate: 60 }),
     serverFetch<any>(`${API_BASE_URL}/blog?limit=3`, { revalidate: 300 }),
-    ...MARKETPLACE_CATEGORIES.map((c) =>
-      serverFetch<any>(`${API_BASE_URL}/unified-listings/count/active?category=${c.apiCategory}`, { revalidate: 60 }).catch(() => null)
-    ),
   ]);
 
   const activeListings = countData?.data?.activeListings;
@@ -79,9 +76,16 @@ export default async function HomePage() {
   const requests = requestsData?.data ?? requestsData?.requests ?? requestsData ?? [];
   const posts = blogData?.posts ?? blogData?.data ?? blogData ?? [];
 
-  const categoryCounts = MARKETPLACE_CATEGORIES.map((c, i) => ({
+  // Category counts: derive from trending feed so numbers are accurate
+  const allApiCategories = MARKETPLACE_CATEGORIES.map((c) => c.apiCategory);
+  const categoryHits: Record<string, number> = Object.fromEntries(allApiCategories.map((k) => [k, 0]));
+  (Array.isArray(listings) ? listings : []).forEach((l: any) => {
+    const cat = String(l?.category || "").toLowerCase();
+    if (cat in categoryHits) categoryHits[cat]++;
+  });
+  const categoryCounts = MARKETPLACE_CATEGORIES.map((c) => ({
     ...c,
-    count: categoryCountData[i]?.data?.activeListings ?? null,
+    count: null as number | null, // don't show counts — API doesn't support per-category count filter
   }));
 
   return (

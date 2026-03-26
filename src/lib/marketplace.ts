@@ -249,15 +249,24 @@ export const getOptimizedImageUrl = (
   return url.replace("/image/upload/", `/image/upload/${transforms.join(",")}/`);
 };
 
+const extractImageUrl = (item: any): string => {
+  if (!item) return "";
+  if (typeof item === "string") return item.trim();
+  // image objects: { url, secure_url, publicUrl, src, ... }
+  const url = item?.url || item?.secure_url || item?.publicUrl || item?.src || "";
+  return String(url).trim();
+};
+
 export const getListingImageUrls = (listing: any) => {
   const rawImages = [
     ...(Array.isArray(listing?.images) ? listing.images : []),
     ...(Array.isArray(listing?.photos) ? listing.photos : []),
     ...(typeof listing?.image === "string" ? [listing.image] : []),
+    ...(listing?.image && typeof listing.image === "object" ? [listing.image] : []),
     ...(typeof listing?.coverImage === "string" ? [listing.coverImage] : []),
   ]
-    .map((item) => String(item || "").trim())
-    .filter(Boolean);
+    .map(extractImageUrl)
+    .filter((url) => Boolean(url) && !url.includes("[object"));
 
   return Array.from(new Set(rawImages));
 };
@@ -385,8 +394,9 @@ export const isListingBoosted = (listing: any) =>
 export const getDeliveryScopeLabel = (listing: any): string => {
   const scope = String(listing?.deliveryScope || "").trim();
   if (scope === "countrywide") return "Countrywide delivery";
-  if (scope === "within_county") return "Within county";
-  return "Delivery negotiable";
+  if (scope === "within_county") return "Within county only";
+  if (scope === "local") return "Local delivery";
+  return "Ask seller about delivery";
 };
 
 export const getListingEngagement = (listing: any) => ({

@@ -94,7 +94,7 @@ export default function ListingCard({
         className="group flex h-full flex-col overflow-hidden rounded-[26px] border border-stone-200 bg-white shadow-[0_20px_50px_-35px_rgba(120,83,47,0.45)] transition duration-200 hover:-translate-y-1 hover:border-terra-200 hover:shadow-[0_30px_60px_-35px_rgba(120,83,47,0.55)]"
       >
         <div className="aspect-[4/3] overflow-hidden bg-stone-100">
-          <div className="transition duration-300 group-hover:scale-[1.03]">
+          <div className="h-full transition duration-300 group-hover:scale-[1.03]">
             <ListingImage src={image} alt={title} sizes={imageSizes} />
           </div>
         </div>
