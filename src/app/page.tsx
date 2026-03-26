@@ -6,7 +6,6 @@ import {
   Beef,
   Clock3,
   Leaf,
-  MapPin,
   MessageCircle,
   NotebookText,
   Package,

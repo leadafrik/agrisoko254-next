@@ -43,6 +43,10 @@ export default function ChatbotWidget() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  const starterSuggestions = pathname.startsWith("/learn")
+    ? LEARN_SUGGESTIONS
+    : MARKETPLACE_SUGGESTIONS;
+
   useEffect(() => {
     if (!isOpen || chatSession) return;
     let cancelled = false;
@@ -64,7 +68,7 @@ export default function ChatbotWidget() {
     };
     void startChat();
     return () => { cancelled = true; };
-  }, [chatSession, isOpen]);
+  }, [chatSession, isOpen, starterSuggestions]);
 
   // Drag handlers
   const onDragStart = (e: React.MouseEvent | React.TouchEvent) => {
@@ -95,10 +99,6 @@ export default function ChatbotWidget() {
     window.addEventListener("touchmove", onMove as any, { passive: false });
     window.addEventListener("touchend", onUp);
   };
-
-  const starterSuggestions = pathname.startsWith("/learn")
-    ? LEARN_SUGGESTIONS
-    : MARKETPLACE_SUGGESTIONS;
 
   if (!isMounted) return null;
   if (pathname.startsWith("/admin")) return null;

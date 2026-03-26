@@ -34,7 +34,18 @@ export const storeSession = (data: {
     const expiry = Date.now() + data.expiresIn * 1000;
     localStorage.setItem(TOKEN_EXPIRY_KEY, String(expiry));
   }
-  if (data.user) localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  if (data.user) {
+    localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+
+    const isAdminUser = data.user?.role === "admin" || data.user?.role === "super_admin";
+    if (isAdminUser) {
+      localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
+      document.cookie = `agrisoko_admin_token=${data.token}; path=/; SameSite=Lax`;
+    } else {
+      localStorage.removeItem(ADMIN_TOKEN_KEY);
+      document.cookie = "agrisoko_admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+  }
 };
 
 export const storeAdminSession = (token: string, user?: any) => {

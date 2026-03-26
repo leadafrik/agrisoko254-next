@@ -212,6 +212,7 @@ export default async function ListingDetailPage({ params }: Props) {
               seller={seller}
               sellerId={String(sellerId || "")}
               listingId={listingId}
+              listingContact={listing?.contact || listing?.contactPhone || seller?.phone || null}
             />
           </div>
         </div>
