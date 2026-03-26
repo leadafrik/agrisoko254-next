@@ -99,6 +99,58 @@ body {
   .metric-chip {
     @apply rounded-2xl border border-stone-200 bg-white px-4 py-3 shadow-[0_12px_30px_-26px_rgba(120,83,47,0.45)];
   }
+
+  .ui-page-shell {
+    @apply min-h-full bg-transparent text-stone-900;
+  }
+
+  .ui-card {
+    @apply rounded-[28px] border border-stone-200 bg-white shadow-[0_18px_50px_-34px_rgba(120,83,47,0.4)];
+  }
+
+  .ui-card-soft {
+    @apply rounded-[24px] border border-stone-200 bg-[#f7f1e8] shadow-[0_16px_40px_-34px_rgba(120,83,47,0.34)];
+  }
+
+  .ui-hero-panel {
+    @apply overflow-hidden rounded-[34px] border border-stone-200 bg-[radial-gradient(circle_at_top_left,rgba(160,69,46,0.15),transparent_38%),radial-gradient(circle_at_top_right,rgba(46,125,50,0.12),transparent_30%),linear-gradient(135deg,#fffdf8_0%,#fff_44%,#f5eee5_100%)] shadow-[0_26px_80px_-38px_rgba(120,83,47,0.44)];
+  }
+
+  .ui-accent-panel {
+    @apply rounded-[28px] border border-terra-200 bg-[linear-gradient(180deg,rgba(253,245,243,0.92)_0%,rgba(255,255,255,0.98)_100%)] shadow-[0_20px_56px_-38px_rgba(160,69,46,0.42)];
+  }
+
+  .ui-section-kicker {
+    @apply inline-flex items-center rounded-full border border-terra-200 bg-terra-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-terra-700;
+  }
+
+  .ui-btn-primary {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl bg-terra-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-terra-600 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .ui-btn-secondary {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .ui-btn-ghost {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-stone-600 transition hover:bg-stone-100 hover:text-terra-700 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .ui-label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-[0.16em] text-stone-500;
+  }
+
+  .ui-input {
+    @apply w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:border-terra-300 focus:ring-2 focus:ring-terra-100;
+  }
+
+  .ui-select {
+    @apply ui-input pr-10;
+  }
+
+  .ui-textarea {
+    @apply ui-input min-h-[110px] resize-y;
+  }
 }
 
 @layer utilities {

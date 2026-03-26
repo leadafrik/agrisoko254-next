@@ -5,65 +5,134 @@ import { useEffect, useState } from "react";
 import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 
-export default function AdminIDVerificationPage() {
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+type PendingVerification = {
+  _id: string;
+  status?: string;
+  notes?: string;
+  submittedAt?: string;
+  idDocumentUrl?: string;
+  idFrontUrl?: string;
+  idBackUrl?: string;
+  selfieUrl?: string;
+  userId?: {
+    _id?: string;
+    fullName?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+  };
+};
 
-  const fetch = () => {
-    adminApiRequest(API_ENDPOINTS.admin.verification.pending)
-      .then((d) => setUsers(d?.users ?? d ?? []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+const getUserLabel = (user?: { fullName?: string; name?: string; email?: string; phone?: string }) =>
+  user?.fullName || user?.name || user?.email || user?.phone || "Unknown user";
+
+export default function AdminIDVerificationPage() {
+  const [verifications, setVerifications] = useState<PendingVerification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [workingId, setWorkingId] = useState("");
+
+  const fetchQueue = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await adminApiRequest(API_ENDPOINTS.admin.verification.pending);
+      setVerifications(Array.isArray(response?.verifications) ? response.verifications : []);
+    } catch (loadError: any) {
+      setError(loadError?.message || "Unable to load the ID verification queue.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => {
+    void fetchQueue();
+  }, []);
 
-  const review = async (id: string, status: "approved" | "rejected") => {
-    await adminApiRequest(API_ENDPOINTS.admin.verification.review(id), { method: "PUT", body: JSON.stringify({ status }) });
-    fetch();
+  const review = async (entry: PendingVerification, status: "approved" | "rejected") => {
+    setWorkingId(entry._id);
+    setError("");
+
+    try {
+      const notes =
+        status === "rejected" ? window.prompt("Reason for rejection") || "" : "Approved by admin";
+      await adminApiRequest(API_ENDPOINTS.admin.verification.review(entry._id), {
+        method: "PUT",
+        body: JSON.stringify({ status, notes }),
+      });
+      if (status === "approved" && entry.userId?._id) {
+        await adminApiRequest(API_ENDPOINTS.admin.users.verifyId(entry.userId._id), {
+          method: "PUT",
+        }).catch(() => null);
+      }
+      await fetchQueue();
+    } catch (reviewError: any) {
+      setError(reviewError?.message || "Unable to review this verification.");
+    } finally {
+      setWorkingId("");
+    }
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-stone-900 mb-6">ID Verification</h1>
-      {loading ? <p className="text-stone-400">Loading...</p> : users.length === 0 ? (
-        <p className="text-stone-400">No pending verifications.</p>
-      ) : (
-        <div className="space-y-4">
-          {users.map((u: any) => (
-            <div key={u._id} className="bg-white rounded-xl border border-stone-100 p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="font-semibold text-stone-800">{u.name}</p>
-                  <p className="text-xs text-stone-500">{u.phone ?? u.email}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => review(u._id, "approved")}
-                    className="bg-forest-500 text-white px-4 py-1.5 rounded-lg text-xs font-semibold hover:bg-forest-600">Approve</button>
-                  <button onClick={() => review(u._id, "rejected")}
-                    className="bg-red-50 text-red-600 border border-red-200 px-4 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-100">Reject</button>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {["idFront", "idBack", "selfie"].map((doc) => u.verification?.[doc] && (
-                  <a key={doc} href={u.verification[doc]} target="_blank" rel="noopener noreferrer"
-                    className="block w-28 h-20 rounded-lg overflow-hidden border border-stone-200 hover:border-terra-300 transition-colors">
-                    <div className="relative h-full w-full">
-                      <Image
-                        src={u.verification[doc]}
-                        alt={doc}
-                        fill
-                        sizes="112px"
-                        className="object-cover"
-                      />
-                    </div>
-                  </a>
-                ))}
-              </div>
+    <div className="ui-page-shell">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <section className="ui-hero-panel p-6 md:p-8">
+          <p className="ui-section-kicker">ID verification</p>
+          <h1 className="mt-4 text-4xl font-bold text-stone-900">Identity review queue</h1>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-stone-600">
+            Review submitted ID fronts, backs, and selfies before promoting users into verified marketplace trust.
+          </p>
+          <div className="mt-5 ui-card inline-flex px-4 py-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Pending checks</p>
+              <p className="mt-2 text-2xl font-bold text-stone-900">{verifications.length}</p>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        </section>
+
+        {error ? <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
+
+        {loading ? (
+          <div className="ui-card p-6 text-sm text-stone-500">Loading ID verification queue...</div>
+        ) : verifications.length === 0 ? (
+          <div className="ui-card p-8 text-center text-stone-500">No pending ID verifications.</div>
+        ) : (
+          <div className="space-y-4">
+            {verifications.map((entry) => {
+              const docs = [entry.idFrontUrl, entry.idBackUrl, entry.selfieUrl, entry.idDocumentUrl].filter(Boolean) as string[];
+              return (
+                <div key={entry._id} className="ui-card p-5">
+                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xl font-semibold text-stone-900">{getUserLabel(entry.userId)}</p>
+                      <p className="mt-1 text-sm text-stone-600">{entry.userId?.email || entry.userId?.phone || "No contact"}</p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Submitted {entry.submittedAt ? new Date(entry.submittedAt).toLocaleString("en-KE") : "recently"}</p>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        {docs.length === 0 ? (
+                          <p className="text-sm text-stone-500">No documents attached.</p>
+                        ) : (
+                          docs.map((url, index) => (
+                            <a key={`${entry._id}-${index}`} href={url} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-2xl border border-stone-200">
+                              <div className="relative h-36 w-full">
+                                <Image src={url} alt="Verification document" fill sizes="(min-width: 1024px) 20vw, 100vw" className="object-cover" />
+                              </div>
+                            </a>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex min-w-[180px] flex-col gap-2">
+                      <button type="button" disabled={workingId === entry._id} onClick={() => void review(entry, "approved")} className="ui-btn-primary px-4 py-2.5">Approve</button>
+                      <button type="button" disabled={workingId === entry._id} onClick={() => void review(entry, "rejected")} className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-60">Reject</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

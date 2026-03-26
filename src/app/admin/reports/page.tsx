@@ -10,7 +10,11 @@ export default function AdminReportsPage() {
 
   useEffect(() => {
     adminApiRequest(API_ENDPOINTS.admin.reports.getAll)
-      .then((d) => setReports(d?.reports ?? d ?? []))
+      .then((d) =>
+        setReports(
+          Array.isArray(d?.data) ? d.data : Array.isArray(d?.reports) ? d.reports : []
+        )
+      )
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

@@ -31,14 +31,24 @@ export default function AdminModerationPage() {
       setLoading(true);
       setError("");
       const pendingUrl = API_ENDPOINTS.admin.listings.getPending;
-      const approvedUrl = pendingUrl.replace("/pending", "/approved");
+      const approvedUrl = API_ENDPOINTS.admin.listings.getApproved;
       const [pending, approved] = await Promise.all([
         adminApiRequest(pendingUrl),
         adminApiRequest(approvedUrl),
       ]);
+      const pendingItems = Array.isArray(pending?.data)
+        ? pending.data
+        : Array.isArray(pending?.listings)
+          ? pending.listings
+          : [];
+      const approvedItems = Array.isArray(approved?.data)
+        ? approved.data
+        : Array.isArray(approved?.listings)
+          ? approved.listings
+          : [];
       setListings([
-        ...(pending?.data || pending?.listings || []),
-        ...(approved?.data || approved?.listings || []),
+        ...pendingItems,
+        ...approvedItems,
       ]);
     } catch (err: any) {
       setError(err?.message || "Failed to fetch listings.");

@@ -1,3 +1,9 @@
+import {
+  SEEDED_INTELLIGENCE_UPDATED_AT,
+  SEEDED_MAIZE_RECENT_CONTRIBUTIONS,
+  SEEDED_MAIZE_SNAPSHOT,
+} from "./market-intelligence-seed";
+
 export type IntelligenceCategory = "produce" | "inputs";
 export type TrendDirection = "up" | "down" | "stable";
 
@@ -51,6 +57,56 @@ export type IntelligenceContribution = {
   observationDate: string | null;
 };
 
+export type IntelligenceHistoryPoint = {
+  id: string;
+  county: string;
+  marketName: string;
+  price: number;
+  unit: string;
+  currency: string;
+  observationDate: string | null;
+  sourceType: string;
+  sourceLabel: string;
+  notes: string;
+};
+
+export type IntelligenceHistoryAverageRow = {
+  county?: string;
+  marketName?: string;
+  date?: string;
+  averagePrice: number;
+  minPrice: number;
+  maxPrice: number;
+  submissionsCount: number;
+  lastUpdated: string | null;
+};
+
+export type IntelligenceProductHistory = {
+  generatedAt: string;
+  productKey: string;
+  productName: string;
+  unit: string;
+  points: IntelligenceHistoryPoint[];
+  summary: {
+    count: number;
+    minPrice: number;
+    maxPrice: number;
+    averagePrice: number;
+  };
+  countyAverages: IntelligenceHistoryAverageRow[];
+  marketAverages: IntelligenceHistoryAverageRow[];
+  dailyAverageSeries: IntelligenceHistoryAverageRow[];
+  isFallback?: boolean;
+};
+
+export type IntelligenceSubmissionFeedback = {
+  reportsToday: number;
+  currentAverage: number;
+  approvedReportsInWindow: number;
+  deltaPercentage: number;
+  comparisonLabel: "above" | "below" | "near";
+};
+
 export type IntelligenceOverview = {
   generatedAt: string;
   meta: {
@@ -90,6 +146,10 @@ export const TRACKED_INTELLIGENCE_MARKETS = [
   { county: "Nairobi", marketName: "Wakulima Market" },
   { county: "Uasin Gishu", marketName: "Eldoret Market" },
   { county: "Nakuru", marketName: "Nakuru Market" },
+  { county: "Trans Nzoia", marketName: "Kitale Grain Belt" },
+  { county: "Bungoma", marketName: "Bungoma Grain Desk" },
+  { county: "Kirinyaga", marketName: "Mwea Town Grain Desk" },
+  { county: "Migori", marketName: "Migori Town Market" },
   { county: "Kisumu", marketName: "Kibuye Market" },
   { county: "Mombasa", marketName: "Kongowea Market" },
   { county: "Meru", marketName: "Meru Town Market" },
@@ -97,103 +157,14 @@ export const TRACKED_INTELLIGENCE_MARKETS = [
   { county: "Kajiado", marketName: "Kiserian Market" },
 ] as const;
 
-const nowIso = "2026-03-26T12:00:00.000Z";
+const nowIso = SEEDED_INTELLIGENCE_UPDATED_AT;
 
 const fallbackProduceBoard: IntelligenceProductSnapshot[] = [
   {
-    productKey: "maize",
-    productName: "Maize",
-    category: "produce",
-    unit: "90kg bag",
-    submissionsCount: 18,
-    approvedMarkets: 4,
-    lastUpdated: nowIso,
-    overallAverage: 4170,
-    overallTrendDirection: "up",
-    overallTrendPercentage: 4.6,
-    bestMarket: {
-      marketKey: "maize-nairobi",
-      marketName: "Wakulima Market",
-      county: "Nairobi",
-      avgPrice: 4550,
-      minPrice: 4420,
-      maxPrice: 4680,
-      submissionsCount: 5,
-      currentWindowCount: 5,
-      lastUpdated: nowIso,
-      trendDirection: "up",
-      trendPercentage: 6.1,
-    },
-    weakestMarket: {
-      marketKey: "maize-eldoret",
-      marketName: "Eldoret Market",
-      county: "Uasin Gishu",
-      avgPrice: 3820,
-      minPrice: 3750,
-      maxPrice: 3900,
-      submissionsCount: 4,
-      currentWindowCount: 4,
-      lastUpdated: nowIso,
-      trendDirection: "down",
-      trendPercentage: -1.8,
-    },
-    markets: [
-      {
-        marketKey: "maize-nairobi",
-        marketName: "Wakulima Market",
-        county: "Nairobi",
-        avgPrice: 4550,
-        minPrice: 4420,
-        maxPrice: 4680,
-        submissionsCount: 5,
-        currentWindowCount: 5,
-        lastUpdated: nowIso,
-        trendDirection: "up",
-        trendPercentage: 6.1,
-      },
-      {
-        marketKey: "maize-kisumu",
-        marketName: "Kibuye Market",
-        county: "Kisumu",
-        avgPrice: 4340,
-        minPrice: 4260,
-        maxPrice: 4420,
-        submissionsCount: 4,
-        currentWindowCount: 4,
-        lastUpdated: nowIso,
-        trendDirection: "up",
-        trendPercentage: 4.2,
-      },
-      {
-        marketKey: "maize-nakuru",
-        marketName: "Nakuru Market",
-        county: "Nakuru",
-        avgPrice: 3970,
-        minPrice: 3890,
-        maxPrice: 4050,
-        submissionsCount: 5,
-        currentWindowCount: 5,
-        lastUpdated: nowIso,
-        trendDirection: "stable",
-        trendPercentage: 1.4,
-      },
-      {
-        marketKey: "maize-eldoret",
-        marketName: "Eldoret Market",
-        county: "Uasin Gishu",
-        avgPrice: 3820,
-        minPrice: 3750,
-        maxPrice: 3900,
-        submissionsCount: 4,
-        currentWindowCount: 4,
-        lastUpdated: nowIso,
-        trendDirection: "down",
-        trendPercentage: -1.8,
-      },
-    ],
-    insight:
-      "Maize is paying best in Wakulima Market, Nairobi at about KES 4,550 per 90kg bag, roughly 19% above Uasin Gishu this week.",
-    isFallback: true,
+    ...SEEDED_MAIZE_SNAPSHOT,
+    bestMarket: { ...SEEDED_MAIZE_SNAPSHOT.bestMarket },
+    weakestMarket: { ...SEEDED_MAIZE_SNAPSHOT.weakestMarket },
+    markets: SEEDED_MAIZE_SNAPSHOT.markets.map((market) => ({ ...market })),
   },
   {
     productKey: "beans",
@@ -706,18 +677,7 @@ const fallbackFertilizerBoard: IntelligenceProductSnapshot[] = [
 ];
 
 const fallbackRecentContributions: IntelligenceContribution[] = [
-  {
-    id: "fallback-1",
-    productKey: "maize",
-    productName: "Maize",
-    county: "Nairobi",
-    marketName: "Wakulima Market",
-    price: 4550,
-    unit: "90kg bag",
-    sourceType: "admin",
-    contributorName: "Agrisoko market desk",
-    observationDate: nowIso,
-  },
+  ...SEEDED_MAIZE_RECENT_CONTRIBUTIONS.map((entry) => ({ ...entry })),
   {
     id: "fallback-2",
     productKey: "tomatoes",
@@ -761,13 +721,13 @@ const FALLBACK_OVERVIEW: IntelligenceOverview = {
     {
       productKey: "maize",
       productName: "Maize",
-      trendDirection: "up",
-      trendPercentage: 4.6,
-      bestCounty: "Nairobi",
-      bestMarketName: "Wakulima Market",
-      bestPrice: 4550,
+      trendDirection: "stable",
+      trendPercentage: 2.1,
+      bestCounty: "Nakuru",
+      bestMarketName: "Nakuru Yellow Maize Desk",
+      bestPrice: 3800,
       summary:
-        "Maize is paying best in Wakulima Market, Nairobi, with stronger upside than Eldoret and Nakuru this week.",
+        "Starter maize signals already show a real spread, from about KES 2,500 in lower Nakuru quotes to KES 3,800 in stronger Nakuru premium and yellow-maize desks.",
     },
     {
       productKey: "tomatoes",
@@ -865,6 +825,49 @@ const normalizeContribution = (item: any): IntelligenceContribution => ({
   observationDate: item?.observationDate ? String(item.observationDate) : null,
 });
 
+const normalizeHistoryPoint = (item: any): IntelligenceHistoryPoint => ({
+  id: String(item?.id || item?._id || ""),
+  county: String(item?.county || "Kenya"),
+  marketName: String(item?.marketName || "Market"),
+  price: Number(item?.price || 0),
+  unit: String(item?.unit || "unit"),
+  currency: String(item?.currency || "KES"),
+  observationDate: item?.observationDate ? String(item.observationDate) : null,
+  sourceType: String(item?.sourceType || "external"),
+  sourceLabel: String(item?.sourceLabel || ""),
+  notes: String(item?.notes || ""),
+});
+
+const normalizeHistoryAverageRow = (item: any): IntelligenceHistoryAverageRow => ({
+  county: item?.county ? String(item.county) : undefined,
+  marketName: item?.marketName ? String(item.marketName) : undefined,
+  date: item?.date ? String(item.date) : undefined,
+  averagePrice: Number(item?.averagePrice || 0),
+  minPrice: Number(item?.minPrice || 0),
+  maxPrice: Number(item?.maxPrice || 0),
+  submissionsCount: Number(item?.submissionsCount || 0),
+  lastUpdated: item?.lastUpdated ? String(item.lastUpdated) : null,
+});
+
+export function normalizeSubmissionFeedback(payload: any): IntelligenceSubmissionFeedback | null {
+  if (!payload || typeof payload !== "object") return null;
+
+  const comparisonLabel =
+    payload?.comparisonLabel === "above" ||
+    payload?.comparisonLabel === "below" ||
+    payload?.comparisonLabel === "near"
+      ? payload.comparisonLabel
+      : "near";
+
+  return {
+    reportsToday: Number(payload?.reportsToday || 0),
+    currentAverage: Number(payload?.currentAverage || 0),
+    approvedReportsInWindow: Number(payload?.approvedReportsInWindow || 0),
+    deltaPercentage: Number(payload?.deltaPercentage || 0),
+    comparisonLabel,
+  };
+}
+
 export function getFallbackIntelligenceOverview(): IntelligenceOverview {
   return deepClone(FALLBACK_OVERVIEW);
 }
@@ -878,6 +881,80 @@ export function getFallbackProductSnapshot(
     overview.fertilizerBoard.find((item) => item.productKey === productKey) ||
     null
   );
+}
+
+export function getFallbackProductHistory(
+  productKey: string
+): IntelligenceProductHistory | null {
+  const product = getFallbackProductSnapshot(productKey);
+  if (!product) return null;
+
+  const points = product.markets.map((market) => ({
+    id: market.marketKey,
+    county: market.county,
+    marketName: market.marketName,
+    price: market.avgPrice,
+    unit: product.unit,
+    currency: "KES",
+    observationDate: market.lastUpdated || product.lastUpdated,
+    sourceType: market.sourceType || "external",
+    sourceLabel: market.sourceLabel || "",
+    notes: market.notes || "",
+  }));
+
+  const countyMap = new Map<string, typeof points>();
+  for (const point of points) {
+    const bucket = countyMap.get(point.county) || [];
+    bucket.push(point);
+    countyMap.set(point.county, bucket);
+  }
+
+  const countyAverages = Array.from(countyMap.entries()).map(([county, items]) => {
+    const values = items.map((item) => item.price);
+    return {
+      county,
+      averagePrice: Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2)),
+      minPrice: Math.min(...values),
+      maxPrice: Math.max(...values),
+      submissionsCount: items.length,
+      lastUpdated: items[items.length - 1]?.observationDate || product.lastUpdated,
+    };
+  });
+
+  return {
+    generatedAt: product.generatedAt || product.lastUpdated || new Date().toISOString(),
+    productKey: product.productKey,
+    productName: product.productName,
+    unit: product.unit,
+    points,
+    summary: {
+      count: points.length,
+      minPrice: points.length ? Math.min(...points.map((item) => item.price)) : 0,
+      maxPrice: points.length ? Math.max(...points.map((item) => item.price)) : 0,
+      averagePrice: product.overallAverage,
+    },
+    countyAverages,
+    marketAverages: product.markets.map((market) => ({
+      county: market.county,
+      marketName: market.marketName,
+      averagePrice: market.avgPrice,
+      minPrice: market.minPrice,
+      maxPrice: market.maxPrice,
+      submissionsCount: market.submissionsCount,
+      lastUpdated: market.lastUpdated,
+    })),
+    dailyAverageSeries: [
+      {
+        date: (product.lastUpdated || new Date().toISOString()).slice(0, 10),
+        averagePrice: product.overallAverage,
+        minPrice: product.weakestMarket?.avgPrice || product.overallAverage,
+        maxPrice: product.bestMarket?.avgPrice || product.overallAverage,
+        submissionsCount: product.submissionsCount,
+        lastUpdated: product.lastUpdated,
+      },
+    ],
+    isFallback: true,
+  };
 }
 
 export function normalizeIntelligenceOverview(payload: any): IntelligenceOverview {
@@ -941,6 +1018,46 @@ export function normalizeIntelligenceProduct(
   const normalized = normalizeProduct(raw);
   if (!normalized.markets.length && productKey) {
     return getFallbackProductSnapshot(productKey);
+  }
+
+  return normalized;
+}
+
+export function normalizeIntelligenceHistory(
+  payload: any,
+  productKey?: string
+): IntelligenceProductHistory | null {
+  const raw = payload?.data?.productKey ? payload.data : payload;
+  if (!raw || !raw.productKey) {
+    return productKey ? getFallbackProductHistory(productKey) : null;
+  }
+
+  const normalized: IntelligenceProductHistory = {
+    generatedAt: raw?.generatedAt ? String(raw.generatedAt) : new Date().toISOString(),
+    productKey: String(raw?.productKey || productKey || ""),
+    productName: String(raw?.productName || "Commodity"),
+    unit: String(raw?.unit || "unit"),
+    points: Array.isArray(raw?.points) ? raw.points.map(normalizeHistoryPoint) : [],
+    summary: {
+      count: Number(raw?.summary?.count || 0),
+      minPrice: Number(raw?.summary?.minPrice || 0),
+      maxPrice: Number(raw?.summary?.maxPrice || 0),
+      averagePrice: Number(raw?.summary?.averagePrice || 0),
+    },
+    countyAverages: Array.isArray(raw?.countyAverages)
+      ? raw.countyAverages.map(normalizeHistoryAverageRow)
+      : [],
+    marketAverages: Array.isArray(raw?.marketAverages)
+      ? raw.marketAverages.map(normalizeHistoryAverageRow)
+      : [],
+    dailyAverageSeries: Array.isArray(raw?.dailyAverageSeries)
+      ? raw.dailyAverageSeries.map(normalizeHistoryAverageRow)
+      : [],
+    isFallback: Boolean(raw?.isFallback),
+  };
+
+  if (!normalized.points.length && productKey) {
+    return getFallbackProductHistory(productKey);
   }
 
   return normalized;

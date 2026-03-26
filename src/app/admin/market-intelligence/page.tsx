@@ -58,6 +58,8 @@ export default function AdminMarketIntelligencePage() {
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [form, setForm] = useState(defaultAdminForm);
   const [saving, setSaving] = useState(false);
+  const [seedingBaseline, setSeedingBaseline] = useState(false);
+  const [seedMessage, setSeedMessage] = useState("");
 
   const selectedProduct =
     TRACKED_INTELLIGENCE_PRODUCTS.find((item) => item.key === form.productKey) ||
@@ -69,7 +71,7 @@ export default function AdminMarketIntelligencePage() {
       const response = await adminApiRequest(
         `${API_ENDPOINTS.marketIntelligence.admin.submissions}?status=${nextStatus}`
       );
-      setSubmissions((response?.data || []) as Submission[]);
+      setSubmissions(Array.isArray(response?.data) ? (response.data as Submission[]) : []);
       setSummary(
         (response?.summary || { pending: 0, approved: 0, rejected: 0 }) as Summary
       );
@@ -130,6 +132,26 @@ export default function AdminMarketIntelligencePage() {
     }
   };
 
+  const handleSeedBaseline = async () => {
+    setSeedingBaseline(true);
+    setSeedMessage("");
+    try {
+      const response = await adminApiRequest(
+        API_ENDPOINTS.marketIntelligence.admin.seedMaizeBaseline,
+        { method: "POST" }
+      );
+      setSeedMessage(
+        response?.message ||
+          `Imported ${response?.data?.imported || 0} maize baseline entries into the database.`
+      );
+      await fetchSubmissions(statusFilter);
+    } catch (error: any) {
+      setSeedMessage(error?.message || "Unable to import the maize baseline right now.");
+    } finally {
+      setSeedingBaseline(false);
+    }
+  };
+
   return (
     <div>
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -139,6 +161,19 @@ export default function AdminMarketIntelligencePage() {
             Review crowdsourced price submissions, keep the public board clean, and seed starter
             prices from the Agrisoko market desk when needed.
           </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => void handleSeedBaseline()}
+              disabled={seedingBaseline}
+              className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:opacity-60"
+            >
+              {seedingBaseline ? "Importing..." : "Import maize baseline"}
+            </button>
+            {seedMessage ? (
+              <p className="self-center text-sm text-stone-500">{seedMessage}</p>
+            ) : null}
+          </div>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[360px]">

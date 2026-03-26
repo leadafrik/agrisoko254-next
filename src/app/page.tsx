@@ -20,6 +20,7 @@ import RequestCard from "@/components/marketplace/RequestCard";
 import MarketplaceSupportStrip from "@/components/common/MarketplaceSupportStrip";
 import { BottomAuthCTA, HeroAuthCTA } from "@/components/common/HomepageAuthCTA";
 import { serverFetch } from "@/lib/api-server";
+import { getInsightPosts } from "@/lib/content-hub";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/endpoints";
 import {
   MARKETPLACE_CATEGORIES,
@@ -101,18 +102,17 @@ function formatBlogDate(value?: string) {
 }
 
 export default async function HomePage() {
-  const [countData, listingsData, requestsData, blogData, intelligenceData] = await Promise.all([
+  const [countData, listingsData, requestsData, posts, intelligenceData] = await Promise.all([
     serverFetch<any>(`${API_BASE_URL}/unified-listings/count/active`, { revalidate: 180 }),
     serverFetch<any>(`${API_BASE_URL}/unified-listings/trending?limit=6`, { revalidate: 180 }),
     serverFetch<any>(`${API_BASE_URL}/buyer-requests?limit=3&status=active`, { revalidate: 180 }),
-    serverFetch<any>(`${API_BASE_URL}/blog?limit=3`, { revalidate: 300 }),
+    getInsightPosts(3),
     serverFetch<any>(API_ENDPOINTS.marketIntelligence.overview, { revalidate: 300 }),
   ]);
 
   const activeListings = Number(countData?.data?.activeListings || 0);
   const listings = listingsData?.listings ?? listingsData?.data ?? listingsData ?? [];
   const requests = requestsData?.data ?? requestsData?.requests ?? requestsData ?? [];
-  const posts = blogData?.posts ?? blogData?.data ?? blogData ?? [];
   const intelligence = normalizeIntelligenceOverview(intelligenceData);
   const featuredSignals = intelligence.topSignals.slice(0, 3);
   const produceBoard = intelligence.produceBoard.slice(0, 4);

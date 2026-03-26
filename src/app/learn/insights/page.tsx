@@ -41,10 +41,13 @@ export default async function LearnInsightsPage() {
         <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
           Editorial insights
         </p>
-        <h1 className="mt-3 text-4xl font-bold text-stone-900">The blog is now part of the Learn hub.</h1>
+        <h1 className="mt-3 text-4xl font-bold text-stone-900">
+          Market notes, policy shifts, and trade signals for Kenyan agriculture.
+        </h1>
         <p className="mt-4 max-w-3xl text-lg leading-relaxed text-stone-600">
-          This stream carries Agrisoko commentary, market observations, trade signals, and practical editorial updates.
-          Evergreen guides still live under topic pages, but public content now reads as one connected knowledge system.
+          This stream carries Agrisoko commentary, market observations, trade signals, and policy
+          analysis. Evergreen guides stay under topic pages, while insights stay close to live
+          market movement.
         </p>
       </div>
 

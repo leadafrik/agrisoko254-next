@@ -7,6 +7,12 @@ export const SOCKET_URL =
   "https://kodisha-backend-vjr9.onrender.com";
 
 export const API_ENDPOINTS = {
+  analytics: {
+    track: `${API_BASE_URL}/analytics/track`,
+    admin: {
+      summary: `${API_BASE_URL}/analytics/admin/summary`,
+    },
+  },
   auth: {
     csrfToken:          `${API_BASE_URL}/auth/csrf-token`,
     register:           `${API_BASE_URL}/auth/register`,
@@ -50,11 +56,14 @@ export const API_ENDPOINTS = {
     overview: `${API_BASE_URL}/market-intelligence/overview`,
     byProduct: (productKey: string) =>
       `${API_BASE_URL}/market-intelligence/products/${productKey}`,
+    history: (productKey: string) =>
+      `${API_BASE_URL}/market-intelligence/products/${productKey}/history`,
     submissions: `${API_BASE_URL}/market-intelligence/submissions`,
     admin: {
       submissions: `${API_BASE_URL}/admin/market-intelligence/submissions`,
       review: (submissionId: string) =>
         `${API_BASE_URL}/admin/market-intelligence/submissions/${submissionId}/review`,
+      seedMaizeBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/maize-baseline`,
     },
   },
   listings: {
@@ -90,6 +99,7 @@ export const API_ENDPOINTS = {
   buyerRequests: {
     list:   `${API_BASE_URL}/buyer-requests`,
     byId:   (id: string) => `${API_BASE_URL}/buyer-requests/${id}`,
+    byUser: (id: string) => `${API_BASE_URL}/buyer-requests/user/${id}`,
     create: `${API_BASE_URL}/buyer-requests`,
     respond:(id: string) => `${API_BASE_URL}/buyer-requests/${id}/respond`,
   },
@@ -155,6 +165,8 @@ export const API_ENDPOINTS = {
   },
   users: {
     getProfile:          (id: string) => `${API_BASE_URL}/users/${id}`,
+    notificationPreferences: (id: string) =>
+      `${API_BASE_URL}/users/${id}/notification-preferences`,
     uploadProfilePicture:`${API_BASE_URL}/users/profile-picture/upload`,
     deleteAccount:       `${API_BASE_URL}/users/delete-account`,
   },
@@ -182,28 +194,50 @@ export const API_ENDPOINTS = {
     dashboard: `${API_BASE_URL}/admin/dashboard`,
     listings: {
       getPending: `${API_BASE_URL}/admin/listings/pending`,
+      getApproved:`${API_BASE_URL}/admin/listings/approved`,
       verify:     (id: string) => `${API_BASE_URL}/admin/listings/${id}/verify`,
       delete:     (id: string) => `${API_BASE_URL}/admin/listings/${id}`,
+      update:     (id: string) => `${API_BASE_URL}/admin/listings/${id}`,
     },
     users: {
-      getAll:  `${API_BASE_URL}/admin/users`,
-      search:  `${API_BASE_URL}/admin/users/search`,
-      create:  `${API_BASE_URL}/admin/users/create`,
-      getById: (id: string) => `${API_BASE_URL}/admin/users/${id}`,
-      verify:  (id: string) => `${API_BASE_URL}/admin/users/${id}/verify`,
-      suspend: (id: string) => `${API_BASE_URL}/admin/users/${id}/suspend`,
+      getAll:      `${API_BASE_URL}/admin/users`,
+      search:      `${API_BASE_URL}/admin/users/search`,
+      create:      `${API_BASE_URL}/admin/users/create`,
+      getById:     (id: string) => `${API_BASE_URL}/admin/users/${id}`,
+      reports:     (id: string) => `${API_BASE_URL}/admin/users/${id}/reports`,
+      verify:      (id: string) => `${API_BASE_URL}/admin/users/${id}/verify`,
+      verifyId:    (id: string) => `${API_BASE_URL}/admin/users/${id}/verify-id`,
+      suspend:     (id: string) => `${API_BASE_URL}/admin/users/${id}/suspend`,
+      unsuspend:   (id: string) => `${API_BASE_URL}/admin/users/${id}/unsuspend`,
+      flag:        (id: string) => `${API_BASE_URL}/admin/users/${id}/flag`,
+      clearFlags:  (id: string) => `${API_BASE_URL}/admin/users/${id}/clear-flags`,
+      updateEmail: (id: string) => `${API_BASE_URL}/admin/users/${id}/email`,
+      updatePhone: (id: string) => `${API_BASE_URL}/admin/users/${id}/phone`,
+      updateRole:  (id: string) => `${API_BASE_URL}/admin/users/${id}/role`,
+      delete:      (id: string) => `${API_BASE_URL}/admin/users/${id}`,
     },
     verification: {
       pending: `${API_BASE_URL}/admin/verification/id/pending`,
       review:  (id: string) => `${API_BASE_URL}/admin/verification/id/${id}/review`,
     },
+    profiles: {
+      pending: `${API_BASE_URL}/admin/profiles/pending`,
+      verify:  (id: string) => `${API_BASE_URL}/admin/profiles/${id}/verify`,
+      reject:  (id: string) => `${API_BASE_URL}/admin/profiles/${id}/reject`,
+    },
+    sellers: {
+      documents: (id: string) => `${API_BASE_URL}/admin/sellers/${id}/documents`,
+    },
     reports: {
       getAll: `${API_BASE_URL}/reports`,
+      update: (id: string) => `${API_BASE_URL}/reports/${id}`,
     },
     broadcast: `${API_BASE_URL}/admin/broadcast`,
     orders: {
-      list: `${API_BASE_URL}/admin/orders`,
-      byId: (id: string) => `${API_BASE_URL}/admin/orders/${id}`,
+      list:    `${API_BASE_URL}/admin/orders`,
+      byId:    (id: string) => `${API_BASE_URL}/admin/orders/${id}`,
+      payment: (id: string) => `${API_BASE_URL}/admin/orders/${id}/payment`,
+      status:  (id: string) => `${API_BASE_URL}/admin/orders/${id}/status`,
     },
   },
 };

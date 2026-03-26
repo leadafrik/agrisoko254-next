@@ -13,7 +13,11 @@ export default function AdminBlogPage() {
 
   const fetchPosts = () => {
     adminApiRequest(API_ENDPOINTS.blog.admin.list)
-      .then((d) => setPosts(d?.posts ?? d ?? []))
+      .then((d) =>
+        setPosts(
+          Array.isArray(d?.data) ? d.data : Array.isArray(d?.posts) ? d.posts : []
+        )
+      )
       .catch(() => {})
       .finally(() => setLoading(false));
   };

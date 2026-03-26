@@ -11,7 +11,7 @@ import {
 } from "react";
 import { useAuth } from "./AuthContext";
 import { apiRequest } from "@/lib/api";
-import { API_BASE_URL } from "@/lib/endpoints";
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/endpoints";
 
 export interface AppNotification {
   id: string;
@@ -48,6 +48,28 @@ const toDate = (v: unknown): Date => {
   return isNaN(d.getTime()) ? new Date() : d;
 };
 
+const toNotificationList = (payload: any): AppNotification[] => {
+  const raw =
+    (Array.isArray(payload?.data?.notifications) && payload.data.notifications) ||
+    (Array.isArray(payload?.notifications) && payload.notifications) ||
+    (Array.isArray(payload?.data?.data?.notifications) && payload.data.data.notifications) ||
+    (Array.isArray(payload?.data) && payload.data) ||
+    (Array.isArray(payload) && payload) ||
+    [];
+
+  return raw
+    .map((n: any) => ({
+      id: n._id || n.id,
+      type: n.type || "info",
+      title: n.title || "",
+      message: n.message || "",
+      read: !!n.read,
+      actionUrl: n.actionUrl,
+      createdAt: toDate(n.createdAt),
+    }))
+    .filter((n: AppNotification) => !!n.id);
+};
+
 export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -62,18 +84,9 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!userId) return;
     try {
       setLoading(true);
-      const res = await apiRequest(`${API_BASE_URL}/notifications?limit=20&userId=${userId}`);
+      const res = await apiRequest(`${API_BASE_URL}/notifications?limit=20`);
       if (!mountedRef.current) return;
-      const items: AppNotification[] = (res?.data?.notifications || res?.data || []).map((n: any) => ({
-        id: n._id || n.id,
-        type: n.type || "info",
-        title: n.title || "",
-        message: n.message || "",
-        read: !!n.read,
-        actionUrl: n.actionUrl,
-        createdAt: toDate(n.createdAt),
-      })).filter((n: AppNotification) => !!n.id);
-      setNotifications(items);
+      setNotifications(toNotificationList(res));
     } catch {
       // non-critical
     } finally {
@@ -84,7 +97,7 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchPreferences = useCallback(async () => {
     if (!userId) return;
     try {
-      const res = await apiRequest(`${API_BASE_URL}/notifications/preferences/${userId}`);
+      const res = await apiRequest(API_ENDPOINTS.users.notificationPreferences(userId));
       if (mountedRef.current) setPreferences(res?.data || null);
     } catch { /* non-critical */ }
   }, [userId]);
@@ -110,11 +123,18 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const updatePreferences = useCallback(async (prefs: Partial<NotificationPreferences>) => {
     if (!userId) return;
-    const updated = await apiRequest(`${API_BASE_URL}/notifications/preferences/${userId}`, {
-      method: "PATCH",
+    const updated = await apiRequest(API_ENDPOINTS.users.notificationPreferences(userId), {
+      method: "PUT",
       body: JSON.stringify(prefs),
     });
-    if (mountedRef.current) setPreferences((prev) => ({ ...prev, ...updated?.data }));
+    if (mountedRef.current) {
+      setPreferences((prev) => ({
+        emailNotifications: prev?.emailNotifications ?? true,
+        pushNotifications: prev?.pushNotifications ?? true,
+        monthlyReminders: prev?.monthlyReminders ?? true,
+        ...(updated?.data || {}),
+      }));
+    }
   }, [userId]);
 
   const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);

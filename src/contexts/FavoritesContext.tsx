@@ -29,7 +29,8 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       const data = await apiRequest(API_ENDPOINTS.favorites.list);
-      const ids: string[] = (data?.data || data || []).map((f: any) =>
+      const raw = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+      const ids: string[] = raw.map((f: any) =>
         String(f?.listingId || f?._id || "")
       ).filter(Boolean);
       setFavorites(ids);

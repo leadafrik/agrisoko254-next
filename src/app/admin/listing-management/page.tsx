@@ -29,7 +29,10 @@ export default function AdminListingManagementPage() {
     try {
       setLoading(true);
       setError("");
-      const url = tab === "pending" ? API_ENDPOINTS.admin.listings.getPending : `${API_ENDPOINTS.admin.listings.getPending.replace("/pending", "/approved")}`;
+      const url =
+        tab === "pending"
+          ? API_ENDPOINTS.admin.listings.getPending
+          : API_ENDPOINTS.admin.listings.getApproved;
       const res = await apiRequest(url);
       const data = res?.data || res?.listings || [];
       setListings(Array.isArray(data) ? data : []);
@@ -98,7 +101,7 @@ export default function AdminListingManagementPage() {
       if (editForm.description.trim()) body.description = editForm.description.trim();
       if (editForm.price !== "") body.price = Number(editForm.price);
       if (editForm.category) body.category = editForm.category;
-      await apiRequest(`${API_ENDPOINTS.admin.listings.getPending.replace("/pending", "")}/${editTarget._id}`, {
+      await apiRequest(API_ENDPOINTS.admin.listings.update(editTarget._id), {
         method: "PATCH",
         body: JSON.stringify(body),
       });

@@ -4,188 +4,209 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
-import { CheckCircle, XCircle } from "lucide-react";
 
-interface PendingProfile {
+type PendingProfile = {
   _id: string;
-  fullName: string;
+  fullName?: string;
   phone?: string;
   email?: string;
   county?: string;
   constituency?: string;
+  profileVerificationStatus?: string;
   fraud?: { flagsCount?: number };
-}
+};
 
-interface SellerDocuments {
-  idDocuments: { idFront?: string; idBack?: string; selfie?: string };
-  otherDocuments: { type: string; url: string; uploadedAt: string }[];
-  verificationDetails: { idVerified?: boolean; selfieVerified?: boolean; notes?: string };
-}
+type SellerDocuments = {
+  idDocuments: { idFront?: string | null; idBack?: string | null; selfie?: string | null };
+  otherDocuments: { type: string; url: string; uploadedAt?: string }[];
+  verificationDetails: { idVerified?: boolean; selfieVerified?: boolean; notes?: string; status?: string };
+};
 
 export default function AdminProfileVerificationPage() {
   const [profiles, setProfiles] = useState<PendingProfile[]>([]);
   const [selected, setSelected] = useState<PendingProfile | null>(null);
   const [docs, setDocs] = useState<SellerDocuments | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [rejectReason, setRejectReason] = useState("");
-  const [showRejectForm, setShowRejectForm] = useState(false);
+  const [working, setWorking] = useState(false);
 
-  const loadProfiles = async (p = page) => {
+  const loadProfiles = async (targetPage = page) => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      setError(null);
-      const res = await adminApiRequest(`${API_ENDPOINTS.admin.verification.pending}?page=${p}&limit=20`);
-      setProfiles(res?.data || res?.profiles || []);
-      setTotalPages(res?.pagination?.pages || res?.pages || 1);
-      setSelected(null);
-      setDocs(null);
-    } catch (err: any) {
-      setError(err?.message || "Failed to load profiles.");
+      const response = await adminApiRequest(`${API_ENDPOINTS.admin.profiles.pending}?page=${targetPage}&limit=20&status=pending`);
+      setProfiles(Array.isArray(response?.data) ? response.data : []);
+      setTotalPages(response?.pagination?.pages || 1);
+      setPage(targetPage);
+    } catch (loadError: any) {
+      setError(loadError?.message || "Unable to load pending profiles.");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { loadProfiles(page); }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const initialLoad = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await adminApiRequest(`${API_ENDPOINTS.admin.profiles.pending}?page=1&limit=20&status=pending`);
+        setProfiles(Array.isArray(response?.data) ? response.data : []);
+        setTotalPages(response?.pagination?.pages || 1);
+        setPage(1);
+      } catch (loadError: any) {
+        setError(loadError?.message || "Unable to load pending profiles.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void initialLoad();
+  }, []);
 
   useEffect(() => {
-    if (!selected) return;
-    adminApiRequest(`${API_ENDPOINTS.admin.verification.pending.replace("/pending", "")}/${selected._id}/documents`)
-      .then((res) => setDocs(res?.data || res))
+    if (!selected?._id) return;
+    adminApiRequest(API_ENDPOINTS.admin.sellers.documents(selected._id))
+      .then((response) => setDocs(response?.data || null))
       .catch(() => setDocs(null));
   }, [selected]);
 
-  const handleVerify = async () => {
-    if (!selected) return;
+  const reviewProfile = async (status: "approved" | "rejected") => {
+    if (!selected?._id) return;
+    setWorking(true);
+    setError("");
     try {
-      await adminApiRequest(API_ENDPOINTS.admin.verification.review(selected._id), { method: "PATCH", body: JSON.stringify({ status: "approved" }) });
-      setSuccess(`Profile verified for ${selected.fullName}`);
-      setTimeout(() => setSuccess(null), 3000);
-      loadProfiles(page);
-    } catch (err: any) { setError(err?.message); }
-  };
-
-  const handleReject = async () => {
-    if (!selected || !rejectReason.trim()) { setError("Rejection reason is required."); return; }
-    try {
-      await adminApiRequest(API_ENDPOINTS.admin.verification.review(selected._id), { method: "PATCH", body: JSON.stringify({ status: "rejected", notes: rejectReason.trim() }) });
-      setSuccess(`Profile rejected for ${selected.fullName}`);
-      setRejectReason(""); setShowRejectForm(false);
-      setTimeout(() => setSuccess(null), 3000);
-      loadProfiles(page);
-    } catch (err: any) { setError(err?.message); }
+      if (status === "approved") {
+        await adminApiRequest(API_ENDPOINTS.admin.profiles.verify(selected._id), {
+          method: "PUT",
+          body: JSON.stringify({ notes: "Approved by admin" }),
+        });
+      } else {
+        if (!rejectReason.trim()) {
+          setError("Rejection reason is required.");
+          setWorking(false);
+          return;
+        }
+        await adminApiRequest(API_ENDPOINTS.admin.profiles.reject(selected._id), {
+          method: "PUT",
+          body: JSON.stringify({ reason: rejectReason.trim() }),
+        });
+      }
+      setSelected(null);
+      setDocs(null);
+      setRejectReason("");
+      await loadProfiles(page);
+    } catch (reviewError: any) {
+      setError(reviewError?.message || "Unable to review this profile.");
+    } finally {
+      setWorking(false);
+    }
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-3xl font-bold text-stone-900">Profile verification</h1>
+    <div className="ui-page-shell">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <section className="ui-hero-panel p-6 md:p-8">
+          <p className="ui-section-kicker">Profile verification</p>
+          <h1 className="mt-4 text-4xl font-bold text-stone-900">Pending profile reviews</h1>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-stone-600">
+            Review seller documents and supporting uploads before upgrading a profile to verified status.
+          </p>
+        </section>
 
-      {success && <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 flex items-center gap-2"><CheckCircle size={16} />{success}</div>}
-      {error && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2"><XCircle size={16} />{error}</div>}
+        {error ? <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Profile list */}
-        <div className="rounded-2xl border border-stone-200 bg-white p-5">
-          <h2 className="mb-4 text-base font-semibold text-stone-900">Pending profiles ({profiles.length})</h2>
-          {loading && profiles.length === 0 && <p className="text-sm text-stone-500">Loading...</p>}
-          {!loading && profiles.length === 0 && <p className="text-sm text-stone-500">No pending profiles.</p>}
-          <div className="max-h-96 space-y-2 overflow-y-auto">
-            {profiles.map((p) => (
-              <button key={p._id} onClick={() => setSelected(p)} className={`w-full rounded-xl p-3 text-left transition ${selected?._id === p._id ? "border-l-4 border-terra-500 bg-terra-50" : "bg-stone-50 hover:bg-stone-100"}`}>
-                <p className="font-medium text-stone-900">{p.fullName}</p>
-                <p className="text-sm text-stone-500">{p.phone}</p>
-                <p className="mt-1 text-xs text-amber-600">Pending verification</p>
-              </button>
-            ))}
-          </div>
-          {totalPages > 1 && (
-            <div className="mt-4 flex items-center gap-2">
-              <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} className="rounded-lg border border-stone-200 px-3 py-1 text-xs disabled:opacity-50 hover:bg-stone-50">Previous</button>
-              <span className="text-xs text-stone-600">Page {page} of {totalPages}</span>
-              <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages} className="rounded-lg border border-stone-200 px-3 py-1 text-xs disabled:opacity-50 hover:bg-stone-50">Next</button>
+        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="ui-card p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="ui-section-kicker">Queue</p>
+                <h2 className="mt-2 text-xl font-semibold text-stone-900">Pending profiles</h2>
+              </div>
+              <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">{profiles.length} on page</span>
             </div>
-          )}
-        </div>
-
-        {/* Profile details */}
-        {selected ? (
-          <div className="space-y-5 lg:col-span-2">
-            <div className="rounded-2xl border border-stone-200 bg-white p-5">
-              <h2 className="mb-4 text-base font-semibold text-stone-900">Profile information</h2>
-              <div className="space-y-1 text-sm text-stone-700">
-                <p><strong>Name:</strong> {selected.fullName}</p>
-                {selected.phone && <p><strong>Phone:</strong> {selected.phone}</p>}
-                {selected.email && <p><strong>Email:</strong> {selected.email}</p>}
-                <p><strong>Location:</strong> {[selected.county, selected.constituency].filter(Boolean).join(", ") || "N/A"}</p>
-                <p><strong>Fraud flags:</strong> <span className="text-red-600">{selected.fraud?.flagsCount || 0}</span></p>
-              </div>
-            </div>
-
-            {docs && (
-              <div className="rounded-2xl border border-stone-200 bg-white p-5">
-                <h2 className="mb-4 text-base font-semibold text-stone-900">Documents</h2>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  {[["ID Front", docs.idDocuments.idFront], ["ID Back", docs.idDocuments.idBack], ["Selfie", docs.idDocuments.selfie]].map(([label, url]) => url ? (
-                    <div key={label as string}>
-                      <p className="mb-2 text-sm font-medium text-stone-600">{label}</p>
-                      <a href={url as string} target="_blank" rel="noopener noreferrer">
-                        <div className="relative h-36 w-full overflow-hidden rounded-xl border border-stone-200">
-                          <Image
-                            src={url as string}
-                            alt={label as string}
-                            fill
-                            sizes="(min-width: 640px) 30vw, 100vw"
-                            className="object-cover"
-                          />
-                        </div>
-                      </a>
-                    </div>
-                  ) : null)}
-                </div>
-                {docs.otherDocuments.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    {docs.otherDocuments.map((d, i) => (
-                      <div key={i} className="flex items-center justify-between rounded-xl bg-stone-50 px-4 py-3 text-sm">
-                        <p className="font-medium capitalize">{d.type.replace(/_/g, " ")}</p>
-                        <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-terra-600 hover:text-terra-700 font-semibold">View</a>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700">
-                  <p>Status: {docs.verificationDetails.idVerified && docs.verificationDetails.selfieVerified ? "✓ ID and selfie verified" : "Pending"}</p>
-                  {docs.verificationDetails.notes && <p className="mt-1">Notes: {docs.verificationDetails.notes}</p>}
-                </div>
-              </div>
-            )}
-
-            <div className="rounded-2xl border border-stone-200 bg-white p-5">
-              <h2 className="mb-4 text-base font-semibold text-stone-900">Actions</h2>
-              <div className="flex gap-3">
-                <button onClick={handleVerify} className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">Verify profile</button>
-                <button onClick={() => setShowRejectForm(!showRejectForm)} className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Reject profile</button>
-              </div>
-              {showRejectForm && (
-                <div className="mt-4 rounded-xl bg-red-50 p-4">
-                  <label className="mb-2 block text-sm font-medium text-stone-700">Reason for rejection (required)</label>
-                  <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Explain why you're rejecting this profile..." rows={3} className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm focus:outline-none" />
-                  <div className="mt-3 flex gap-2">
-                    <button onClick={handleReject} className="flex-1 rounded-lg bg-red-600 py-2 text-sm font-semibold text-white hover:bg-red-700">Confirm rejection</button>
-                    <button onClick={() => { setShowRejectForm(false); setRejectReason(""); }} className="flex-1 rounded-lg border border-stone-200 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50">Cancel</button>
-                  </div>
-                </div>
+            <div className="mt-4 space-y-3">
+              {loading ? (
+                <p className="text-sm text-stone-500">Loading profiles...</p>
+              ) : profiles.length === 0 ? (
+                <p className="text-sm text-stone-500">No pending profiles.</p>
+              ) : (
+                profiles.map((profile) => (
+                  <button key={profile._id} type="button" onClick={() => setSelected(profile)} className={`w-full rounded-2xl border px-4 py-3 text-left transition ${selected?._id === profile._id ? "border-terra-300 bg-terra-50" : "border-stone-200 bg-stone-50 hover:bg-stone-100"}`}>
+                    <p className="font-semibold text-stone-900">{profile.fullName || "User profile"}</p>
+                    <p className="mt-1 text-sm text-stone-600">{profile.email || profile.phone || "No contact"}</p>
+                    <p className="mt-1 text-xs text-stone-500">{[profile.constituency, profile.county].filter(Boolean).join(", ") || "Location not set"}</p>
+                  </button>
+                ))
               )}
             </div>
+            <div className="mt-5 flex items-center justify-between gap-3">
+              <button type="button" disabled={page <= 1} onClick={() => void loadProfiles(page - 1)} className="ui-btn-secondary px-4 py-2">Previous</button>
+              <p className="text-sm text-stone-500">Page {page} of {totalPages}</p>
+              <button type="button" disabled={page >= totalPages} onClick={() => void loadProfiles(page + 1)} className="ui-btn-secondary px-4 py-2">Next</button>
+            </div>
           </div>
-        ) : (
-          <div className="flex items-center justify-center rounded-2xl bg-stone-100 lg:col-span-2">
-            <p className="text-stone-500">Select a profile to review</p>
+
+          <div className="space-y-5">
+            {selected ? (
+              <>
+                <div className="ui-card p-5">
+                  <h2 className="text-xl font-semibold text-stone-900">{selected.fullName || "Profile"}</h2>
+                  <div className="mt-4 grid gap-3 text-sm text-stone-700 md:grid-cols-2">
+                    <p><span className="font-semibold text-stone-900">Email:</span> {selected.email || "-"}</p>
+                    <p><span className="font-semibold text-stone-900">Phone:</span> {selected.phone || "-"}</p>
+                    <p><span className="font-semibold text-stone-900">County:</span> {selected.county || "-"}</p>
+                    <p><span className="font-semibold text-stone-900">Constituency:</span> {selected.constituency || "-"}</p>
+                    <p><span className="font-semibold text-stone-900">Fraud flags:</span> {selected.fraud?.flagsCount || 0}</p>
+                    <p><span className="font-semibold text-stone-900">Status:</span> {selected.profileVerificationStatus || "pending"}</p>
+                  </div>
+                </div>
+
+                <div className="ui-card p-5">
+                  <h2 className="text-xl font-semibold text-stone-900">Documents</h2>
+                  <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                    {[docs?.idDocuments?.idFront, docs?.idDocuments?.idBack, docs?.idDocuments?.selfie].filter(Boolean).map((url, index) => (
+                      <a key={`${selected._id}-${index}`} href={url as string} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-2xl border border-stone-200">
+                        <div className="relative h-40 w-full">
+                          <Image src={url as string} alt="Profile document" fill sizes="(min-width: 640px) 30vw, 100vw" className="object-cover" />
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                  {docs?.otherDocuments?.length ? (
+                    <div className="mt-4 space-y-2">
+                      {docs.otherDocuments.map((document, index) => (
+                        <a key={`${document.type}-${index}`} href={document.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between rounded-2xl bg-stone-50 px-4 py-3 text-sm text-stone-700">
+                          <span className="font-semibold capitalize">{document.type.replace(/_/g, " ")}</span>
+                          <span className="text-terra-700">Open</span>
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="ui-card p-5">
+                  <h2 className="text-xl font-semibold text-stone-900">Review actions</h2>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button type="button" disabled={working} onClick={() => void reviewProfile("approved")} className="ui-btn-primary px-5 py-2.5">Approve profile</button>
+                    <button type="button" disabled={working} onClick={() => void reviewProfile("rejected")} className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-60">Reject profile</button>
+                  </div>
+                  <label className="mt-4 block">
+                    <span className="ui-label">Rejection reason</span>
+                    <textarea className="ui-textarea" value={rejectReason} onChange={(event) => setRejectReason(event.target.value)} placeholder="Explain why this profile should be rejected." />
+                  </label>
+                </div>
+              </>
+            ) : (
+              <div className="ui-card flex min-h-[420px] items-center justify-center p-8 text-center text-stone-500">
+                Select a profile from the queue to review documents and approve or reject it.
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
