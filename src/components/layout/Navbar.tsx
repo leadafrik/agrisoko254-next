@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, ShoppingBag, BookOpen, Users } from "lucide-react";
+import { Menu, X, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Navbar() {

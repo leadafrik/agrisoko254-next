@@ -1,17 +1,9 @@
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { serverFetch } from "@/lib/api-server";
-import { API_ENDPOINTS } from "@/lib/endpoints";
-
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const trending = await serverFetch<any>(
-    API_ENDPOINTS.unifiedListings.trending(undefined, 8),
-    { revalidate: 60 }
-  );
-
   const categories = [
     { slug: "produce",   label: "Produce",     emoji: "🌽", desc: "Maize, beans, vegetables" },
     { slug: "livestock", label: "Livestock",   emoji: "🐄", desc: "Cattle, goats, poultry" },
