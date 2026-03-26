@@ -189,13 +189,24 @@ export default async function HomePage() {
                     </span>
                   </div>
 
+                  <style>{`
+                    @keyframes signal-in {
+                      0%   { opacity: 0; transform: translateY(6px); }
+                      100% { opacity: 1; transform: translateY(0); }
+                    }
+                    .signal-row {
+                      animation: signal-in 0.42s cubic-bezier(0.22,1,0.36,1) both;
+                    }
+                  `}</style>
+
                   <div className="mt-5 space-y-2">
                     {featuredSignals.length > 0 ? (
-                      featuredSignals.map((signal) => (
+                      featuredSignals.map((signal, i) => (
                         <Link
                           key={signal.productKey}
                           href={`/market-intelligence/${signal.productKey}`}
-                          className="flex items-center justify-between gap-3 rounded-[20px] border border-white/10 bg-white/5 px-4 py-3.5 transition hover:border-white/20 hover:bg-white/10"
+                          className="signal-row flex items-center justify-between gap-3 rounded-[20px] border border-white/10 bg-white/5 px-4 py-3.5 transition-colors hover:border-white/20 hover:bg-white/10"
+                          style={{ animationDelay: `${i * 90}ms` }}
                         >
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-white">{signal.productName}</p>
