@@ -2,305 +2,327 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, RefreshCw, Sparkles, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { RefreshCw } from "lucide-react";
+import DecisionSnapshotCard from "@/components/intelligence/DecisionSnapshotCard";
+import IntelligenceStatusStrip from "@/components/intelligence/IntelligenceStatusStrip";
 import MarketBoardTable from "@/components/intelligence/MarketBoardTable";
+import MarketPulsePanel from "@/components/intelligence/MarketPulsePanel";
+import TradingActionBar from "@/components/intelligence/TradingActionBar";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 import {
   type IntelligenceProductHistory,
   type IntelligenceProductSnapshot,
   formatIntelligenceDate,
   formatKes,
-  formatTrendLabel,
+  normalizeIntelligenceHistory,
   normalizeIntelligenceProduct,
 } from "@/lib/market-intelligence";
+import {
+  buildProductPulseItems,
+  buildScopedProductSnapshot,
+} from "@/lib/market-intelligence-presentation";
 
 type Props = {
   initialProduct: IntelligenceProductSnapshot;
   initialHistory: IntelligenceProductHistory;
 };
 
-function TrendPill({ direction, percentage }: { direction: string; percentage: number }) {
-  if (direction === "up")
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-xs font-bold text-green-700">
-        <TrendingUp className="h-3 w-3" />
-        {formatTrendLabel("up", percentage)}
-      </span>
-    );
-  if (direction === "down")
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600">
-        <TrendingDown className="h-3 w-3" />
-        {formatTrendLabel("down", percentage)}
-      </span>
-    );
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-500">
-      <Minus className="h-3 w-3" />
-      Stable
-    </span>
-  );
-}
+type HistoryMode = "market" | "county" | "daily";
 
-function AiOneLiner({ product }: { product: IntelligenceProductSnapshot }) {
-  const [brief, setBrief] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+const getRangeLabel = (product: IntelligenceProductSnapshot) => {
+  const prices = product.markets.map((market) => market.avgPrice).filter((value) => value > 0);
+  if (!prices.length) return "No approved range yet";
+  return `${formatKes(Math.min(...prices))} to ${formatKes(Math.max(...prices))}`;
+};
 
-  useEffect(() => {
-    if (!product.bestMarket || !product.weakestMarket) return;
-    setLoading(true);
-    setBrief(null);
-    const ctrl = new AbortController();
-    fetch("/api/market-intelligence/insight", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productKey: product.productKey,
-        productName: product.productName,
-        unit: product.unit,
-        overallAverage: product.overallAverage,
-        overallTrend: formatTrendLabel(product.overallTrendDirection, product.overallTrendPercentage),
-        bestMarket: product.bestMarket.marketName,
-        bestCounty: product.bestMarket.county,
-        bestPrice: product.bestMarket.avgPrice,
-        weakestMarket: product.weakestMarket.marketName,
-        weakestCounty: product.weakestMarket.county,
-        weakestPrice: product.weakestMarket.avgPrice,
-      }),
-      signal: ctrl.signal,
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => { if (!ctrl.signal.aborted) setBrief(data?.brief ?? null); })
-      .catch(() => {})
-      .finally(() => { if (!ctrl.signal.aborted) setLoading(false); });
-    return () => ctrl.abort();
-  }, [product.productKey]); // eslint-disable-line react-hooks/exhaustive-deps
+const getHistoryRows = (history: IntelligenceProductHistory, mode: HistoryMode) => {
+  if (mode === "county") {
+    return history.countyAverages.map((row) => ({
+      key: `${row.county}-${row.lastUpdated}`,
+      label: row.county || "County",
+      value: formatKes(row.averagePrice),
+      helper: `${row.submissionsCount} reports`,
+    }));
+  }
 
-  if (!loading && !brief) return null;
-  return (
-    <div className="flex items-start gap-2.5 rounded-[18px] border border-amber-100 bg-amber-50/60 px-4 py-3">
-      <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
-      {loading ? (
-        <div className="flex-1 space-y-1.5">
-          <div className="h-3 w-4/5 animate-pulse rounded bg-amber-100" />
-          <div className="h-3 w-3/5 animate-pulse rounded bg-amber-100" />
-        </div>
-      ) : (
-        <p className="text-sm leading-relaxed text-stone-700">{brief}</p>
-      )}
-    </div>
-  );
-}
+  if (mode === "daily") {
+    return history.dailyAverageSeries.map((row) => ({
+      key: `${row.date}-${row.lastUpdated}`,
+      label: row.date || "Latest day",
+      value: formatKes(row.averagePrice),
+      helper: `${row.submissionsCount} reports`,
+    }));
+  }
+
+  return history.marketAverages.map((row) => ({
+    key: `${row.marketName}-${row.county}-${row.lastUpdated}`,
+    label: row.marketName || "Market",
+    value: formatKes(row.averagePrice),
+    helper: row.county || "Kenya",
+  }));
+};
 
 export default function CommodityIntelligenceExplorer({
   initialProduct,
-  initialHistory: _initialHistory,
+  initialHistory,
 }: Props) {
-  void _initialHistory;
   const [product, setProduct] = useState(initialProduct);
+  const [history, setHistory] = useState(initialHistory);
+  const [countyFilter, setCountyFilter] = useState("all");
   const [selectedMarketKey, setSelectedMarketKey] = useState(
     initialProduct.bestMarket?.marketKey || initialProduct.markets[0]?.marketKey || ""
   );
-  const [countyFilter, setCountyFilter] = useState("all");
+  const [historyMode, setHistoryMode] = useState<HistoryMode>("market");
   const [refreshing, setRefreshing] = useState(false);
+
+  const countyOptions = Array.from(new Set(product.markets.map((market) => market.county))).sort();
+
+  const filteredMarkets =
+    countyFilter === "all"
+      ? product.markets
+      : product.markets.filter(
+          (market) => market.county.toLowerCase() === countyFilter.toLowerCase()
+        );
+
+  const scopedProduct =
+    filteredMarkets.length > 0
+      ? buildScopedProductSnapshot(
+          product,
+          filteredMarkets,
+          countyFilter === "all" ? undefined : countyFilter
+        )
+      : product;
+
+  const focusMarket =
+    scopedProduct.markets.find((market) => market.marketKey === selectedMarketKey) ||
+    scopedProduct.bestMarket ||
+    null;
+
+  const historyRows = getHistoryRows(history, historyMode).slice(0, 8);
+
+  useEffect(() => {
+    if (!scopedProduct.markets.length) {
+      setSelectedMarketKey("");
+      return;
+    }
+
+    const exists = scopedProduct.markets.some((market) => market.marketKey === selectedMarketKey);
+    if (!exists) {
+      setSelectedMarketKey(scopedProduct.bestMarket?.marketKey || scopedProduct.markets[0].marketKey);
+    }
+  }, [scopedProduct, selectedMarketKey]);
 
   useEffect(() => {
     let cancelled = false;
-    const id = window.setInterval(async () => {
+    const timer = window.setInterval(async () => {
       if (cancelled) return;
       try {
-        const res = await fetch(API_ENDPOINTS.marketIntelligence.byProduct(initialProduct.productKey), {
-          cache: "no-store", credentials: "include",
-        });
-        const data = res.ok ? await res.json().catch(() => null) : null;
-        if (!cancelled && data) {
-          const next = normalizeIntelligenceProduct(data, initialProduct.productKey);
-          if (next) setProduct(next);
+        const [productResponse, historyResponse] = await Promise.all([
+          fetch(API_ENDPOINTS.marketIntelligence.byProduct(initialProduct.productKey), {
+            cache: "no-store",
+            credentials: "include",
+          }),
+          fetch(API_ENDPOINTS.marketIntelligence.history(initialProduct.productKey), {
+            cache: "no-store",
+            credentials: "include",
+          }),
+        ]);
+
+        const productPayload = productResponse.ok ? await productResponse.json().catch(() => null) : null;
+        const historyPayload = historyResponse.ok ? await historyResponse.json().catch(() => null) : null;
+
+        if (!cancelled && productPayload) {
+          const nextProduct = normalizeIntelligenceProduct(productPayload, initialProduct.productKey);
+          if (nextProduct) setProduct(nextProduct);
+        }
+
+        if (!cancelled && historyPayload) {
+          const nextHistory = normalizeIntelligenceHistory(historyPayload, initialProduct.productKey);
+          if (nextHistory) setHistory(nextHistory);
         }
       } catch {}
-    }, 60000);
-    return () => { cancelled = true; clearInterval(id); };
+    }, 60_000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
   }, [initialProduct.productKey]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      const res = await fetch(API_ENDPOINTS.marketIntelligence.byProduct(product.productKey), {
-        cache: "no-store", credentials: "include",
-      });
-      const data = res.ok ? await res.json().catch(() => null) : null;
-      const next = data ? normalizeIntelligenceProduct(data, product.productKey) : null;
-      if (next) setProduct(next);
-    } finally { setRefreshing(false); }
+      const [productResponse, historyResponse] = await Promise.all([
+        fetch(API_ENDPOINTS.marketIntelligence.byProduct(initialProduct.productKey), {
+          cache: "no-store",
+          credentials: "include",
+        }),
+        fetch(API_ENDPOINTS.marketIntelligence.history(initialProduct.productKey), {
+          cache: "no-store",
+          credentials: "include",
+        }),
+      ]);
+
+      const productPayload = productResponse.ok ? await productResponse.json().catch(() => null) : null;
+      const historyPayload = historyResponse.ok ? await historyResponse.json().catch(() => null) : null;
+
+      if (productPayload) {
+        const nextProduct = normalizeIntelligenceProduct(productPayload, initialProduct.productKey);
+        if (nextProduct) setProduct(nextProduct);
+      }
+
+      if (historyPayload) {
+        const nextHistory = normalizeIntelligenceHistory(historyPayload, initialProduct.productKey);
+        if (nextHistory) setHistory(nextHistory);
+      }
+    } finally {
+      setRefreshing(false);
+    }
   };
-
-  const countyOptions = Array.from(new Set(product.markets.map((m) => m.county))).sort();
-  const filteredMarkets =
-    countyFilter === "all"
-      ? product.markets
-      : product.markets.filter((m) => m.county.toLowerCase() === countyFilter.toLowerCase());
-
-  const spread =
-    product.bestMarket && product.weakestMarket
-      ? product.bestMarket.avgPrice - product.weakestMarket.avgPrice
-      : 0;
 
   return (
     <div className="page-shell py-8 sm:py-10">
-
-      {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-2 text-sm text-stone-500">
-        <Link href="/market-intelligence" className="hover:text-terra-600">Market intelligence</Link>
+        <Link href="/market-intelligence" className="hover:text-terra-600">
+          Market intelligence
+        </Link>
         <span className="text-stone-300">/</span>
         <span className="font-medium text-stone-700">{product.productName}</span>
       </nav>
 
-      {/* ── Header card ── */}
-      <div className="rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_20px_60px_-36px_rgba(120,83,47,0.3)] sm:p-8">
-        {/* Top row: name + refresh */}
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">{product.productName}</h1>
-              <TrendPill direction={product.overallTrendDirection} percentage={product.overallTrendPercentage} />
-            </div>
-            <p className="mt-1.5 text-sm text-stone-500">
-              {product.approvedMarkets} market{product.approvedMarkets !== 1 ? "s" : ""} ·{" "}
-              {product.submissionsCount} approved reports ·{" "}
-              updated {formatIntelligenceDate(product.lastUpdated)}
-              {product.isFallback && " · starter signals"}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleRefresh}
-            className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-500 transition hover:border-terra-200 hover:text-terra-700"
-          >
-            <RefreshCw className={`h-3 w-3 ${refreshing ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-        </div>
-
-        {/* Big average + high/low */}
-        <div className="mt-5 flex flex-wrap items-end gap-6">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-stone-400">Board average</p>
-            <p className="mt-1 font-mono text-5xl font-bold text-stone-900">
-              {product.overallAverage > 0 ? formatKes(product.overallAverage) : "—"}
-            </p>
-            <p className="mt-0.5 text-xs text-stone-400">/ {product.unit}</p>
-          </div>
-          {product.bestMarket && product.weakestMarket && (
-            <div className="mb-1 flex items-center gap-4 text-sm">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-green-600">Highest</p>
-                <p className="mt-0.5 font-mono text-xl font-bold text-stone-900">
-                  {formatKes(product.bestMarket.avgPrice)}
-                </p>
-              </div>
-              <div className="h-8 w-px bg-stone-200" />
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-600">Lowest</p>
-                <p className="mt-0.5 font-mono text-xl font-bold text-stone-900">
-                  {formatKes(product.weakestMarket.avgPrice)}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* AI one-liner */}
-        <div className="mt-5">
-          <AiOneLiner product={product} />
-        </div>
-
-        {/* Best / weakest */}
-        {product.bestMarket && product.weakestMarket && (
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-[20px] border border-green-100 bg-green-50/50 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-green-700">Best to sell</p>
-              <p className="mt-2 font-mono text-xl font-bold text-stone-900">
-                {formatKes(product.bestMarket.avgPrice)}
-              </p>
-              <p className="mt-0.5 text-sm font-semibold text-stone-700">{product.bestMarket.marketName}</p>
-              <p className="text-xs text-stone-500">{product.bestMarket.county}</p>
-            </div>
-            <div className="rounded-[20px] border border-stone-200 bg-stone-50 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400">Cheapest market</p>
-              <p className="mt-2 font-mono text-xl font-bold text-stone-700">
-                {formatKes(product.weakestMarket.avgPrice)}
-              </p>
-              <p className="mt-0.5 text-sm font-semibold text-stone-600">{product.weakestMarket.marketName}</p>
-              <p className="text-xs text-stone-500">{product.weakestMarket.county}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Spread line */}
-        {spread > 0 && (
-          <p className="mt-4 text-sm text-stone-500">
-            Market spread: <span className="font-semibold text-stone-700">{formatKes(spread)}</span> between best and cheapest
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-3xl">
+          <p className="section-kicker">{product.category} board</p>
+          <h1 className="mt-4 text-4xl font-bold text-stone-900 sm:text-5xl">
+            {product.productName} decision board
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-stone-600">
+            Use this board to compare current Kenya prices, see where the strongest and weakest
+            markets are, and decide where to sell or buy before you move stock.
           </p>
-        )}
-
-        {/* Actions */}
-        <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-stone-100 pt-4">
-          <Link
-            href={`/market-intelligence/submit?product=${product.productKey}`}
-            className="text-sm font-semibold text-terra-600 hover:text-terra-700"
-          >
-            Submit a price →
-          </Link>
-          <Link
-            href="/market-intelligence"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-stone-500 hover:text-stone-800"
-          >
-            All products <ArrowRight className="h-3 w-3" />
-          </Link>
         </div>
+
+        <button
+          type="button"
+          onClick={() => void handleRefresh()}
+          className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-600 transition hover:border-terra-200 hover:text-terra-700"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+          Refresh board
+        </button>
       </div>
 
-      {/* ── Market board ── */}
-      <section className="mt-6">
-        {/* County filter */}
-        {countyOptions.length > 1 && (
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setCountyFilter("all")}
-              className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
-                countyFilter === "all"
-                  ? "bg-stone-900 text-white"
-                  : "border border-stone-200 bg-white text-stone-600 hover:border-stone-300"
-              }`}
-            >
-              All counties
-            </button>
-            {countyOptions.map((county) => (
+      <IntelligenceStatusStrip
+        className="mt-8"
+        items={[
+          { label: "Board average", value: formatKes(scopedProduct.overallAverage) },
+          { label: "Trading range", value: getRangeLabel(scopedProduct) },
+          { label: "Reports", value: scopedProduct.submissionsCount.toLocaleString() },
+          {
+            label: "Updated",
+            value: formatIntelligenceDate(scopedProduct.lastUpdated || scopedProduct.generatedAt),
+          },
+        ]}
+      />
+
+      <div className="mt-8 grid gap-6 xl:grid-cols-[1.35fr,0.95fr]">
+        <DecisionSnapshotCard product={scopedProduct} focusMarket={focusMarket} />
+        <MarketPulsePanel
+          items={buildProductPulseItems(scopedProduct, focusMarket)}
+          title="Farmer takeaway"
+        />
+      </div>
+
+      <TradingActionBar
+        submitHref={`/market-intelligence/submit?product=${product.productKey}`}
+        compareHref="/market-intelligence"
+        compareLabel="All commodities"
+        invite={{
+          productKey: product.productKey,
+          productName: product.productName,
+          county: focusMarket?.county,
+          marketName: focusMarket?.marketName,
+          unit: product.unit,
+        }}
+      />
+
+      <div className="mt-8 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setCountyFilter("all")}
+          className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
+            countyFilter === "all"
+              ? "border-stone-900 bg-stone-900 text-white"
+              : "border-stone-200 bg-white text-stone-600 hover:border-terra-200 hover:text-terra-700"
+          }`}
+        >
+          All markets
+        </button>
+        {countyOptions.map((county) => (
+          <button
+            key={county}
+            type="button"
+            onClick={() => setCountyFilter(county)}
+            className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
+              countyFilter === county
+                ? "border-terra-500 bg-terra-500 text-white"
+                : "border-stone-200 bg-white text-stone-600 hover:border-terra-200 hover:text-terra-700"
+            }`}
+          >
+            {county}
+          </button>
+        ))}
+      </div>
+
+      <MarketBoardTable
+        className="mt-6"
+        product={scopedProduct}
+        markets={scopedProduct.markets}
+        selectedMarketKey={focusMarket?.marketKey}
+        onSelectMarket={setSelectedMarketKey}
+      />
+
+      <div className="mt-8 rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_20px_55px_-36px_rgba(120,83,47,0.28)]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500">
+              Historical averages
+            </p>
+            <h2 className="mt-2 text-2xl font-bold text-stone-900">
+              Compare the cleaner historical view
+            </h2>
+          </div>
+
+          <div className="inline-flex rounded-full border border-stone-200 bg-stone-50 p-1">
+            {(["market", "county", "daily"] as HistoryMode[]).map((mode) => (
               <button
-                key={county}
+                key={mode}
                 type="button"
-                onClick={() => setCountyFilter(county)}
-                className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
-                  countyFilter === county
+                onClick={() => setHistoryMode(mode)}
+                className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${
+                  historyMode === mode
                     ? "bg-stone-900 text-white"
-                    : "border border-stone-200 bg-white text-stone-600 hover:border-stone-300"
+                    : "text-stone-500 hover:text-stone-900"
                 }`}
               >
-                {county}
+                {mode === "market" ? "By market" : mode === "county" ? "By county" : "Daily"}
               </button>
             ))}
           </div>
-        )}
+        </div>
 
-        <MarketBoardTable
-          product={product}
-          markets={filteredMarkets.length ? filteredMarkets : product.markets}
-          selectedMarketKey={selectedMarketKey}
-          onSelectMarket={setSelectedMarketKey}
-        />
-      </section>
-
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {historyRows.map((row) => (
+            <div key={row.key} className="rounded-[20px] border border-stone-200 bg-[#fbf8f2] p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+                {row.label}
+              </p>
+              <p className="mt-2 text-xl font-bold text-stone-900">{row.value}</p>
+              <p className="mt-2 text-sm text-stone-600">{row.helper}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

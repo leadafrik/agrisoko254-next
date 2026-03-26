@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const profileLinks = [
   { href: "/orders", label: "My Orders", icon: Package },
-  { href: "/seller/orders", label: "Seller Orders", icon: Truck },
+  { href: "/sellers/orders", label: "Seller Orders", icon: Truck },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/favorites", label: "Favorites", icon: Heart },
   { href: "/create-listing", label: "Create Listing", icon: CirclePlus },

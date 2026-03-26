@@ -29,6 +29,7 @@ const nextConfig = {
       { source: "/home",          destination: "/",              permanent: true },
       { source: "/marketplace",   destination: "/browse",        permanent: true },
       { source: "/listings",      destination: "/browse",        permanent: true },
+      { source: "/seller/orders", destination: "/sellers/orders", permanent: true },
       { source: "/blog",          destination: "/learn/insights", permanent: true },
       { source: "/blog/:slug",    destination: "/learn/insights/:slug", permanent: true },
       { source: "/find-services", destination: "/browse/services", permanent: true },

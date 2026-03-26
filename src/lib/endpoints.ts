@@ -66,6 +66,7 @@ export const API_ENDPOINTS = {
       seedMaizeBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/maize-baseline`,
       seedOnionBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/onion-baseline`,
       seedFertilizerBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/fertilizer-baseline`,
+      seedBroilerBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/broiler-baseline`,
     },
   },
   listings: {

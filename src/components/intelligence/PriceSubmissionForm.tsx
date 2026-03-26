@@ -3,10 +3,16 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import CommodityQuickPicker from "@/components/intelligence/CommodityQuickPicker";
+import DecisionSnapshotCard from "@/components/intelligence/DecisionSnapshotCard";
+import IntelligenceStatusStrip from "@/components/intelligence/IntelligenceStatusStrip";
+import MarketBoardTable from "@/components/intelligence/MarketBoardTable";
+import MarketPulsePanel from "@/components/intelligence/MarketPulsePanel";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 import {
+  type IntelligenceCategory,
   type IntelligenceOverview,
   type IntelligenceSubmissionFeedback,
   TRACKED_INTELLIGENCE_MARKETS,
@@ -17,6 +23,7 @@ import {
   normalizeIntelligenceOverview,
   normalizeSubmissionFeedback,
 } from "@/lib/market-intelligence";
+import { buildProductPulseItems } from "@/lib/market-intelligence-presentation";
 import InvitePriceButton from "./InvitePriceButton";
 
 type Props = {
@@ -33,23 +40,40 @@ type SubmissionState = {
   feedback: IntelligenceSubmissionFeedback | null;
 };
 
+const CATEGORY_LABELS: Record<IntelligenceCategory, string> = {
+  produce: "Produce",
+  livestock: "Livestock",
+  inputs: "Farm inputs",
+};
+
 const todayInputValue = new Date().toISOString().slice(0, 10);
 
-const normalizeText = (value?: string | null) =>
-  String(value || "").trim().toLowerCase();
+const normalizeText = (value?: string | null) => String(value || "").trim().toLowerCase();
 
 const buildFeedbackCopy = (feedback: IntelligenceSubmissionFeedback) => {
-  if (feedback.comparisonLabel === "above")
+  if (feedback.comparisonLabel === "above") {
     return `Your price is ${Math.abs(feedback.deltaPercentage).toFixed(1)}% above the current approved average.`;
-  if (feedback.comparisonLabel === "below")
+  }
+
+  if (feedback.comparisonLabel === "below") {
     return `Your price is ${Math.abs(feedback.deltaPercentage).toFixed(1)}% below the current approved average.`;
+  }
+
   return "Your price sits close to the current approved average.";
+};
+
+const getCategoryFromProductKey = (productKey?: string): IntelligenceCategory => {
+  const product = TRACKED_INTELLIGENCE_PRODUCTS.find((item) => item.key === productKey);
+  return product?.category || "produce";
 };
 
 export default function PriceSubmissionForm({ defaults, initialOverview }: Props) {
   const { isAuthenticated, user } = useAuth();
   const [overview, setOverview] = useState<IntelligenceOverview>(
     initialOverview || getFallbackIntelligenceOverview()
+  );
+  const [activeCategory, setActiveCategory] = useState<IntelligenceCategory>(
+    getCategoryFromProductKey(defaults?.product)
   );
   const [form, setForm] = useState({
     productKey: defaults?.product || "maize",
@@ -62,61 +86,131 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
     contributorName: user?.fullName || user?.name || "",
     contributorPhone: user?.phone || "",
   });
+  const [selectedMarketKey, setSelectedMarketKey] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState<SubmissionState | null>(null);
 
   const selectedProduct =
-    TRACKED_INTELLIGENCE_PRODUCTS.find((p) => p.key === form.productKey) ||
+    TRACKED_INTELLIGENCE_PRODUCTS.find((product) => product.key === form.productKey) ||
     TRACKED_INTELLIGENCE_PRODUCTS[0];
 
-  const board = [...overview.produceBoard, ...overview.fertilizerBoard];
+  const allBoards = [
+    ...overview.produceBoard,
+    ...overview.livestockBoard,
+    ...overview.fertilizerBoard,
+  ];
+
   const selectedSnapshot =
-    board.find((p) => p.productKey === form.productKey) ||
+    allBoards.find((product) => product.productKey === form.productKey) ||
     getFallbackProductSnapshot(form.productKey) ||
     getFallbackProductSnapshot("maize")!;
 
-  // Sync user details into form
+  const categoryProducts = TRACKED_INTELLIGENCE_PRODUCTS.filter(
+    (product) => product.category === activeCategory
+  );
+
+  const countyList = Array.from(
+    new Set(
+      selectedSnapshot.markets.length
+        ? selectedSnapshot.markets.map((market) => market.county)
+        : TRACKED_INTELLIGENCE_MARKETS.map((market) => market.county)
+    )
+  ).sort();
+
+  const statusItems = [
+    { label: "Board average", value: formatKes(selectedSnapshot.overallAverage) },
+    {
+      label: "Best market",
+      value: selectedSnapshot.bestMarket
+        ? `${selectedSnapshot.bestMarket.county} ${formatKes(selectedSnapshot.bestMarket.avgPrice)}`
+        : "Waiting for signals",
+    },
+    {
+      label: "Cheapest market",
+      value: selectedSnapshot.weakestMarket
+        ? `${selectedSnapshot.weakestMarket.county} ${formatKes(selectedSnapshot.weakestMarket.avgPrice)}`
+        : "Waiting for signals",
+    },
+    {
+      label: "Reports",
+      value: selectedSnapshot.submissionsCount.toLocaleString(),
+    },
+  ];
+
   useEffect(() => {
-    setForm((c) => ({
-      ...c,
-      contributorName: c.contributorName || user?.fullName || user?.name || "",
-      contributorPhone: c.contributorPhone || user?.phone || "",
+    setActiveCategory(selectedProduct.category);
+  }, [selectedProduct.category]);
+
+  useEffect(() => {
+    setForm((current) => ({
+      ...current,
+      contributorName: current.contributorName || user?.fullName || user?.name || "",
+      contributorPhone: current.contributorPhone || user?.phone || "",
     }));
   }, [user?.fullName, user?.name, user?.phone]);
 
-  // Sync unit when product changes
   useEffect(() => {
     if (defaults?.unit) return;
-    setForm((c) =>
-      c.unit === selectedProduct.defaultUnit ? c : { ...c, unit: selectedProduct.defaultUnit }
+    setForm((current) =>
+      current.unit === selectedProduct.defaultUnit
+        ? current
+        : { ...current, unit: selectedProduct.defaultUnit }
     );
   }, [defaults?.unit, selectedProduct.defaultUnit]);
 
-  // Auto-pick best market when county doesn't match
   useEffect(() => {
     if (!selectedSnapshot.markets.length) return;
-    const hasMatch = selectedSnapshot.markets.some(
-      (m) =>
-        normalizeText(m.county) === normalizeText(form.county) &&
-        normalizeText(m.marketName) === normalizeText(form.marketName)
+
+    const exactMatch = selectedSnapshot.markets.find(
+      (market) =>
+        normalizeText(market.county) === normalizeText(form.county) &&
+        normalizeText(market.marketName) === normalizeText(form.marketName)
     );
-    if (hasMatch) return;
-    const next = selectedSnapshot.bestMarket || selectedSnapshot.markets[0];
-    if (!next) return;
-    setForm((c) => {
-      if (
-        normalizeText(c.county) === normalizeText(next.county) &&
-        normalizeText(c.marketName) === normalizeText(next.marketName)
-      ) return c;
-      return { ...c, county: next.county, marketName: next.marketName };
-    });
+
+    const preferredMarket = exactMatch || selectedSnapshot.bestMarket || selectedSnapshot.markets[0];
+    if (!preferredMarket) return;
+
+    setSelectedMarketKey((current) => current || preferredMarket.marketKey);
   }, [form.county, form.marketName, selectedSnapshot]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const selectProduct = (productKey: string) => {
+    const nextProduct =
+      TRACKED_INTELLIGENCE_PRODUCTS.find((product) => product.key === productKey) || selectedProduct;
+    const nextSnapshot =
+      allBoards.find((product) => product.productKey === productKey) ||
+      getFallbackProductSnapshot(productKey);
+    const preferredMarket = nextSnapshot?.bestMarket || nextSnapshot?.markets[0];
+
+    setActiveCategory(nextProduct.category);
+    setSelectedMarketKey(preferredMarket?.marketKey || "");
+    setForm((current) => ({
+      ...current,
+      productKey,
+      unit: defaults?.unit || nextProduct.defaultUnit,
+      county: preferredMarket?.county || current.county,
+      marketName: preferredMarket?.marketName || current.marketName,
+    }));
+  };
+
+  const applyMarketSelection = (marketKey: string) => {
+    const market = selectedSnapshot.markets.find((item) => item.marketKey === marketKey);
+    if (!market) return;
+
+    setSelectedMarketKey(marketKey);
+    setForm((current) => ({
+      ...current,
+      county: market.county,
+      marketName: market.marketName,
+      unit: current.unit || selectedProduct.defaultUnit,
+    }));
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setSaving(true);
     setError("");
+
     try {
       const response = await apiRequest(API_ENDPOINTS.marketIntelligence.submissions, {
         method: "POST",
@@ -132,6 +226,7 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
           contributorPhone: form.contributorPhone,
         }),
       });
+
       setSuccess({
         productKey: form.productKey,
         productName: selectedProduct.name,
@@ -140,23 +235,27 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
         unit: form.unit,
         feedback: normalizeSubmissionFeedback(response?.feedback),
       });
-      setForm((c) => ({ ...c, price: "", notes: "" }));
 
-      // Quietly refresh overview in background
-      fetch(API_ENDPOINTS.marketIntelligence.overview, { cache: "no-store", credentials: "include" })
-        .then((r) => r.ok ? r.json() : null)
-        .then((data) => { if (data) setOverview(normalizeIntelligenceOverview(data)); })
+      setForm((current) => ({ ...current, price: "", notes: "" }));
+
+      fetch(API_ENDPOINTS.marketIntelligence.overview, {
+        cache: "no-store",
+        credentials: "include",
+      })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((payload) => {
+          if (payload) {
+            setOverview(normalizeIntelligenceOverview(payload));
+          }
+        })
         .catch(() => {});
-    } catch (err: any) {
-      setError(err?.message || "Could not save right now. Please try again.");
+    } catch (submitError: any) {
+      setError(submitError?.message || "Could not save right now. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
-  const countyList = Array.from(new Set(TRACKED_INTELLIGENCE_MARKETS.map((m) => m.county))).sort();
-
-  // Success screen
   if (success) {
     return (
       <div className="mx-auto max-w-lg">
@@ -170,17 +269,18 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
             update the live board automatically.
           </p>
 
-          {success.feedback && (
+          {success.feedback ? (
             <div className="mt-5 rounded-[22px] border border-forest-200 bg-white/80 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-forest-700">
                 Impact
               </p>
               <p className="mt-2 text-sm font-semibold text-stone-900">
-                {success.feedback.reportsToday} report{success.feedback.reportsToday !== 1 ? "s" : ""} logged today
+                {success.feedback.reportsToday} report
+                {success.feedback.reportsToday !== 1 ? "s" : ""} logged today
               </p>
               <p className="mt-1 text-sm text-stone-600">{buildFeedbackCopy(success.feedback)}</p>
             </div>
-          )}
+          ) : null}
 
           <div className="mt-6 flex flex-col gap-3">
             <Link
@@ -210,74 +310,111 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      {/* Header */}
-      <div className="mb-8">
+    <div className="mx-auto max-w-6xl">
+      <div className="max-w-3xl">
         <p className="section-kicker">Submit a price</p>
-        <h1 className="mt-3 text-3xl font-bold text-stone-900 sm:text-4xl">
-          What did {selectedProduct.name.toLowerCase()} sell for today?
+        <h1 className="mt-3 text-4xl font-bold text-stone-900 sm:text-5xl">
+          Participate in the market, not just the form.
         </h1>
-        <p className="mt-2 text-sm text-stone-500">
-          One clean observation helps every farmer in your county. Takes 30 seconds.
+        <p className="mt-3 text-base leading-relaxed text-stone-600">
+          Pick the commodity, confirm the live board, tap the market you are reporting on, then
+          submit one clean price. Every approved report strengthens the board for farmers and buyers.
         </p>
       </div>
 
-      {/* Commodity pills */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        {TRACKED_INTELLIGENCE_PRODUCTS.filter((p) => p.category === "produce").map((p) => {
-          const snap = board.find((b) => b.productKey === p.key);
-          return (
-            <button
-              key={p.key}
-              type="button"
-              onClick={() => setForm((c) => ({ ...c, productKey: p.key }))}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                form.productKey === p.key
-                  ? "border-terra-400 bg-terra-500 text-white shadow-sm"
-                  : "border-stone-200 bg-white text-stone-600 hover:border-terra-200 hover:text-terra-700"
-              }`}
-            >
-              {p.name}
-              {snap && snap.overallAverage > 0 && (
-                <span className={`ml-1.5 text-[11px] ${form.productKey === p.key ? "text-white/70" : "text-stone-400"}`}>
-                  avg {formatKes(snap.overallAverage)}
-                </span>
-              )}
-            </button>
-          );
-        })}
+      <div className="mt-8 inline-flex rounded-full border border-stone-200 bg-stone-50 p-1">
+        {(Object.keys(CATEGORY_LABELS) as IntelligenceCategory[]).map((category) => (
+          <button
+            key={category}
+            type="button"
+            onClick={() => {
+              setActiveCategory(category);
+              const firstProduct = TRACKED_INTELLIGENCE_PRODUCTS.find(
+                (product) => product.category === category
+              );
+              if (firstProduct) {
+                selectProduct(firstProduct.key);
+              }
+            }}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              activeCategory === category
+                ? "bg-stone-900 text-white shadow-sm"
+                : "text-stone-500 hover:text-stone-900"
+            }`}
+          >
+            {CATEGORY_LABELS[category]}
+          </button>
+        ))}
       </div>
 
-      {/* Compact context chip */}
-      {selectedSnapshot.bestMarket && (
-        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-[20px] border border-stone-200 bg-[#faf7f2] px-4 py-3 text-sm">
-          <span className="font-semibold text-stone-700">{selectedProduct.name}</span>
-          <span className="text-stone-400">·</span>
-          <span className="text-stone-600">
-            Board avg <span className="font-bold text-stone-900">{formatKes(selectedSnapshot.overallAverage)}</span>
-          </span>
-          <span className="text-stone-400">·</span>
-          <span className="text-stone-600">
-            Best: <span className="font-bold text-green-700">{formatKes(selectedSnapshot.bestMarket.avgPrice)}</span> in {selectedSnapshot.bestMarket.county}
-          </span>
+      <CommodityQuickPicker
+        className="mt-6"
+        title={`Choose a ${CATEGORY_LABELS[activeCategory].toLowerCase()} product`}
+        description="Start with the commodity you want to report today."
+        products={categoryProducts.map((product) => {
+          const snapshot =
+            allBoards.find((item) => item.productKey === product.key) ||
+            getFallbackProductSnapshot(product.key);
+          return {
+            key: product.key,
+            name: product.name,
+            value: snapshot ? formatKes(snapshot.overallAverage) : undefined,
+            helper: snapshot?.bestMarket
+              ? `Best sell: ${snapshot.bestMarket.county} at ${formatKes(snapshot.bestMarket.avgPrice)}`
+              : "Waiting for approved signals",
+          };
+        })}
+        selectedKey={form.productKey}
+        onSelect={selectProduct}
+      />
+
+      <div className="mt-8 grid gap-6 xl:grid-cols-[1.35fr,0.95fr]">
+        <DecisionSnapshotCard
+          product={selectedSnapshot}
+          focusMarket={
+            selectedSnapshot.markets.find((market) => market.marketKey === selectedMarketKey) ||
+            selectedSnapshot.bestMarket
+          }
+        />
+        <div className="space-y-6">
+          <IntelligenceStatusStrip items={statusItems} />
+          <MarketPulsePanel
+            title="Live guidance"
+            items={buildProductPulseItems(
+              selectedSnapshot,
+              selectedSnapshot.markets.find((market) => market.marketKey === selectedMarketKey) ||
+                selectedSnapshot.bestMarket
+            )}
+          />
         </div>
-      )}
+      </div>
 
-      {/* Form */}
-      <div className="rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_20px_60px_-36px_rgba(120,83,47,0.3)] sm:p-8">
+      <div className="mt-6 rounded-[24px] border border-stone-200 bg-[#faf7f2] px-5 py-4 text-sm text-stone-600">
+        Tap a market row below to prefill the county and market fields automatically.
+      </div>
+
+      <MarketBoardTable
+        className="mt-6"
+        product={selectedSnapshot}
+        markets={selectedSnapshot.markets}
+        selectedMarketKey={selectedMarketKey}
+        onSelectMarket={applyMarketSelection}
+      />
+
+      <div className="mt-8 rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_20px_60px_-36px_rgba(120,83,47,0.3)] sm:p-8">
         <form onSubmit={handleSubmit} className="space-y-5">
-
-          {/* Product + County */}
           <div className="grid gap-4 sm:grid-cols-2">
             <label>
               <span className="field-label">Product</span>
               <select
                 value={form.productKey}
-                onChange={(e) => setForm((c) => ({ ...c, productKey: e.target.value }))}
+                onChange={(event) => selectProduct(event.target.value)}
                 className="field-select"
               >
-                {TRACKED_INTELLIGENCE_PRODUCTS.map((p) => (
-                  <option key={p.key} value={p.key}>{p.name}</option>
+                {TRACKED_INTELLIGENCE_PRODUCTS.map((product) => (
+                  <option key={product.key} value={product.key}>
+                    {product.name}
+                  </option>
                 ))}
               </select>
             </label>
@@ -285,31 +422,37 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
               <span className="field-label">County</span>
               <select
                 value={form.county}
-                onChange={(e) => {
-                  const nextCounty = e.target.value;
-                  const preferred = TRACKED_INTELLIGENCE_MARKETS.find((m) => m.county === nextCounty);
-                  setForm((c) => ({
-                    ...c,
+                onChange={(event) => {
+                  const nextCounty = event.target.value;
+                  const preferredMarket = selectedSnapshot.markets.find(
+                    (market) => market.county === nextCounty
+                  );
+                  setForm((current) => ({
+                    ...current,
                     county: nextCounty,
-                    marketName: preferred?.marketName || c.marketName,
+                    marketName: preferredMarket?.marketName || current.marketName,
                   }));
+                  if (preferredMarket) {
+                    setSelectedMarketKey(preferredMarket.marketKey);
+                  }
                 }}
                 className="field-select"
               >
                 {countyList.map((county) => (
-                  <option key={county} value={county}>{county}</option>
+                  <option key={county} value={county}>
+                    {county}
+                  </option>
                 ))}
               </select>
             </label>
           </div>
 
-          {/* Market + Unit */}
           <div className="grid gap-4 sm:grid-cols-2">
             <label>
               <span className="field-label">Market name</span>
               <input
                 value={form.marketName}
-                onChange={(e) => setForm((c) => ({ ...c, marketName: e.target.value }))}
+                onChange={(event) => setForm((current) => ({ ...current, marketName: event.target.value }))}
                 className="field-input"
                 placeholder="Wakulima Market"
                 required
@@ -319,7 +462,7 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
               <span className="field-label">Unit</span>
               <input
                 value={form.unit}
-                onChange={(e) => setForm((c) => ({ ...c, unit: e.target.value }))}
+                onChange={(event) => setForm((current) => ({ ...current, unit: event.target.value }))}
                 className="field-input"
                 placeholder="90kg bag"
                 required
@@ -327,7 +470,6 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
             </label>
           </div>
 
-          {/* Price + Date */}
           <div className="grid gap-4 sm:grid-cols-2">
             <label>
               <span className="field-label">Price (KES)</span>
@@ -336,7 +478,7 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
                 min="1"
                 step="1"
                 value={form.price}
-                onChange={(e) => setForm((c) => ({ ...c, price: e.target.value }))}
+                onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))}
                 className="field-input text-lg font-bold"
                 placeholder="e.g. 4500"
                 required
@@ -347,31 +489,33 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
               <input
                 type="date"
                 value={form.observationDate}
-                onChange={(e) => setForm((c) => ({ ...c, observationDate: e.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, observationDate: event.target.value }))
+                }
                 className="field-input"
                 required
               />
             </label>
           </div>
 
-          {/* Optional notes */}
           <label>
-            <span className="field-label">Notes — optional</span>
+            <span className="field-label">Notes - optional</span>
             <textarea
               value={form.notes}
-              onChange={(e) => setForm((c) => ({ ...c, notes: e.target.value }))}
+              onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
               className="field-textarea min-h-[80px]"
-              placeholder="Oversupply, transport pressure, premium grade, buyer shortage…"
+              placeholder="Oversupply, premium grade, transport pressure, buyer shortage..."
             />
           </label>
 
-          {/* Name + Phone */}
           <div className="grid gap-4 sm:grid-cols-2">
             <label>
               <span className="field-label">Your name</span>
               <input
                 value={form.contributorName}
-                onChange={(e) => setForm((c) => ({ ...c, contributorName: e.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, contributorName: event.target.value }))
+                }
                 className="field-input"
                 placeholder="Your name"
                 required={!isAuthenticated && !form.contributorPhone}
@@ -381,42 +525,37 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
               <span className="field-label">Phone for verification</span>
               <input
                 value={form.contributorPhone}
-                onChange={(e) => setForm((c) => ({ ...c, contributorPhone: e.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, contributorPhone: event.target.value }))
+                }
                 className="field-input"
                 placeholder="+254712345678"
               />
             </label>
           </div>
 
-          {error && (
+          {error ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}
             </div>
-          )}
+          ) : null}
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="primary-button w-full"
-          >
-            {saving ? "Submitting…" : "Submit price report"}
+          <button type="submit" disabled={saving} className="primary-button w-full">
+            {saving ? "Submitting..." : "Submit price report"}
           </button>
         </form>
       </div>
 
-      {/* Bottom strip */}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm text-stone-500">
         <span>
-          Board avg for {selectedProduct.name}:{" "}
-          <span className="font-semibold text-stone-700">
-            {formatKes(selectedSnapshot.overallAverage)} / {selectedSnapshot.unit}
-          </span>
+          Need the full board for {selectedProduct.name.toLowerCase()}? Open the decision page for
+          this commodity.
         </span>
         <Link
           href={`/market-intelligence/${form.productKey}`}
           className="font-semibold text-terra-600 hover:text-terra-700"
         >
-          View full board →
+          View full board
         </Link>
       </div>
     </div>

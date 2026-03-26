@@ -14,7 +14,7 @@ type Submission = {
   id: string;
   productKey: string;
   productName: string;
-  category: "produce" | "inputs";
+  category: "produce" | "inputs" | "livestock";
   county: string;
   marketName: string;
   price: number;
@@ -59,7 +59,7 @@ export default function AdminMarketIntelligencePage() {
   const [form, setForm] = useState(defaultAdminForm);
   const [saving, setSaving] = useState(false);
   const [seedingBaseline, setSeedingBaseline] = useState<
-    "maize" | "onions" | "fertilizer" | null
+    "maize" | "onions" | "fertilizer" | "broilers" | null
   >(null);
   const [seedMessage, setSeedMessage] = useState("");
 
@@ -134,7 +134,9 @@ export default function AdminMarketIntelligencePage() {
     }
   };
 
-  const handleSeedBaseline = async (commodity: "maize" | "onions" | "fertilizer") => {
+  const handleSeedBaseline = async (
+    commodity: "maize" | "onions" | "fertilizer" | "broilers"
+  ) => {
     setSeedingBaseline(commodity);
     setSeedMessage("");
     try {
@@ -143,7 +145,9 @@ export default function AdminMarketIntelligencePage() {
           ? API_ENDPOINTS.marketIntelligence.admin.seedMaizeBaseline
           : commodity === "onions"
             ? API_ENDPOINTS.marketIntelligence.admin.seedOnionBaseline
-            : API_ENDPOINTS.marketIntelligence.admin.seedFertilizerBaseline;
+            : commodity === "fertilizer"
+              ? API_ENDPOINTS.marketIntelligence.admin.seedFertilizerBaseline
+              : API_ENDPOINTS.marketIntelligence.admin.seedBroilerBaseline;
       const response = await adminApiRequest(
         endpoint,
         { method: "POST" }
@@ -195,6 +199,14 @@ export default function AdminMarketIntelligencePage() {
               className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:opacity-60"
             >
               {seedingBaseline === "fertilizer" ? "Importing..." : "Import fertilizer baseline"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleSeedBaseline("broilers")}
+              disabled={Boolean(seedingBaseline)}
+              className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:opacity-60"
+            >
+              {seedingBaseline === "broilers" ? "Importing..." : "Import broiler baseline"}
             </button>
             {seedMessage ? (
               <p className="self-center text-sm text-stone-500">{seedMessage}</p>
