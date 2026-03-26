@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default async function BlogPage() {
   const data = await serverFetch<any>(`${API_BASE_URL}/blog?limit=24`, { revalidate: 3600 });
-  const posts = data?.posts ?? data ?? [];
+  const posts = Array.isArray(data?.posts) ? data.posts : Array.isArray(data) ? data : [];
   const featured = posts.find((p: any) => p.featured);
   const rest = posts.filter((p: any) => !p.featured);
 

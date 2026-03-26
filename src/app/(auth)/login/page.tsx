@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 
-export default function LoginPage() {
+function LoginForm() {
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
@@ -30,7 +30,6 @@ export default function LoginPage() {
       const payload = mode === "signup"
         ? { name: form.name, identifier: form.identifier, password: form.password }
         : { identifier: form.identifier, password: form.password };
-
       const url = mode === "signup" ? API_ENDPOINTS.auth.register : API_ENDPOINTS.auth.login;
       const data = await apiRequest(url, { method: "POST", body: JSON.stringify(payload) });
       login({ token: data.token ?? data.accessToken, refreshToken: data.refreshToken, expiresIn: data.expiresIn, user: data.user });
@@ -91,5 +90,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-earth flex items-center justify-center text-stone-400">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
