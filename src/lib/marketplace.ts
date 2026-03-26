@@ -311,10 +311,18 @@ export const getListingTypeLabel = (listing: any) => {
 };
 
 export const getListingPriceLabel = (listing: any) => {
-  const numeric = formatKes(listing?.price);
+  // Try all common price field names
+  const priceValue =
+    listing?.price ||
+    listing?.pricePerUnit ||
+    listing?.unitPrice ||
+    listing?.askingPrice ||
+    listing?.sellingPrice ||
+    listing?.basePrice;
+  const numeric = formatKes(priceValue);
   if (numeric) return numeric;
 
-  const pricing = String(listing?.pricing || "").trim();
+  const pricing = String(listing?.pricing || listing?.priceLabel || "").trim();
   if (pricing) return pricing;
 
   if (String(listing?.type || "").toLowerCase() === "agrovet") {

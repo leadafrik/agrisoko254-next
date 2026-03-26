@@ -60,9 +60,12 @@ export default function ListingSellerPanel({
   const ratingCount = seller?.ratings?.count ?? seller?.ratingCount ?? 0;
   const lastActive = formatLastActive(seller?.lastActive || seller?.updatedAt);
   const responseTime = seller?.responseTime || seller?.responseTimeLabel || null;
-  const sellerPhone =
-    normalizeKenyanPhone(String(listingContact || seller?.phone || seller?.contact || "").trim()) ||
-    null;
+  const rawPhoneInput = String(listingContact || seller?.phone || seller?.contact || "").trim();
+  const sellerPhone = normalizeKenyanPhone(rawPhoneInput) || null;
+  // For tel: links use normalized form if available, otherwise use raw if it looks like a phone
+  const callPhone =
+    sellerPhone ||
+    (rawPhoneInput && /^[+\d][\d\s\-().]{6,}$/.test(rawPhoneInput) ? rawPhoneInput : null);
   const whatsappPhone = sellerPhone ? sellerPhone.replace(/^\+/, "") : null;
   const resolvedSellerId = sellerId || seller?._id || seller?.id;
   const isOwnProfile =
@@ -224,10 +227,10 @@ export default function ListingSellerPanel({
           </a>
         ) : null}
 
-        {sellerPhone ? (
+        {callPhone ? (
           isAuthenticated ? (
             <a
-              href={`tel:${sellerPhone}`}
+              href={`tel:${callPhone}`}
               className="flex w-full items-center justify-center gap-2 rounded-xl border border-stone-200 py-2.5 text-sm font-semibold text-stone-700 transition hover:bg-stone-50"
             >
               <Phone className="h-4 w-4" />
@@ -242,11 +245,6 @@ export default function ListingSellerPanel({
               Log in to call
             </Link>
           )
-        ) : isAuthenticated ? (
-          <div className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-stone-200 bg-stone-100 py-2.5 text-sm font-semibold text-stone-500">
-            <Phone className="h-4 w-4" />
-            Call unavailable
-          </div>
         ) : null}
 
         {isAuthenticated && !isOwnProfile && resolvedSellerId ? (

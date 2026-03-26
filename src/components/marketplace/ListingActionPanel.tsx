@@ -17,6 +17,7 @@ import {
   normalizeMarketplaceListing,
 } from "@/lib/marketplace";
 import { Bookmark, BookmarkCheck, Phone, Share2, Truck, Zap, CheckCircle } from "lucide-react";
+import { normalizeKenyanPhone } from "@/lib/phone";
 
 type ListingActionPanelProps = {
   listing: any;
@@ -35,8 +36,9 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
   const sellerId = n?.seller?._id || n?.userId || n?.owner?._id;
   const sellerObj = n?.seller || n?.owner || n?.user;
   const sellerName = getUserDisplayName(sellerObj);
-  const sellerPhone = sellerObj?.phone || n?.contact || n?.contactPhone || null;
-  const whatsappPhone = sellerPhone ? sellerPhone.replace(/\s+/g, "").replace(/^\+/, "") : null;
+  const rawPhone = String(sellerObj?.phone || n?.contact || n?.contactPhone || "").trim();
+  const sellerPhone = normalizeKenyanPhone(rawPhone) || (rawPhone && /^[+\d][\d\s\-().]{6,}$/.test(rawPhone) ? rawPhone : null);
+  const whatsappPhone = normalizeKenyanPhone(rawPhone)?.replace(/^\+/, "") ?? null;
   const location = getLocationLabel(n);
   const verified = isVerifiedProfile(n?.seller || n?.owner) || n?.verified || n?.isVerified;
   const boosted = isListingBoosted(n);
@@ -44,17 +46,18 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
   const listingId = String(n?._id || n?.id || "");
   const favorited = isFavorited(listingId);
 
+  const effectivePrice =
+    n?.price || n?.pricePerUnit || n?.unitPrice || n?.askingPrice || n?.sellingPrice || n?.basePrice;
   const canCart =
     n?.category !== "service" &&
-    typeof n?.price === "number" &&
-    Number.isFinite(n.price) &&
-    n.price > 0;
+    Number.isFinite(Number(effectivePrice)) &&
+    Number(effectivePrice) > 0;
 
   const handleAddToCart = (destination: "/cart" | "/checkout" = "/cart") => {
     addItem({
       listingId,
       title: n.title || n.name || "Listing",
-      price: Number(n.price),
+      price: Number(effectivePrice),
       quantity,
       unit: n.unit,
       image: getListingImageUrls(n)[0],
@@ -175,7 +178,7 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-stone-200 py-2.5 text-sm font-semibold text-stone-700 transition hover:bg-stone-50"
           >
             <Phone className="h-4 w-4 text-stone-400" />
-            Call {sellerPhone}
+            Call seller
           </a>
         )}
         {!canCart && (

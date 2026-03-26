@@ -1,8 +1,11 @@
 export const normalizeKenyanPhone = (raw: string) => {
-  const cleaned = raw.replace(/[\s\-()]/g, "");
-  if (/^\+254[17]\d{8}$/.test(cleaned)) return cleaned;
-  if (/^254[17]\d{8}$/.test(cleaned)) return `+${cleaned}`;
-  if (/^0[17]\d{8}$/.test(cleaned)) return `+254${cleaned.slice(1)}`;
+  // Strip everything except digits and leading +
+  const cleaned = raw.replace(/[^\d+]/g, "");
+  if (/^\+254\d{9}$/.test(cleaned)) return cleaned;
+  if (/^254\d{9}$/.test(cleaned)) return `+${cleaned}`;
+  if (/^0\d{9}$/.test(cleaned)) return `+254${cleaned.slice(1)}`;
+  // 9-digit number without country code or leading zero (e.g. 712345678)
+  if (/^\d{9}$/.test(cleaned)) return `+254${cleaned}`;
   return null;
 };
 
