@@ -1,5 +1,13 @@
 export type MarketplaceCategorySlug = "produce" | "livestock" | "inputs" | "services";
 export type SellerCategorySlug = "produce" | "livestock" | "inputs" | "service";
+type ImageFit = "fill" | "limit" | "scale";
+
+type CloudinaryImageOptions = {
+  width?: number;
+  height?: number;
+  fit?: ImageFit;
+  quality?: "auto" | "auto:good" | "auto:best";
+};
 
 type CategoryMeta = {
   slug: MarketplaceCategorySlug;
@@ -101,9 +109,9 @@ export const CREATE_LISTING_CATEGORY_DETAILS: Record<
 };
 
 export const PLATFORM_NUMBERS = [
-  { label: "Marketplace focus", value: "4", detail: "Core categories that match the PWA marketplace" },
-  { label: "Delivery counties", value: "4", detail: "Managed checkout available in supported counties" },
-  { label: "Routes aligned", value: "PWA", detail: "The Next app keeps the same primary user paths" },
+  { label: "Core trade lanes", value: "4", detail: "Produce, livestock, inputs, and service supply in one place" },
+  { label: "Managed counties", value: "4", detail: "Checkout support is live in selected counties today" },
+  { label: "Buyer workflows", value: "B2B", detail: "Bulk requests, direct messaging, and trust-first trading paths" },
 ];
 
 export const PLATFORM_PROMISES = [
@@ -214,6 +222,113 @@ export const getLocationLabel = (value: any) => {
   if (parts.length > 0) return parts.join(", ");
   if (typeof value?.location === "string") return value.location;
   return null;
+};
+
+const DEFAULT_IMAGE_QUALITY: CloudinaryImageOptions["quality"] = "auto:good";
+
+export const getOptimizedImageUrl = (
+  url?: string | null,
+  options: CloudinaryImageOptions = {}
+): string => {
+  if (!url) return "";
+  if (!url.includes("res.cloudinary.com") || !url.includes("/image/upload/")) {
+    return url;
+  }
+
+  const { width, height, fit = "limit", quality = DEFAULT_IMAGE_QUALITY } = options;
+  const transforms = ["f_auto", `q_${quality}`, "dpr_auto"];
+
+  if (fit === "fill" && width && height) {
+    transforms.push("c_fill", "g_auto", `w_${width}`, `h_${height}`);
+  } else {
+    transforms.push("c_limit");
+    if (width) transforms.push(`w_${width}`);
+    if (height) transforms.push(`h_${height}`);
+  }
+
+  return url.replace("/image/upload/", `/image/upload/${transforms.join(",")}/`);
+};
+
+export const getListingImageUrls = (listing: any) => {
+  const rawImages = [
+    ...(Array.isArray(listing?.images) ? listing.images : []),
+    ...(Array.isArray(listing?.photos) ? listing.photos : []),
+    ...(typeof listing?.image === "string" ? [listing.image] : []),
+    ...(typeof listing?.coverImage === "string" ? [listing.coverImage] : []),
+  ]
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+
+  return Array.from(new Set(rawImages));
+};
+
+export const getPrimaryImageUrl = (
+  listing: any,
+  options?: CloudinaryImageOptions
+) => {
+  const [image] = getListingImageUrls(listing);
+  if (!image) return null;
+  return getOptimizedImageUrl(image, options);
+};
+
+export const normalizeMarketplaceCategory = (listing: any): SellerCategorySlug => {
+  const category = String(listing?.category || "").trim().toLowerCase();
+  const type = String(listing?.type || listing?.serviceType || "").trim().toLowerCase();
+
+  if (category === "livestock" || category === "inputs" || category === "service") {
+    return category;
+  }
+  if (type === "equipment" || type === "professional_services" || type === "professional") {
+    return "service";
+  }
+  if (type === "agrovet") {
+    return "inputs";
+  }
+  return "produce";
+};
+
+export const getListingTypeLabel = (listing: any) => {
+  const explicit = String(listing?.marketLabel || listing?.typeLabel || "").trim();
+  if (explicit) return explicit;
+
+  const type = String(listing?.type || listing?.serviceType || "").trim().toLowerCase();
+  if (type === "equipment") return "Equipment Hire";
+  if (type === "professional_services" || type === "professional") {
+    return "Professional Service";
+  }
+  if (type === "agrovet") return "Agrovet";
+
+  return getCategoryByApi(normalizeMarketplaceCategory(listing))?.shortLabel || "Listing";
+};
+
+export const getListingPriceLabel = (listing: any) => {
+  const numeric = formatKes(listing?.price);
+  if (numeric) return numeric;
+
+  const pricing = String(listing?.pricing || "").trim();
+  if (pricing) return pricing;
+
+  if (String(listing?.type || "").toLowerCase() === "agrovet") {
+    return "Call for pricing";
+  }
+
+  return "Negotiable";
+};
+
+export const normalizeMarketplaceListing = (listing: any) => {
+  const normalizedCategory = normalizeMarketplaceCategory(listing);
+  const images = getListingImageUrls(listing);
+  const seller = listing?.seller || listing?.owner || listing?.user;
+
+  return {
+    ...listing,
+    category: normalizedCategory,
+    images,
+    seller,
+    owner: listing?.owner || seller,
+    priceLabel: getListingPriceLabel(listing),
+    marketLabel: getListingTypeLabel({ ...listing, category: normalizedCategory }),
+  };
 };
 
 export const getInitials = (value?: string | null) => {

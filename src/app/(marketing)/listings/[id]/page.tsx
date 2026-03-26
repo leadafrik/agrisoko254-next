@@ -6,12 +6,15 @@ import ListingCard from "@/components/marketplace/ListingCard";
 import { serverFetch } from "@/lib/api-server";
 import { API_BASE_URL } from "@/lib/endpoints";
 import {
-  formatKes,
   getCategoryByApi,
   getInitials,
+  getListingImageUrls,
+  getListingPriceLabel,
   getLocationLabel,
+  getPrimaryImageUrl,
   getUserDisplayName,
   isVerifiedProfile,
+  normalizeMarketplaceListing,
 } from "@/lib/marketplace";
 
 interface Props {
@@ -22,22 +25,23 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await serverFetch<any>(`${API_BASE_URL}/unified-listings/${params.id}`, { revalidate: 60 });
-  const listing = data?.data ?? data;
+  const listing = normalizeMarketplaceListing(data?.data ?? data);
   if (!listing) return {};
+  const image = getPrimaryImageUrl(listing, { width: 1200, height: 630, fit: "fill" });
   return {
     title: listing.title || listing.name || "Marketplace listing",
     description: listing.description || "View listing details on Agrisoko.",
     openGraph: {
       title: listing.title || listing.name,
       description: listing.description || "View listing details on Agrisoko.",
-      images: listing.images?.[0] ? [listing.images[0]] : [],
+      images: image ? [image] : [],
     },
   };
 }
 
 export default async function ListingDetailPage({ params }: Props) {
   const data = await serverFetch<any>(`${API_BASE_URL}/unified-listings/${params.id}`, { revalidate: 60 });
-  const listing = data?.data ?? data;
+  const listing = normalizeMarketplaceListing(data?.data ?? data);
 
   if (!listing) notFound();
 
@@ -76,19 +80,29 @@ export default async function ListingDetailPage({ params }: Props) {
         <div className="space-y-6">
           <div className="surface-card overflow-hidden">
             <div className="aspect-[16/10] bg-stone-100">
-              {listing?.images?.[0] ? (
-                <img src={listing.images[0]} alt={listing.title || listing.name} className="h-full w-full object-cover" />
+              {getPrimaryImageUrl(listing, { width: 1200, height: 750, fit: "fill" }) ? (
+                <img
+                  src={getPrimaryImageUrl(listing, { width: 1200, height: 750, fit: "fill" }) || ""}
+                  alt={listing.title || listing.name}
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(160,69,46,0.14),_transparent_55%),linear-gradient(135deg,#fffdf8,#f2ece2)] text-sm font-semibold uppercase tracking-[0.2em] text-stone-400">
                   Agrisoko
                 </div>
               )}
             </div>
-            {listing?.images?.length > 1 ? (
+            {getListingImageUrls(listing).length > 1 ? (
               <div className="grid grid-cols-4 gap-3 p-4">
-                {listing.images.slice(1, 5).map((image: string, index: number) => (
+                {getListingImageUrls(listing)
+                  .slice(1, 5)
+                  .map((image: string, index: number) => (
                   <div key={`${image}-${index}`} className="aspect-[4/3] overflow-hidden rounded-2xl bg-stone-100">
-                    <img src={image} alt="" className="h-full w-full object-cover" />
+                    <img
+                      src={getPrimaryImageUrl({ image }, { width: 480, height: 360, fit: "fill" }) || image}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                 ))}
               </div>
@@ -112,7 +126,7 @@ export default async function ListingDetailPage({ params }: Props) {
               </div>
               <div className="rounded-2xl bg-stone-50 px-4 py-3">
                 <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Price</p>
-                <p className="mt-1 font-semibold text-stone-900">{formatKes(listing?.price) || "Negotiable"}</p>
+                <p className="mt-1 font-semibold text-stone-900">{getListingPriceLabel(listing)}</p>
               </div>
               <div className="rounded-2xl bg-stone-50 px-4 py-3">
                 <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Availability</p>

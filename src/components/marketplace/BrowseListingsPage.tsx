@@ -1,8 +1,7 @@
 import Link from "next/link";
 import ListingCard from "@/components/marketplace/ListingCard";
 import SectionHeading from "@/components/marketplace/SectionHeading";
-import { serverFetch } from "@/lib/api-server";
-import { API_BASE_URL } from "@/lib/endpoints";
+import { getMarketplaceFeed } from "@/lib/marketplace-feed";
 import { MARKETPLACE_CATEGORIES, normalizeBrowseCategory } from "@/lib/marketplace";
 
 type BrowseListingsPageProps = {
@@ -21,21 +20,16 @@ export default async function BrowseListingsPage({
   const county = getFirst(searchParams?.county) || "";
   const verifiedOnly = getFirst(searchParams?.verified) === "1";
 
-  const params = new URLSearchParams({
-    limit: "16",
-    sort: "-createdAt",
-  });
-
-  if (category) params.set("category", category.apiCategory);
-  if (search) params.set("search", search);
-  if (county) params.set("county", county);
-  if (verifiedOnly) params.set("verifiedOnly", "true");
-
-  const data = await serverFetch<any>(`${API_BASE_URL}/unified-listings?${params.toString()}`, {
+  const data = await getMarketplaceFeed({
+    category: category?.apiCategory,
+    search,
+    county,
+    verifiedOnly,
+    limit: 16,
     revalidate: 60,
   });
 
-  const listings = Array.isArray(data?.data) ? data.data : Array.isArray(data?.listings) ? data.listings : Array.isArray(data) ? data : [];
+  const listings = data.listings;
 
   return (
     <div className="page-shell py-10 sm:py-12">
@@ -68,13 +62,13 @@ export default async function BrowseListingsPage({
             placeholder="Search for maize, dairy cows, fertilizer, tractor hire..."
             className="field-input"
           />
-          <input
-            type="text"
-            name="county"
-            defaultValue={county}
-            placeholder="Filter by county"
-            className="field-input"
-          />
+            <input
+              type="text"
+              name="county"
+              defaultValue={county}
+              placeholder="Filter by county"
+              className="field-input"
+            />
           <label className="flex items-center gap-2 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm font-medium text-stone-700">
             <input type="checkbox" name="verified" value="1" defaultChecked={verifiedOnly} />
             Verified only

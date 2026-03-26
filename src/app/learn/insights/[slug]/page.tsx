@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { getInsightPost, getInsightPosts } from "@/lib/content-hub";
 
 interface Props {
@@ -48,10 +50,6 @@ export default async function LearnInsightDetailPage({ params }: Props) {
   if (!post) notFound();
 
   const related = posts.filter((candidate) => candidate.slug !== post.slug).slice(0, 4);
-  const paragraphs = post.content
-    .split(/\n\s*\n/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -105,9 +103,9 @@ export default async function LearnInsightDetailPage({ params }: Props) {
             </div>
           ) : null}
 
-          <div className="prose prose-stone prose-lg max-w-none prose-headings:font-display prose-a:text-terra-600">
-            {paragraphs.length > 0 ? (
-              paragraphs.map((paragraph, index) => <p key={`${post.id}-${index}`}>{paragraph}</p>)
+          <div className="prose prose-stone prose-lg max-w-none prose-headings:font-display prose-a:text-terra-600 prose-table:w-full prose-th:bg-stone-100 prose-th:px-3 prose-th:py-2 prose-td:px-3 prose-td:py-2">
+            {post.content ? (
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
             ) : (
               <p>{post.excerpt || "This insight will be updated with more detail soon."}</p>
             )}

@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   BookOpen,
-  ChevronDown,
   LayoutGrid,
   Menu,
   MessageSquare,
@@ -16,17 +15,10 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 
-const browseLinks = [
-  { href: "/browse", label: "All listings" },
-  { href: "/browse/produce", label: "Produce" },
-  { href: "/browse/livestock", label: "Livestock" },
-  { href: "/browse/inputs", label: "Inputs" },
-  { href: "/browse/services", label: "Services" },
-];
-
 const topLevelLinks = [
+  { href: "/browse", label: "Marketplace", icon: LayoutGrid },
   { href: "/request", label: "Buy Requests" },
-  { href: "/learn", label: "Learn Hub", icon: BookOpen },
+  { href: "/learn", label: "Learn", icon: BookOpen },
   { href: "/b2b", label: "Bulk / B2B" },
   { href: "/about", label: "About" },
 ];
@@ -50,7 +42,7 @@ export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const { itemCount } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [browseOpen, setBrowseOpen] = useState(false);
+  const userFirstName = user?.fullName?.split(" ")[0] || user?.name?.split(" ")[0] || "Profile";
 
   return (
     <header className="sticky top-0 z-50 border-b border-stone-200 bg-[rgba(255,253,248,0.92)] backdrop-blur-xl">
@@ -72,37 +64,6 @@ export default function Navbar() {
           </Link>
 
           <nav className="hidden items-center gap-2 lg:flex">
-            <div
-              className="relative"
-              onMouseEnter={() => setBrowseOpen(true)}
-              onMouseLeave={() => setBrowseOpen(false)}
-            >
-              <button
-                type="button"
-                className={`ghost-button ${isActive(pathname, "/browse") ? "bg-white text-terra-600 shadow-sm" : ""}`}
-                onClick={() => setBrowseOpen((current) => !current)}
-              >
-                <LayoutGrid className="mr-2 h-4 w-4" />
-                Marketplace
-                <ChevronDown className={`ml-2 h-4 w-4 transition ${browseOpen ? "rotate-180" : ""}`} />
-              </button>
-              <div
-                className={`absolute left-0 top-full mt-3 w-72 rounded-[26px] border border-stone-200 bg-white p-2 shadow-[0_24px_60px_-32px_rgba(120,83,47,0.45)] transition ${
-                  browseOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-2 opacity-0"
-                }`}
-              >
-                {browseLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="block rounded-2xl px-4 py-3 text-sm font-semibold text-stone-700 hover:bg-terra-50 hover:text-terra-600"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
             {topLevelLinks.map((link) => {
               const Icon = link.icon;
               return (
@@ -139,7 +100,7 @@ export default function Navbar() {
                 </Link>
                 <Link href="/profile" className="secondary-button">
                   <User className="mr-2 h-4 w-4" />
-                  {user?.name?.split(" ")[0] || "Profile"}
+                  {userFirstName}
                 </Link>
               </>
             ) : (
@@ -168,25 +129,7 @@ export default function Navbar() {
       {mobileOpen ? (
         <div className="border-t border-stone-200 bg-white lg:hidden">
           <div className="page-shell py-5">
-            <div className="rounded-[26px] border border-stone-200 bg-stone-50 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
-                Marketplace
-              </p>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                {browseLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-stone-700 shadow-sm"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-4 space-y-2">
+            <div className="space-y-2">
               {topLevelLinks.map((link) => {
                 const Icon = link.icon;
                 return (

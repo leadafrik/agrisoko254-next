@@ -5,7 +5,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
-import { formatKes, getLocationLabel, getUserDisplayName } from "@/lib/marketplace";
+import {
+  getListingImageUrls,
+  getListingPriceLabel,
+  getLocationLabel,
+  getUserDisplayName,
+  normalizeMarketplaceListing,
+} from "@/lib/marketplace";
 
 type ListingActionPanelProps = {
   listing: any;
@@ -16,24 +22,29 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
   const { addItem } = useCart();
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
+  const normalizedListing = normalizeMarketplaceListing(listing);
 
-  const sellerId = listing?.seller?._id || listing?.userId || listing?.owner?._id;
-  const sellerName = getUserDisplayName(listing?.seller || listing?.owner || listing?.user);
-  const location = getLocationLabel(listing);
-  const canCart = typeof listing?.price === "number" && Number.isFinite(listing.price) && listing.price > 0;
+  const sellerId = normalizedListing?.seller?._id || normalizedListing?.userId || normalizedListing?.owner?._id;
+  const sellerName = getUserDisplayName(normalizedListing?.seller || normalizedListing?.owner || normalizedListing?.user);
+  const location = getLocationLabel(normalizedListing);
+  const canCart =
+    normalizedListing?.category !== "service" &&
+    typeof normalizedListing?.price === "number" &&
+    Number.isFinite(normalizedListing.price) &&
+    normalizedListing.price > 0;
 
   const handleAddToCart = () => {
     addItem({
-      listingId: listing._id || listing.id,
-      title: listing.title || listing.name || "Listing",
-      price: Number(listing.price),
+      listingId: normalizedListing._id || normalizedListing.id,
+      title: normalizedListing.title || normalizedListing.name || "Listing",
+      price: Number(normalizedListing.price),
       quantity,
-      unit: listing.unit,
-      image: listing.images?.[0],
-      category: listing.category,
-      county: listing.location?.county || listing.location?.region || location || undefined,
+      unit: normalizedListing.unit,
+      image: getListingImageUrls(normalizedListing)[0],
+      category: normalizedListing.category,
+      county: normalizedListing.location?.county || normalizedListing.location?.region || location || undefined,
       sellerName,
-      maxQuantity: typeof listing.quantity === "number" ? listing.quantity : undefined,
+      maxQuantity: typeof normalizedListing.quantity === "number" ? normalizedListing.quantity : undefined,
     });
     router.push("/cart");
   };
@@ -46,10 +57,10 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
             Price
           </p>
           <p className="mt-2 text-3xl font-bold text-stone-900">
-            {formatKes(listing?.price) || "Negotiable"}
+            {getListingPriceLabel(normalizedListing)}
           </p>
         </div>
-        {listing?.verified || listing?.isVerified ? (
+        {normalizedListing?.verified || normalizedListing?.isVerified ? (
           <span className="rounded-full border border-forest-200 bg-forest-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-forest-700">
             Verified
           </span>

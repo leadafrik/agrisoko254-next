@@ -1,5 +1,15 @@
 import Link from "next/link";
-import { formatKes, getCategoryByApi, getInitials, getLocationLabel, getUserDisplayName, isVerifiedProfile } from "@/lib/marketplace";
+import {
+  getCategoryByApi,
+  getInitials,
+  getListingPriceLabel,
+  getListingTypeLabel,
+  getLocationLabel,
+  getPrimaryImageUrl,
+  getUserDisplayName,
+  isVerifiedProfile,
+  normalizeMarketplaceListing,
+} from "@/lib/marketplace";
 
 type ListingCardProps = {
   listing: any;
@@ -14,14 +24,21 @@ export default function ListingCard({
   compact = false,
   showSeller = true,
 }: ListingCardProps) {
-  const category = getCategoryByApi(listing?.category);
-  const image = listing?.images?.[0];
-  const location = getLocationLabel(listing);
-  const seller = listing?.seller || listing?.user || listing?.owner;
+  const normalizedListing = normalizeMarketplaceListing(listing);
+  const category = getCategoryByApi(normalizedListing?.category);
+  const image = getPrimaryImageUrl(normalizedListing, {
+    width: compact ? 640 : 720,
+    height: compact ? 480 : 540,
+    fit: "fill",
+  });
+  const location = getLocationLabel(normalizedListing);
+  const seller = normalizedListing?.seller || normalizedListing?.user || normalizedListing?.owner;
   const sellerName = getUserDisplayName(seller);
-  const verified = isVerifiedProfile(seller) || listing?.verified || listing?.isVerified;
-  const title = listing?.title || listing?.name || "Marketplace listing";
-  const listingHref = href || `/listings/${listing?._id || listing?.id}`;
+  const verified = isVerifiedProfile(seller) || normalizedListing?.verified || normalizedListing?.isVerified;
+  const title = normalizedListing?.title || normalizedListing?.name || "Marketplace listing";
+  const listingHref = href || `/listings/${normalizedListing?._id || normalizedListing?.id}`;
+  const priceLabel = getListingPriceLabel(normalizedListing);
+  const typeLabel = getListingTypeLabel(normalizedListing);
 
   return (
     <Link
@@ -42,7 +59,7 @@ export default function ListingCard({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
-              {category?.shortLabel || "Listing"}
+              {typeLabel || category?.shortLabel || "Listing"}
             </p>
             <h3 className="mt-2 line-clamp-2 text-xl font-semibold text-stone-900 transition group-hover:text-terra-600">
               {title}
@@ -55,15 +72,15 @@ export default function ListingCard({
           ) : null}
         </div>
 
-        {listing?.description ? (
-          <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-stone-600">{listing.description}</p>
+        {normalizedListing?.description ? (
+          <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-stone-600">{normalizedListing.description}</p>
         ) : null}
 
         <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-stone-500">
           {location ? <span>{location}</span> : null}
-          {listing?.quantity ? (
+          {normalizedListing?.quantity ? (
             <span>
-              {listing.quantity} {listing?.unit || ""}
+              {normalizedListing.quantity} {normalizedListing?.unit || ""}
             </span>
           ) : null}
         </div>
@@ -71,7 +88,7 @@ export default function ListingCard({
         <div className="mt-5 flex items-end justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-stone-400">Price</p>
-            <p className="mt-1 text-2xl font-bold text-stone-900">{formatKes(listing?.price) || "Negotiable"}</p>
+            <p className="mt-1 text-2xl font-bold text-stone-900">{priceLabel}</p>
           </div>
           <span className="text-sm font-semibold text-terra-600">View details</span>
         </div>
@@ -93,4 +110,3 @@ export default function ListingCard({
     </Link>
   );
 }
-

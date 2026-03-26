@@ -8,6 +8,7 @@ import {
   MARKETPLACE_CATEGORIES,
   PLATFORM_NUMBERS,
   PLATFORM_PROMISES,
+  SUPPORTED_DELIVERY_COUNTIES,
 } from "@/lib/marketplace";
 import { serverFetch } from "@/lib/api-server";
 import { API_BASE_URL } from "@/lib/endpoints";
@@ -29,7 +30,9 @@ export default async function HomePage() {
 
   const liveNumbers = PLATFORM_NUMBERS.map((item, index) =>
     index === 0 && typeof activeListings === "number"
-      ? { ...item, value: `${activeListings.toLocaleString()}+`, detail: "Active listings across the marketplace" }
+      ? { ...item, value: `${activeListings.toLocaleString()}+`, detail: "Active listings across Kenyan counties right now" }
+      : index === 1
+        ? { ...item, value: `${SUPPORTED_DELIVERY_COUNTIES.length}`, detail: "Managed delivery and checkout support in selected counties" }
       : item
   );
 
@@ -41,21 +44,22 @@ export default async function HomePage() {
           <div className="hero-panel p-6 sm:p-8 lg:p-10">
             <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
               <div>
-                <p className="section-kicker">Built from the best of the PWA marketplace</p>
+                <p className="section-kicker">Built in Kenya for agricultural trade</p>
                 <h1 className="mt-4 text-4xl font-bold text-stone-900 sm:text-5xl lg:text-6xl">
-                  Kenya&apos;s agricultural marketplace, rebuilt for a stronger web experience.
+                  Buy and sell produce across Kenya with more trust and less friction.
                 </h1>
                 <p className="mt-5 max-w-2xl text-lg leading-relaxed text-stone-600">
-                  Agrisoko helps farmers, buyers, input suppliers, and service providers trade
-                  more directly. Browse verified listings, respond to real demand, and keep the
-                  Learn hub close to the marketplace.
+                  Agrisoko helps farmers, traders, institutional buyers, input suppliers, and
+                  service providers move from discovery to direct contact without broker-heavy
+                  detours. Browse live supply, review real buyer demand, and keep practical market
+                  guidance close at hand.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Link href="/browse" className="primary-button">
                     Browse marketplace
                   </Link>
                   <Link href="/login?mode=signup" className="secondary-button">
-                    Create free account
+                    Create account
                   </Link>
                 </div>
               </div>
@@ -78,8 +82,8 @@ export default async function HomePage() {
         <section className="page-shell mt-14">
           <SectionHeading
             eyebrow="Marketplace categories"
-            title="Browse the core flows farmers and buyers actually use"
-            description="The Next app keeps the same category structure as the PWA so the marketplace feels familiar, consistent, and easier to scale."
+            title="Trade lanes buyers and sellers actually use"
+            description="The marketplace stays focused on the categories that matter operationally: fresh produce, livestock, farm inputs, and field services."
           />
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {MARKETPLACE_CATEGORIES.map((category) => (
@@ -100,8 +104,8 @@ export default async function HomePage() {
         <section className="page-shell mt-16">
           <SectionHeading
             eyebrow="Marketplace pulse"
-            title="What is moving right now"
-            description="Live demand and active listings keep the homepage grounded in real marketplace activity instead of generic landing-page filler."
+            title="Live supply and fresh demand"
+            description="Public marketplace activity should feel real. These sections pull from active listings and open buyer requests, not placeholder marketing copy."
           />
 
           <div className="mt-8 grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
@@ -148,8 +152,8 @@ export default async function HomePage() {
         <section className="page-shell mt-16">
           <SectionHeading
             eyebrow="Why Agrisoko"
-            title="A marketplace shaped around trust, direct trade, and clear operations"
-            description="The strongest parts of the PWA were its seriousness and clarity. The Next app keeps that same posture rather than turning the product into a generic listing site."
+            title="A marketplace shaped around trust, direct trade, and operational clarity"
+            description="Serious agricultural trade needs clearer trust signals, shorter paths to contact, and language that respects how buyers and sellers actually work."
             align="center"
           />
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -168,12 +172,12 @@ export default async function HomePage() {
               <div>
                 <p className="section-kicker">Learn hub</p>
                 <h2 className="mt-4 text-3xl font-bold text-stone-900 sm:text-4xl">
-                  Keep the educational side of Agrisoko close to the marketplace.
+                  Keep market guidance close to the trading workflow.
                 </h2>
                 <p className="mt-4 max-w-2xl text-base leading-relaxed text-stone-600">
-                  Learn now carries both structured guides and editorial insights in one place.
-                  Farmers can move from practical playbooks into fresh market commentary, listings,
-                  requests, and trade flows without losing context.
+                  Learn now combines practical guides and market insights in one place so users can
+                  move from education into active listings, buyer requests, and bulk trade flows
+                  without losing context.
                 </p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <Link href="/learn" className="primary-button">
