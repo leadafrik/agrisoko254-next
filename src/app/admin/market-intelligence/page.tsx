@@ -58,7 +58,9 @@ export default function AdminMarketIntelligencePage() {
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [form, setForm] = useState(defaultAdminForm);
   const [saving, setSaving] = useState(false);
-  const [seedingBaseline, setSeedingBaseline] = useState<"maize" | "onions" | null>(null);
+  const [seedingBaseline, setSeedingBaseline] = useState<
+    "maize" | "onions" | "fertilizer" | null
+  >(null);
   const [seedMessage, setSeedMessage] = useState("");
 
   const selectedProduct =
@@ -132,14 +134,16 @@ export default function AdminMarketIntelligencePage() {
     }
   };
 
-  const handleSeedBaseline = async (commodity: "maize" | "onions") => {
+  const handleSeedBaseline = async (commodity: "maize" | "onions" | "fertilizer") => {
     setSeedingBaseline(commodity);
     setSeedMessage("");
     try {
       const endpoint =
         commodity === "maize"
           ? API_ENDPOINTS.marketIntelligence.admin.seedMaizeBaseline
-          : API_ENDPOINTS.marketIntelligence.admin.seedOnionBaseline;
+          : commodity === "onions"
+            ? API_ENDPOINTS.marketIntelligence.admin.seedOnionBaseline
+            : API_ENDPOINTS.marketIntelligence.admin.seedFertilizerBaseline;
       const response = await adminApiRequest(
         endpoint,
         { method: "POST" }
@@ -183,6 +187,14 @@ export default function AdminMarketIntelligencePage() {
               className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:opacity-60"
             >
               {seedingBaseline === "onions" ? "Importing..." : "Import onion baseline"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleSeedBaseline("fertilizer")}
+              disabled={Boolean(seedingBaseline)}
+              className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:opacity-60"
+            >
+              {seedingBaseline === "fertilizer" ? "Importing..." : "Import fertilizer baseline"}
             </button>
             {seedMessage ? (
               <p className="self-center text-sm text-stone-500">{seedMessage}</p>

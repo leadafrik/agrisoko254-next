@@ -33,7 +33,7 @@ export const API_ENDPOINTS = {
     adminInviteComplete:`${API_BASE_URL}/auth/admin-invite/complete`,
   },
   config: {
-    public: `${API_BASE_URL}/public-config/public`,
+    public: `${API_BASE_URL}/config/public`,
   },
   chat: {
     start: `${API_BASE_URL}/chat/start`,
@@ -65,6 +65,7 @@ export const API_ENDPOINTS = {
         `${API_BASE_URL}/admin/market-intelligence/submissions/${submissionId}/review`,
       seedMaizeBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/maize-baseline`,
       seedOnionBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/onion-baseline`,
+      seedFertilizerBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/fertilizer-baseline`,
     },
   },
   listings: {
