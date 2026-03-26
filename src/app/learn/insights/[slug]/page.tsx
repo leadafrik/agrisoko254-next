@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getInsightPost, getInsightPosts } from "@/lib/content-hub";
+import ShareButton from "@/components/learn/ShareButton";
 
 interface Props {
   params: { slug: string };
@@ -75,10 +76,13 @@ export default async function LearnInsightDetailPage({ params }: Props) {
             <p className="mt-4 text-lg leading-relaxed text-stone-600">
               {post.excerpt || "Agrisoko editorial insight."}
             </p>
-            <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-stone-500">
-              <span>{post.authorName ?? "Agrisoko"}</span>
-              <span>{post.readTimeMinutes} min read</span>
-              <span>{formatInsightDate(post.publishedAt)}</span>
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-stone-500">
+                <span>{post.authorName ?? "Agrisoko"}</span>
+                <span>{post.readTimeMinutes} min read</span>
+                <span>{formatInsightDate(post.publishedAt)}</span>
+              </div>
+              <ShareButton title={post.title} />
             </div>
             {post.tags.length > 0 ? (
               <div className="mt-4 flex flex-wrap gap-2">

@@ -16,7 +16,8 @@ type ChatSession = {
   sessionId: string;
 };
 
-const STARTER_SUGGESTIONS = ["Browse listings", "How to list", "ID verification"];
+const MARKETPLACE_SUGGESTIONS = ["Browse listings", "How to list", "ID verification"];
+const LEARN_SUGGESTIONS = ["How to sell maize?", "Verify my profile", "Best practices for listing"];
 
 export default function ChatbotWidget() {
   const pathname = usePathname();
@@ -53,7 +54,7 @@ export default function ChatbotWidget() {
         if (!response.ok || !data?.success) throw new Error(data?.message || "Unable to start chat.");
         if (!cancelled) {
           setChatSession(data.data);
-          setMessages([{ id: "welcome", sender: "bot", message: data.data.welcome, suggestions: STARTER_SUGGESTIONS }]);
+          setMessages([{ id: "welcome", sender: "bot", message: data.data.welcome, suggestions: starterSuggestions }]);
         }
       } catch (chatError: any) {
         if (!cancelled) setError(chatError?.message || "Unable to start chat.");
@@ -75,10 +76,18 @@ export default function ChatbotWidget() {
       if (!dragState.current.dragging) return;
       const mx = "touches" in ev ? ev.touches[0].clientX : ev.clientX;
       const my = "touches" in ev ? ev.touches[0].clientY : ev.clientY;
-      setPos({
-        x: dragState.current.originX + (mx - dragState.current.startX),
-        y: dragState.current.originY + (my - dragState.current.startY),
-      });
+      const rawX = dragState.current.originX + (mx - dragState.current.startX);
+      const rawY = dragState.current.originY + (my - dragState.current.startY);
+      // Clamp so the button (56px) stays fully on screen with 16px margin
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const btnSize = 56;
+      const margin = 16;
+      const defaultBottom = 24; // 1.5rem
+      const defaultRight = 24; // 1.5rem
+      const clampedX = Math.max(defaultRight - (vw - btnSize - margin), Math.min(defaultRight - margin, rawX));
+      const clampedY = Math.max(defaultBottom - (vh - btnSize - margin), Math.min(defaultBottom - margin, rawY));
+      setPos({ x: clampedX, y: clampedY });
     };
     const onUp = () => { dragState.current.dragging = false; window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); window.removeEventListener("touchmove", onMove as any); window.removeEventListener("touchend", onUp); };
     window.addEventListener("mousemove", onMove);
@@ -86,6 +95,10 @@ export default function ChatbotWidget() {
     window.addEventListener("touchmove", onMove as any, { passive: false });
     window.addEventListener("touchend", onUp);
   };
+
+  const starterSuggestions = pathname.startsWith("/learn")
+    ? LEARN_SUGGESTIONS
+    : MARKETPLACE_SUGGESTIONS;
 
   if (!isMounted) return null;
   if (pathname.startsWith("/admin")) return null;
@@ -159,7 +172,7 @@ export default function ChatbotWidget() {
       {isOpen && (
         <div
           style={panelStyle}
-          className="flex h-[min(38rem,calc(100vh-3rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-[0_30px_80px_-34px_rgba(28,25,23,0.4)]"
+          className="flex h-[min(38rem,calc(100vh-9rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-[0_30px_80px_-34px_rgba(28,25,23,0.4)]"
         >
           {/* Header — drag handle */}
           <div

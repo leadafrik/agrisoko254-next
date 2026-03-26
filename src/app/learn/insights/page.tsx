@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { getInsightPosts } from "@/lib/content-hub";
+import InsightsSearch from "@/components/learn/InsightsSearch";
 
 export const revalidate = 3600;
 
@@ -95,40 +96,7 @@ export default async function LearnInsightsPage() {
 
       {rest.length > 0 ? (
         <section className="mt-10">
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {rest.map((post) => (
-              <Link
-                key={post.id}
-                href={`/learn/insights/${post.slug}`}
-                className="group overflow-hidden rounded-[24px] border border-stone-200 bg-white transition duration-200 hover:-translate-y-0.5 hover:border-terra-200 hover:shadow-md"
-              >
-                {post.coverImage ? (
-                  <div className="relative aspect-[16/10] overflow-hidden bg-stone-100">
-                    <Image
-                      src={post.coverImage}
-                      alt={post.title}
-                      fill
-                      className="object-cover transition duration-500 group-hover:scale-[1.03]"
-                      sizes="(min-width: 1280px) 24vw, (min-width: 640px) 45vw, 100vw"
-                    />
-                  </div>
-                ) : (
-                  <div className="aspect-[16/10] bg-gradient-to-br from-[#FDF5F3] to-stone-100" />
-                )}
-                <div className="p-5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terra-600">Insight</p>
-                  <h3 className="mt-2 line-clamp-2 text-lg font-bold text-stone-900 transition group-hover:text-terra-700">{post.title}</h3>
-                  <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-stone-500">
-                    {post.excerpt || "Agrisoko editorial update."}
-                  </p>
-                  <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-stone-400">
-                    {post.readTimeMinutes ? <span>{post.readTimeMinutes} min read</span> : null}
-                    <span>{formatInsightDate(post.publishedAt)}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <InsightsSearch posts={rest} />
         </section>
       ) : null}
     </div>

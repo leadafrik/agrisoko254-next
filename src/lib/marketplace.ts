@@ -321,7 +321,7 @@ export const getListingPriceLabel = (listing: any) => {
     return "Call for pricing";
   }
 
-  return "Negotiable";
+  return "Contact for price";
 };
 
 export const normalizeMarketplaceListing = (listing: any) => {
