@@ -4,7 +4,7 @@ import {
   SEEDED_MAIZE_SNAPSHOT,
 } from "./market-intelligence-seed";
 
-export type IntelligenceCategory = "produce" | "inputs";
+export type IntelligenceCategory = "produce" | "livestock" | "inputs";
 export type TrendDirection = "up" | "down" | "stable";
 
 export type IntelligenceMarket = {
@@ -116,6 +116,7 @@ export type IntelligenceOverview = {
     commoditiesCovered: string[];
   };
   produceBoard: IntelligenceProductSnapshot[];
+  livestockBoard: IntelligenceProductSnapshot[];
   fertilizerBoard: IntelligenceProductSnapshot[];
   topSignals: Array<{
     productKey: string;
@@ -137,6 +138,8 @@ export const TRACKED_INTELLIGENCE_PRODUCTS = [
   { key: "tomatoes", name: "Tomatoes", category: "produce", defaultUnit: "crate" },
   { key: "onions", name: "Onions", category: "produce", defaultUnit: "net bag" },
   { key: "potatoes", name: "Potatoes", category: "produce", defaultUnit: "120kg bag" },
+  { key: "beef", name: "Beef Cattle", category: "livestock", defaultUnit: "kg live weight" },
+  { key: "broilers", name: "Broilers", category: "livestock", defaultUnit: "kg live weight" },
   { key: "dap-fertilizer", name: "DAP Fertilizer", category: "inputs", defaultUnit: "50kg bag" },
   { key: "can-fertilizer", name: "CAN Fertilizer", category: "inputs", defaultUnit: "50kg bag" },
   { key: "npk-fertilizer", name: "NPK Fertilizer", category: "inputs", defaultUnit: "50kg bag" },
@@ -427,6 +430,199 @@ const fallbackProduceBoard: IntelligenceProductSnapshot[] = [
   },
 ];
 
+const fallbackLivestockBoard: IntelligenceProductSnapshot[] = [
+  {
+    productKey: "beef",
+    productName: "Beef Cattle",
+    category: "livestock",
+    unit: "kg live weight",
+    submissionsCount: 8,
+    approvedMarkets: 4,
+    lastUpdated: nowIso,
+    overallAverage: 215,
+    overallTrendDirection: "up",
+    overallTrendPercentage: 3.4,
+    bestMarket: {
+      marketKey: "beef-nairobi",
+      marketName: "Dagoretti Market",
+      county: "Nairobi",
+      avgPrice: 248,
+      minPrice: 230,
+      maxPrice: 265,
+      submissionsCount: 2,
+      currentWindowCount: 2,
+      lastUpdated: nowIso,
+      trendDirection: "up",
+      trendPercentage: 5.1,
+    },
+    weakestMarket: {
+      marketKey: "beef-kisumu",
+      marketName: "Kibuye Market",
+      county: "Kisumu",
+      avgPrice: 188,
+      minPrice: 180,
+      maxPrice: 195,
+      submissionsCount: 2,
+      currentWindowCount: 2,
+      lastUpdated: nowIso,
+      trendDirection: "stable",
+      trendPercentage: 0.9,
+    },
+    markets: [
+      {
+        marketKey: "beef-nairobi",
+        marketName: "Dagoretti Market",
+        county: "Nairobi",
+        avgPrice: 248,
+        minPrice: 230,
+        maxPrice: 265,
+        submissionsCount: 2,
+        currentWindowCount: 2,
+        lastUpdated: nowIso,
+        trendDirection: "up",
+        trendPercentage: 5.1,
+      },
+      {
+        marketKey: "beef-kajiado",
+        marketName: "Kiserian Market",
+        county: "Kajiado",
+        avgPrice: 225,
+        minPrice: 215,
+        maxPrice: 235,
+        submissionsCount: 2,
+        currentWindowCount: 2,
+        lastUpdated: nowIso,
+        trendDirection: "up",
+        trendPercentage: 3.7,
+      },
+      {
+        marketKey: "beef-eldoret",
+        marketName: "Eldoret Market",
+        county: "Uasin Gishu",
+        avgPrice: 200,
+        minPrice: 192,
+        maxPrice: 208,
+        submissionsCount: 2,
+        currentWindowCount: 2,
+        lastUpdated: nowIso,
+        trendDirection: "stable",
+        trendPercentage: 1.5,
+      },
+      {
+        marketKey: "beef-kisumu",
+        marketName: "Kibuye Market",
+        county: "Kisumu",
+        avgPrice: 188,
+        minPrice: 180,
+        maxPrice: 195,
+        submissionsCount: 2,
+        currentWindowCount: 2,
+        lastUpdated: nowIso,
+        trendDirection: "stable",
+        trendPercentage: 0.9,
+      },
+    ],
+    insight:
+      "Beef cattle are pricing strongest in Nairobi's Dagoretti Market, where urban butcher demand keeps prices firm. Kajiado remains a reliable secondary selling point for Rift Valley producers.",
+    isFallback: true,
+  },
+  {
+    productKey: "broilers",
+    productName: "Broilers",
+    category: "livestock",
+    unit: "kg live weight",
+    submissionsCount: 10,
+    approvedMarkets: 4,
+    lastUpdated: nowIso,
+    overallAverage: 210,
+    overallTrendDirection: "stable",
+    overallTrendPercentage: 1.2,
+    bestMarket: {
+      marketKey: "broilers-nairobi",
+      marketName: "Wakulima Market",
+      county: "Nairobi",
+      avgPrice: 235,
+      minPrice: 225,
+      maxPrice: 245,
+      submissionsCount: 3,
+      currentWindowCount: 3,
+      lastUpdated: nowIso,
+      trendDirection: "up",
+      trendPercentage: 2.6,
+    },
+    weakestMarket: {
+      marketKey: "broilers-eldoret",
+      marketName: "Eldoret Market",
+      county: "Uasin Gishu",
+      avgPrice: 192,
+      minPrice: 185,
+      maxPrice: 198,
+      submissionsCount: 2,
+      currentWindowCount: 2,
+      lastUpdated: nowIso,
+      trendDirection: "down",
+      trendPercentage: -1.8,
+    },
+    markets: [
+      {
+        marketKey: "broilers-nairobi",
+        marketName: "Wakulima Market",
+        county: "Nairobi",
+        avgPrice: 235,
+        minPrice: 225,
+        maxPrice: 245,
+        submissionsCount: 3,
+        currentWindowCount: 3,
+        lastUpdated: nowIso,
+        trendDirection: "up",
+        trendPercentage: 2.6,
+      },
+      {
+        marketKey: "broilers-mombasa",
+        marketName: "Kongowea Market",
+        county: "Mombasa",
+        avgPrice: 220,
+        minPrice: 210,
+        maxPrice: 230,
+        submissionsCount: 2,
+        currentWindowCount: 2,
+        lastUpdated: nowIso,
+        trendDirection: "stable",
+        trendPercentage: 1.4,
+      },
+      {
+        marketKey: "broilers-nakuru",
+        marketName: "Nakuru Market",
+        county: "Nakuru",
+        avgPrice: 205,
+        minPrice: 196,
+        maxPrice: 214,
+        submissionsCount: 3,
+        currentWindowCount: 3,
+        lastUpdated: nowIso,
+        trendDirection: "stable",
+        trendPercentage: 0.5,
+      },
+      {
+        marketKey: "broilers-eldoret",
+        marketName: "Eldoret Market",
+        county: "Uasin Gishu",
+        avgPrice: 192,
+        minPrice: 185,
+        maxPrice: 198,
+        submissionsCount: 2,
+        currentWindowCount: 2,
+        lastUpdated: nowIso,
+        trendDirection: "down",
+        trendPercentage: -1.8,
+      },
+    ],
+    insight:
+      "Broiler demand is firmest in Nairobi and coastal markets where quick-service restaurants and households keep steady offtake. Upcountry production areas show softer pricing.",
+    isFallback: true,
+  },
+];
+
 const fallbackFertilizerBoard: IntelligenceProductSnapshot[] = [
   {
     productKey: "dap-fertilizer",
@@ -708,14 +904,16 @@ const FALLBACK_OVERVIEW: IntelligenceOverview = {
   generatedAt: nowIso,
   meta: {
     approvedSubmissions: 81,
-    trackedProducts: fallbackProduceBoard.length + fallbackFertilizerBoard.length,
+    trackedProducts: fallbackProduceBoard.length + fallbackLivestockBoard.length + fallbackFertilizerBoard.length,
     trackedMarkets: TRACKED_INTELLIGENCE_MARKETS.length,
     commoditiesCovered: [
       ...fallbackProduceBoard.map((item) => item.productKey),
+      ...fallbackLivestockBoard.map((item) => item.productKey),
       ...fallbackFertilizerBoard.map((item) => item.productKey),
     ],
   },
   produceBoard: fallbackProduceBoard,
+  livestockBoard: fallbackLivestockBoard,
   fertilizerBoard: fallbackFertilizerBoard,
   topSignals: [
     {
@@ -793,7 +991,7 @@ const normalizeMarket = (item: any): IntelligenceMarket => ({
 const normalizeProduct = (item: any): IntelligenceProductSnapshot => ({
   productKey: String(item?.productKey || ""),
   productName: String(item?.productName || "Commodity"),
-  category: item?.category === "inputs" ? "inputs" : "produce",
+  category: item?.category === "inputs" ? "inputs" : item?.category === "livestock" ? "livestock" : "produce",
   unit: String(item?.unit || "unit"),
   submissionsCount: Number(item?.submissionsCount || 0),
   approvedMarkets: Number(item?.approvedMarkets || item?.markets?.length || 0),
@@ -878,6 +1076,7 @@ export function getFallbackProductSnapshot(
   const overview = getFallbackIntelligenceOverview();
   return (
     overview.produceBoard.find((item) => item.productKey === productKey) ||
+    overview.livestockBoard.find((item) => item.productKey === productKey) ||
     overview.fertilizerBoard.find((item) => item.productKey === productKey) ||
     null
   );
@@ -958,20 +1157,21 @@ export function getFallbackProductHistory(
 }
 
 export function normalizeIntelligenceOverview(payload: any): IntelligenceOverview {
-  const raw = payload?.data && (payload.data.produceBoard || payload.data.fertilizerBoard)
+  const raw = payload?.data && (payload.data.produceBoard || payload.data.fertilizerBoard || payload.data.livestockBoard)
     ? payload.data
     : payload;
 
-  if (!raw || (!Array.isArray(raw.produceBoard) && !Array.isArray(raw.fertilizerBoard))) {
+  if (!raw || (!Array.isArray(raw.produceBoard) && !Array.isArray(raw.fertilizerBoard) && !Array.isArray(raw.livestockBoard))) {
     return getFallbackIntelligenceOverview();
   }
 
   const produceBoard = Array.isArray(raw.produceBoard) ? raw.produceBoard.map(normalizeProduct) : [];
+  const livestockBoard = Array.isArray(raw.livestockBoard) ? raw.livestockBoard.map(normalizeProduct) : [];
   const fertilizerBoard = Array.isArray(raw.fertilizerBoard)
     ? raw.fertilizerBoard.map(normalizeProduct)
     : [];
 
-  if (!produceBoard.length && !fertilizerBoard.length) {
+  if (!produceBoard.length && !livestockBoard.length && !fertilizerBoard.length) {
     return getFallbackIntelligenceOverview();
   }
 
@@ -979,13 +1179,14 @@ export function normalizeIntelligenceOverview(payload: any): IntelligenceOvervie
     generatedAt: raw?.generatedAt ? String(raw.generatedAt) : new Date().toISOString(),
     meta: {
       approvedSubmissions: Number(raw?.meta?.approvedSubmissions || 0),
-      trackedProducts: Number(raw?.meta?.trackedProducts || produceBoard.length + fertilizerBoard.length),
+      trackedProducts: Number(raw?.meta?.trackedProducts || produceBoard.length + livestockBoard.length + fertilizerBoard.length),
       trackedMarkets: Number(raw?.meta?.trackedMarkets || 0),
       commoditiesCovered: Array.isArray(raw?.meta?.commoditiesCovered)
         ? raw.meta.commoditiesCovered.map((item: unknown) => String(item))
         : [],
     },
     produceBoard,
+    livestockBoard,
     fertilizerBoard,
     topSignals: Array.isArray(raw?.topSignals)
       ? raw.topSignals.map((signal: any) => ({
