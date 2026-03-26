@@ -98,6 +98,9 @@ export default async function HomePage() {
       <Navbar />
       <main>
 
+        {/* ━━━━━━━━━━━━━━━━ LIVE PRICE STRIP — just below navbar ━━━━━━━━━━━━ */}
+        {pulseItems.length > 0 && <LivePricePulse items={pulseItems} />}
+
         {/* ━━━━━━━━━━━━━━━━━━ HERO — warm, agricultural ━━━━━━━━━━━━━━━━━━ */}
         <section className="border-b border-stone-200 bg-[linear-gradient(180deg,#fffdf8_0%,#f7efe4_56%,#faf7f2_100%)]">
           <div className="page-shell py-10 sm:py-14">
@@ -237,8 +240,6 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Live price pulse — cycles in place, no scroll */}
-          {pulseItems.length > 0 && <LivePricePulse items={pulseItems} />}
         </section>
 
         {/* ━━━━━━━━━━━━━━━━━━ LIVE MARKETPLACE ━━━━━━━━━━━━━━━━━━ */}

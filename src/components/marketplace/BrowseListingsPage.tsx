@@ -2,6 +2,7 @@ import Link from "next/link";
 import ListingCard from "@/components/marketplace/ListingCard";
 import SectionHeading from "@/components/marketplace/SectionHeading";
 import TrendingSection from "@/components/marketplace/TrendingSection";
+import VerifiedFilterCheckbox from "@/components/marketplace/VerifiedFilterCheckbox";
 import { getMarketplaceFeed } from "@/lib/marketplace-feed";
 import { MARKETPLACE_CATEGORIES, normalizeBrowseCategory } from "@/lib/marketplace";
 import { CheckCircle, Zap, Users } from "lucide-react";
@@ -101,10 +102,7 @@ export default async function BrowseListingsPage({
               placeholder="Filter by county"
               className="field-input"
             />
-            <label className="flex items-center gap-2 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm font-medium text-stone-700">
-              <input type="checkbox" name="verified" value="1" defaultChecked={verifiedOnly} />
-              Verified only
-            </label>
+            <VerifiedFilterCheckbox defaultChecked={verifiedOnly} />
             <select
               name="sort"
               defaultValue={sort}

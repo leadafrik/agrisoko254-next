@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { AboutHeroCTA, AboutBottomCTA } from "@/components/common/AboutAuthCTA";
 
 const BRAND_NAME = "Agrisoko";
 const LEGAL_ENTITY_NAME = "LeadAfrik Agricultural Solutions";
@@ -255,14 +256,7 @@ export default function AboutPage() {
               Karibuni. Biashara bila middlemen - direct to farm, direct to buyer.
             </div>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/login?mode=signup&redirect=%2Fbrowse" className="primary-button">
-                Create account / Sign in
-              </Link>
-              <Link href="/browse" className="secondary-button">
-                Explore Listings
-              </Link>
-            </div>
+            <AboutHeroCTA />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -575,17 +569,7 @@ export default function AboutPage() {
             Join thousands of farmers, producers, buyers, and service providers building a stronger
             agricultural economy.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Link href="/login?mode=signup&redirect=%2Fbrowse" className="secondary-button">
-              Create account / Sign in
-            </Link>
-            <Link
-              href="/login?mode=signup&redirect=%2Fcreate-listing%2Fproduce"
-              className="primary-button"
-            >
-              Post a Listing
-            </Link>
-          </div>
+          <AboutBottomCTA />
         </div>
       </section>
 

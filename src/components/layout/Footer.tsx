@@ -42,15 +42,19 @@ export default function Footer() {
           <div>
             <p className="section-kicker">Agrisoko</p>
             <h3 className="mt-4 text-3xl font-bold text-stone-900">
-              Professional agricultural trade, built for Kenya.
+              Built by Kenyans, for Kenyan agriculture.
             </h3>
             <p className="mt-3 text-sm leading-relaxed text-stone-600">
-              Agrisoko connects farmers, traders, buyers, service providers, and institutional
-              procurement teams through one practical marketplace.
+              Agrisoko connects farmers, traders, agrovets, and buyers across all 47 counties. We
+              help Kenyans trade directly, reduce broker costs, and build trust through verified
+              profiles.
             </p>
             <p className="mt-3 text-sm font-medium text-stone-700">
-              Operated by {LEGAL_ENTITY_NAME}
+              Agrisoko is operated by {LEGAL_ENTITY_NAME}.
             </p>
+            <div className="mt-3 rounded-[18px] border border-[rgba(160,69,46,0.14)] bg-[rgba(160,69,46,0.06)] px-4 py-3 text-sm font-medium text-[#7a2f21]">
+              Karibuni. Biashara bila middlemen — direct to farm, direct to buyer.
+            </div>
 
             <div className="mt-5">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-400">Delivery active in</p>

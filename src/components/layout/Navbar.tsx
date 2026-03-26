@@ -379,11 +379,12 @@ export default function Navbar() {
                       <p className="truncate text-xs text-stone-400">{user?.email || ""}</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-1.5">
+                  <div className={`grid gap-1.5 ${isAdmin ? "grid-cols-4" : "grid-cols-3"}`}>
                     {[
                       { href: "/profile", label: "Profile", Icon: User },
                       { href: "/messages", label: "Messages", Icon: MessageSquare },
                       { href: "/cart", label: itemCount > 0 ? `Cart (${itemCount})` : "Cart", Icon: ShoppingCart },
+                      ...(isAdmin ? [{ href: "/admin", label: "Admin", Icon: LayoutDashboard }] : []),
                     ].map(({ href, label, Icon }) => (
                       <Link
                         key={href}

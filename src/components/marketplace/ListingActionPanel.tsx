@@ -35,7 +35,7 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
   const sellerId = n?.seller?._id || n?.userId || n?.owner?._id;
   const sellerObj = n?.seller || n?.owner || n?.user;
   const sellerName = getUserDisplayName(sellerObj);
-  const sellerPhone = sellerObj?.phone || null;
+  const sellerPhone = sellerObj?.phone || n?.contact || n?.contactPhone || null;
   const whatsappPhone = sellerPhone ? sellerPhone.replace(/\s+/g, "").replace(/^\+/, "") : null;
   const location = getLocationLabel(n);
   const verified = isVerifiedProfile(n?.seller || n?.owner) || n?.verified || n?.isVerified;
