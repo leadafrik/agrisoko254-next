@@ -119,3 +119,13 @@ export const apiRequest = async (url: string, options: RequestInit = {}): Promis
 
   return data;
 };
+
+export const adminApiRequest = (url: string, options: RequestInit = {}) => {
+  const token = typeof window !== "undefined"
+    ? (localStorage.getItem("kodisha_admin_token") || localStorage.getItem("kodisha_token"))
+    : null;
+  return apiRequest(url, {
+    ...options,
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers as Record<string, string>) },
+  });
+};
