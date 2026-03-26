@@ -217,8 +217,8 @@ export const API_ENDPOINTS = {
       delete:      (id: string) => `${API_BASE_URL}/admin/users/${id}`,
     },
     verification: {
-      pending: `${API_BASE_URL}/admin/verification/id/pending`,
-      review:  (id: string) => `${API_BASE_URL}/admin/verification/id/${id}/review`,
+      pending: `${API_BASE_URL}/verification/admin/id/pending`,
+      review:  (id: string) => `${API_BASE_URL}/verification/admin/id/${id}/review`,
     },
     profiles: {
       pending: `${API_BASE_URL}/admin/profiles/pending`,
