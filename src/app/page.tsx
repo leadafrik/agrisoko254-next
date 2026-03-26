@@ -75,8 +75,14 @@ export default async function HomePage() {
   const featuredSignals = intelligence.topSignals.slice(0, 4);
   const produceBoard = intelligence.produceBoard.slice(0, 6);
 
-  // Build pulse items from produce board (high/low derived from market spread)
-  const pulseItems = produceBoard.map((item) => {
+  // All boards combined — produce + inputs + livestock — for the live pulse strip
+  const allPulseBoards = [
+    ...intelligence.produceBoard,
+    ...intelligence.fertilizerBoard,
+    ...(intelligence.livestockBoard ?? []),
+  ];
+
+  const pulseItems = allPulseBoards.map((item) => {
     const markets = item.markets ?? [];
     const prices = markets.map((m: any) => m.avgPrice).filter(Boolean);
     const high = prices.length ? Math.max(...prices) : item.overallAverage;
