@@ -171,13 +171,13 @@ export default async function HomePage() {
                   Keep the educational side of Agrisoko close to the marketplace.
                 </h2>
                 <p className="mt-4 max-w-2xl text-base leading-relaxed text-stone-600">
-                  The Learn hub remains part of the product, not a detached content section.
-                  Farmers can move from practical guides into listings, requests, and trade flows
-                  without losing context.
+                  Learn now carries both structured guides and editorial insights in one place.
+                  Farmers can move from practical playbooks into fresh market commentary, listings,
+                  requests, and trade flows without losing context.
                 </p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <Link href="/learn" className="primary-button">
-                    Explore Learn
+                    Explore Learn hub
                   </Link>
                   <Link href="/browse" className="secondary-button">
                     Go to marketplace
@@ -189,7 +189,7 @@ export default async function HomePage() {
                 {posts.slice(0, 3).map((post: any) => (
                   <Link
                     key={post._id || post.slug}
-                    href={`/blog/${post.slug}`}
+                    href={`/learn/insights/${post.slug}`}
                     className="surface-card p-5 transition hover:-translate-y-1 hover:border-terra-200"
                   >
                     <p className="section-kicker">Agrisoko insight</p>
@@ -201,7 +201,7 @@ export default async function HomePage() {
                 ))}
                 {posts.length === 0 ? (
                   <div className="surface-card p-6 text-sm text-stone-500">
-                    Blog and learn content can be surfaced here once articles are available.
+                    Learn hub insights will appear here once articles are available.
                   </div>
                 ) : null}
               </div>

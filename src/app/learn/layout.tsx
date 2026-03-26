@@ -7,13 +7,22 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
   return (
     <>
       <Navbar />
-      <div className="bg-forest-50 border-b border-forest-100 py-3 px-4">
-        <div className="max-w-7xl mx-auto flex items-center gap-1 text-sm overflow-x-auto">
-          <span className="text-stone-500 shrink-0">Kenya Farming Hub:</span>
+      <div className="border-b border-forest-100 bg-forest-50 px-4 py-3">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto text-sm">
+          <span className="shrink-0 text-stone-500">Learn hub:</span>
+          <Link
+            href="/learn/insights"
+            className="shrink-0 rounded-full border border-terra-200 bg-white px-3 py-1 text-xs font-medium text-terra-700 transition-colors hover:bg-terra-50"
+          >
+            Market insights
+          </Link>
           {Object.entries(CATEGORY_META).map(([slug, meta]) => (
-            <Link key={slug} href={`/learn/${slug}`}
-              className="shrink-0 px-3 py-1 rounded-full bg-white border border-forest-200 text-forest-700 hover:bg-forest-100 transition-colors text-xs font-medium">
-              {meta.emoji} {meta.label}
+            <Link
+              key={slug}
+              href={`/learn/${slug}`}
+              className="shrink-0 rounded-full border border-forest-200 bg-white px-3 py-1 text-xs font-medium text-forest-700 transition-colors hover:bg-forest-100"
+            >
+              {meta.label}
             </Link>
           ))}
         </div>

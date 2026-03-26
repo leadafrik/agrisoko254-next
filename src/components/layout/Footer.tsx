@@ -63,13 +63,13 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="hover:text-terra-600">
-                  Blog
+                <Link href="/learn" className="hover:text-terra-600">
+                  Learn hub
                 </Link>
               </li>
               <li>
-                <Link href="/learn" className="hover:text-terra-600">
-                  Learn hub
+                <Link href="/learn/insights" className="hover:text-terra-600">
+                  Market insights
                 </Link>
               </li>
               <li>

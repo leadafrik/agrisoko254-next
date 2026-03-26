@@ -26,17 +26,22 @@ const browseLinks = [
 
 const topLevelLinks = [
   { href: "/request", label: "Buy Requests" },
-  { href: "/learn", label: "Learn", icon: BookOpen },
+  { href: "/learn", label: "Learn Hub", icon: BookOpen },
   { href: "/b2b", label: "Bulk / B2B" },
   { href: "/about", label: "About" },
-  { href: "/blog", label: "Blog" },
 ];
 
 const isActive = (pathname: string, href: string) => {
   if (href === "/browse") return pathname === "/browse" || pathname.startsWith("/browse/") || pathname.startsWith("/listings/");
   if (href === "/request") return pathname === "/request" || pathname.startsWith("/request/");
-  if (href === "/blog") return pathname === "/blog" || pathname.startsWith("/blog/");
-  if (href === "/learn") return pathname === "/learn" || pathname.startsWith("/learn/");
+  if (href === "/learn") {
+    return (
+      pathname === "/learn" ||
+      pathname.startsWith("/learn/") ||
+      pathname === "/blog" ||
+      pathname.startsWith("/blog/")
+    );
+  }
   return pathname === href;
 };
 

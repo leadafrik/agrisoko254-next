@@ -29,6 +29,8 @@ const nextConfig = {
       { source: "/home",          destination: "/",              permanent: true },
       { source: "/marketplace",   destination: "/browse",        permanent: true },
       { source: "/listings",      destination: "/browse",        permanent: true },
+      { source: "/blog",          destination: "/learn/insights", permanent: true },
+      { source: "/blog/:slug",    destination: "/learn/insights/:slug", permanent: true },
       { source: "/find-services", destination: "/browse/services", permanent: true },
       { source: "/privacy",       destination: "/legal/privacy", permanent: true },
       { source: "/terms",         destination: "/legal/terms",   permanent: true },
@@ -37,6 +39,7 @@ const nextConfig = {
       { source: "/seller/:id",    destination: "/sellers/:id",   permanent: true },
       { source: "/l/:id",         destination: "/listings/:id",  permanent: true },
       { source: "/r/:id",         destination: "/request/:id",   permanent: true },
+      { source: "/share/blog/:slug", destination: "/learn/insights/:slug", permanent: true },
       { source: "/share/listing/:id", destination: "/listings/:id", permanent: true },
       { source: "/share/request/:id", destination: "/request/:id", permanent: true },
     ];

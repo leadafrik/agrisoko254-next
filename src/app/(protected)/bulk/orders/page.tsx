@@ -1,113 +1,182 @@
 "use client";
 
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
-import { formatKes, formatLongDate, getBudgetLabel } from "@/lib/marketplace";
+import { kenyaCounties } from "@/data/kenyaCounties";
 
-export default function BulkOrdersBoardPage() {
+type BulkOrderCategory = "produce" | "livestock" | "inputs" | "service";
+
+const CATEGORY_OPTIONS = [
+  { value: "", label: "All categories" },
+  { value: "produce", label: "Produce" },
+  { value: "livestock", label: "Livestock" },
+  { value: "inputs", label: "Inputs" },
+  { value: "service", label: "Service" },
+];
+
+const formatBudget = (order: any) => {
+  const { min, max } = order.budget || {};
+  if (typeof min === "number" && typeof max === "number") return `KES ${min.toLocaleString()} – ${max.toLocaleString()}`;
+  if (typeof min === "number") return `From KES ${min.toLocaleString()}`;
+  if (typeof max === "number") return `Up to KES ${max.toLocaleString()}`;
+  return "Budget not set";
+};
+
+const formatLocation = (order: any) => {
+  const parts = [order.deliveryLocation?.ward, order.deliveryLocation?.constituency, order.deliveryLocation?.county].filter(Boolean);
+  return parts.length ? parts.join(", ") : "Location not set";
+};
+
+function BulkOrdersBoardInner() {
   const searchParams = useSearchParams();
-  const mine = searchParams.get("mine") === "true";
+  const { user } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [category, setCategory] = useState<BulkOrderCategory | "">("");
+  const [county, setCounty] = useState("");
+  const [mineOnly, setMineOnly] = useState(searchParams.get("mine") === "true");
+  const [canPost, setCanPost] = useState(false);
+  const [canRespond, setCanRespond] = useState(false);
+  const [accessLoading, setAccessLoading] = useState(true);
+
+  const countyOptions = useMemo(() => kenyaCounties.map((c) => c.name), []);
 
   useEffect(() => {
-    const params = new URLSearchParams({
-      limit: "20",
-    });
-    if (mine) params.set("mine", "true");
+    if (!user) { setAccessLoading(false); return; }
+    let active = true;
+    setAccessLoading(true);
+    apiRequest(API_ENDPOINTS.bulkApplications.myStatus)
+      .then((s: any) => {
+        if (!active) return;
+        setCanPost(Boolean(s?.canPostB2BDemand || s?.isAdmin));
+        setCanRespond(Boolean(s?.canRespondToB2BDemand || s?.canOfferToOpenDemand || s?.isAdmin));
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setAccessLoading(false); });
+    return () => { active = false; };
+  }, [user]);
 
-    apiRequest(`${API_ENDPOINTS.bulkOrders.list}?${params.toString()}`)
-      .then((response) => setOrders(response?.data ?? response?.orders ?? response ?? []))
-      .catch((loadError) => setError(loadError?.message || "Unable to load the bulk order board."))
-      .finally(() => setLoading(false));
-  }, [mine]);
+  const loadOrders = useCallback(async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      setError("");
+      const params = new URLSearchParams({ limit: "30" });
+      if (mineOnly) params.set("mine", "true");
+      if (category) params.set("category", category);
+      if (county) params.set("county", county);
+      const res = await apiRequest(`${API_ENDPOINTS.bulkOrders.list}?${params}`);
+      setOrders(Array.isArray(res?.data) ? res.data : []);
+    } catch (err: any) {
+      setError(err?.message || "Failed to load bulk orders.");
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [category, county, mineOnly, user]);
+
+  useEffect(() => { if (user) loadOrders(); }, [loadOrders, user]);
+
+  if (!user) return (
+    <div className="max-w-2xl mx-auto px-4 py-12">
+      <div className="rounded-2xl border border-stone-100 bg-white p-8">
+        <p className="text-xs font-semibold uppercase tracking-wide text-terra-600">Bulk buying</p>
+        <h1 className="mt-2 text-2xl font-bold text-stone-900">Bulk demand board</h1>
+        <p className="mt-2 text-sm text-stone-500">Sign in first to access institutional demand.</p>
+        <Link href="/login?redirect=/bulk/orders" className="mt-5 inline-block rounded-xl bg-terra-500 px-5 py-3 text-sm font-semibold text-white hover:bg-terra-600">Sign in to continue</Link>
+      </div>
+    </div>
+  );
+
+  if (!accessLoading && !canPost && !canRespond) return (
+    <div className="max-w-2xl mx-auto px-4 py-12">
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8">
+        <h1 className="text-2xl font-bold text-amber-900">Bulk access required</h1>
+        <p className="mt-2 text-sm text-amber-800">Apply as a bulk buyer or bulk seller first. Approved users, accounts with live listings, and trusted accounts older than 30 days can offer delivery here.</p>
+        <Link href="/bulk" className="mt-5 inline-block rounded-xl bg-amber-600 px-5 py-3 text-sm font-semibold text-white hover:bg-amber-700">Open bulk application</Link>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="page-shell py-10 sm:py-12">
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="section-kicker">Bulk order board</p>
-          <h1 className="mt-4 text-4xl font-bold text-stone-900">Open institutional demand</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
-            Approved bulk users can review open demand, compare budget signals, and decide where to
-            place serious offers.
-          </p>
+    <div className="max-w-6xl mx-auto px-4 py-8 space-y-5">
+      <section className="rounded-2xl border border-stone-100 bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-terra-600">Agrisoko B2B</p>
+            <h1 className="mt-1 text-2xl font-bold text-stone-900">Bulk demand board</h1>
+            <p className="mt-1 text-sm text-stone-500">Institutional orders, supplier bids, and buyer decisions in one buyer-first workflow.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {canPost && <Link href="/bulk/orders/new" className="rounded-xl bg-terra-500 px-4 py-2 text-sm font-semibold text-white hover:bg-terra-600">Post bulk order</Link>}
+            {canRespond && <Link href="/bulk/seller/orders" className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50">Seller portal</Link>}
+            <Link href="/bulk" className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50">Bulk access status</Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Link href="/bulk" className="secondary-button">
-            Bulk access page
-          </Link>
-          <Link href={mine ? "/bulk/orders" : "/bulk/orders?mine=true"} className="primary-button">
-            {mine ? "View all open orders" : "Show my procurement flow"}
-          </Link>
-        </div>
-      </div>
+      </section>
 
-      {error ? (
-        <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          {error}
+      <section className="rounded-2xl border border-stone-100 bg-white p-4">
+        <div className="grid gap-3 md:grid-cols-4">
+          <select value={category} onChange={(e) => setCategory(e.target.value as BulkOrderCategory | "")} className="w-full rounded-lg border border-stone-200 px-4 py-2.5 text-sm focus:outline-none focus:border-terra-400">
+            {CATEGORY_OPTIONS.map((o) => <option key={o.label} value={o.value}>{o.label}</option>)}
+          </select>
+          <select value={county} onChange={(e) => setCounty(e.target.value)} className="w-full rounded-lg border border-stone-200 px-4 py-2.5 text-sm focus:outline-none focus:border-terra-400">
+            <option value="">All counties</option>
+            {countyOptions.map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+          <label className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm text-stone-700 cursor-pointer">
+            <input type="checkbox" checked={mineOnly} onChange={(e) => setMineOnly(e.target.checked)} />
+            My orders only
+          </label>
+          <button type="button" onClick={loadOrders} className="rounded-xl border border-stone-200 px-3 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50">Refresh</button>
         </div>
-      ) : null}
+      </section>
+
+      {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
       {loading ? (
-        <div className="surface-card p-10 text-center text-stone-500">Loading bulk orders...</div>
+        <div className="rounded-2xl border border-stone-100 bg-white p-6 text-sm text-stone-500">Loading bulk orders...</div>
       ) : orders.length === 0 ? (
-        <div className="surface-card p-10 text-center">
-          <h2 className="text-2xl font-bold text-stone-900">No bulk orders available</h2>
-          <p className="mt-3 text-sm text-stone-600">
-            Either there is no open institutional demand right now or your access level limits what
-            you can see.
-          </p>
-        </div>
+        <div className="rounded-2xl border border-stone-100 bg-white p-6 text-sm text-stone-500">No bulk orders match this filter yet.</div>
       ) : (
-        <div className="grid gap-5 xl:grid-cols-2">
+        <section className="grid gap-4 md:grid-cols-2">
           {orders.map((order) => (
-            <div key={order._id} className="surface-card p-6">
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="section-kicker">{order.category || "Bulk order"}</p>
-                <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
-                  {order.status}
-                </span>
+            <article key={order._id} className="rounded-2xl border border-stone-100 bg-white p-5 hover:-translate-y-0.5 transition">
+              <div className="flex items-center justify-between gap-2">
+                <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-700">{order.category}</span>
+                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${order.status === "open" ? "bg-emerald-100 text-emerald-700" : order.status === "awarded" ? "bg-amber-100 text-amber-700" : "bg-stone-100 text-stone-700"}`}>{order.status}</span>
               </div>
-
-              <h2 className="mt-4 text-3xl font-bold text-stone-900">{order.title}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-stone-600">{order.description}</p>
-
-              <div className="mt-5 grid gap-3 md:grid-cols-2">
-                <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">County</p>
-                  <p className="mt-1 font-semibold text-stone-900">{order.deliveryLocation?.county || "Not set"}</p>
-                </div>
-                <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Budget</p>
-                  <p className="mt-1 font-semibold text-stone-900">
-                    {getBudgetLabel(order.budget) || formatKes(order.estimatedBudgetPerOrder) || "Negotiable"}
-                  </p>
-                </div>
-                <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Quantity</p>
-                  <p className="mt-1 font-semibold text-stone-900">
-                    {order.quantity ? `${order.quantity.toLocaleString()} ${order.unit || ""}`.trim() : "Not stated"}
-                  </p>
-                </div>
-                <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Posted</p>
-                  <p className="mt-1 font-semibold text-stone-900">{formatLongDate(order.createdAt) || "Recently"}</p>
-                </div>
+              <h2 className="mt-3 text-lg font-semibold text-stone-900">{order.title}</h2>
+              <p className="mt-1 text-sm text-stone-600">{order.itemName}</p>
+              <div className="mt-4 rounded-xl bg-stone-50 p-3 text-sm text-stone-700 space-y-1">
+                <p><strong>Quantity:</strong> {order.quantity} {order.unit}</p>
+                <p><strong>Budget:</strong> {formatBudget(order)}</p>
+                <p><strong>Delivery:</strong> {formatLocation(order)} ({order.deliveryScope})</p>
+                <p><strong>Bids:</strong> {order.bidCount || 0}</p>
+                {order.myBid && <p><strong>Your bid:</strong> {order.myBid.status} – KES {Number(order.myBid.quoteAmount || 0).toLocaleString()}</p>}
               </div>
-
-              <div className="mt-5 flex items-center justify-between gap-4 border-t border-stone-100 pt-4 text-sm text-stone-600">
-                <span>{order.bidCount || 0} bid(s)</span>
-                <span>{order.myBid ? "You already have a bid here" : "No bid from you yet"}</span>
+              <div className="mt-4">
+                <Link href={`/bulk/orders/${order._id}`} className="rounded-xl bg-terra-500 px-4 py-2 text-sm font-semibold text-white hover:bg-terra-600">
+                  {canRespond && order.status === "open" ? "View & bid" : "View details"}
+                </Link>
               </div>
-            </div>
+            </article>
           ))}
-        </div>
+        </section>
       )}
     </div>
+  );
+}
+
+export default function BulkOrdersBoardPage() {
+  return (
+    <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-8 text-sm text-stone-500">Loading...</div>}>
+      <BulkOrdersBoardInner />
+    </Suspense>
   );
 }
