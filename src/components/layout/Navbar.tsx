@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BookOpen,
   ChevronDown,
@@ -54,6 +54,7 @@ export default function Navbar() {
   const { itemCount } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sellOpen, setSellOpen] = useState(false);
+  const sellCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userFirstName = user?.fullName?.split(" ")[0] || user?.name?.split(" ")[0] || "Profile";
   const resolveSellHref = (href: string) =>
     isAuthenticated ? href : `/login?mode=signup&redirect=${encodeURIComponent(href)}`;
@@ -106,8 +107,13 @@ export default function Navbar() {
 
             <div
               className="relative"
-              onMouseEnter={() => setSellOpen(true)}
-              onMouseLeave={() => setSellOpen(false)}
+              onMouseEnter={() => {
+                if (sellCloseTimer.current) clearTimeout(sellCloseTimer.current);
+                setSellOpen(true);
+              }}
+              onMouseLeave={() => {
+                sellCloseTimer.current = setTimeout(() => setSellOpen(false), 200);
+              }}
             >
               <button
                 type="button"
@@ -165,11 +171,11 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link href="/login" className="ghost-button">
+                <Link href="/login" className="secondary-button">
                   Sign in
                 </Link>
                 <Link href="/login?mode=signup" className="primary-button">
-                  Create account
+                  Get started
                 </Link>
               </>
             )}
