@@ -2,11 +2,16 @@ import { serverFetch } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 import { normalizeMarketplaceListing, normalizeMarketplaceCategory } from "@/lib/marketplace";
 
+export type MarketplaceSortOption = "recommended" | "newest" | "price_low" | "price_high" | "verified";
+
 type MarketplaceFeedOptions = {
   category?: string | null;
   county?: string;
   search?: string;
   verifiedOnly?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: MarketplaceSortOption;
   limit?: number;
   revalidate?: number;
 };
@@ -21,14 +26,10 @@ const getArray = (payload: any) => {
 
 const buildUrl = (base: string, params: Record<string, string | undefined>) => {
   const searchParams = new URLSearchParams();
-
   Object.entries(params).forEach(([key, value]) => {
     const normalized = String(value || "").trim();
-    if (normalized) {
-      searchParams.set(key, normalized);
-    }
+    if (normalized) searchParams.set(key, normalized);
   });
-
   const query = searchParams.toString();
   return query ? `${base}?${query}` : base;
 };
@@ -40,7 +41,6 @@ const normalizeDateValue = (value: any) => {
 
 const includesTerm = (listing: any, searchTerm: string) => {
   if (!searchTerm) return true;
-
   const haystack = [
     listing?.title,
     listing?.name,
@@ -58,7 +58,6 @@ const includesTerm = (listing: any, searchTerm: string) => {
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
-
   return haystack.includes(searchTerm);
 };
 
@@ -68,12 +67,51 @@ const matchesCounty = (listing: any, county: string) => {
   return listingCounty.includes(county);
 };
 
+const matchesPrice = (listing: any, minPrice?: number, maxPrice?: number) => {
+  if (!minPrice && !maxPrice) return true;
+  const price = Number(listing?.price || 0);
+  if (minPrice && price < minPrice) return false;
+  if (maxPrice && price > maxPrice) return false;
+  return true;
+};
+
+const isVerified = (item: any) =>
+  Boolean(item?.verified || item?.isVerified || item?.seller?.isVerified || item?.owner?.isVerified);
+
+const isBoosted = (item: any) =>
+  Boolean(item?.monetization?.premiumBadge || item?.boosted || item?.isBoosted);
+
+const sortListings = (listings: any[], sort: MarketplaceSortOption): any[] => {
+  switch (sort) {
+    case "newest":
+      return [...listings].sort((a, b) => normalizeDateValue(b?.createdAt) - normalizeDateValue(a?.createdAt));
+    case "price_low":
+      return [...listings].sort((a, b) => (Number(a?.price) || 0) - (Number(b?.price) || 0));
+    case "price_high":
+      return [...listings].sort((a, b) => (Number(b?.price) || 0) - (Number(a?.price) || 0));
+    case "verified":
+      return [...listings].sort((a, b) => (isVerified(b) ? 1 : 0) - (isVerified(a) ? 1 : 0));
+    default:
+      // recommended: boosted first, then verified, then by recency
+      return [...listings].sort((a, b) => {
+        const boostDiff = (isBoosted(b) ? 1 : 0) - (isBoosted(a) ? 1 : 0);
+        if (boostDiff !== 0) return boostDiff;
+        const verifiedDiff = (isVerified(b) ? 1 : 0) - (isVerified(a) ? 1 : 0);
+        if (verifiedDiff !== 0) return verifiedDiff;
+        return normalizeDateValue(b?.updatedAt || b?.createdAt) - normalizeDateValue(a?.updatedAt || a?.createdAt);
+      });
+  }
+};
+
 export const getMarketplaceFeed = async ({
   category,
   county = "",
   search = "",
   verifiedOnly = false,
-  limit = 16,
+  minPrice,
+  maxPrice,
+  sort = "recommended",
+  limit = 48,
   revalidate = 60,
 }: MarketplaceFeedOptions) => {
   const normalizedCategory = String(category || "").trim().toLowerCase();
@@ -135,7 +173,7 @@ export const getMarketplaceFeed = async ({
       : Promise.resolve(null),
   ]);
 
-  const listings = [
+  const all = [
     ...getArray(productsData).map((item: any) =>
       normalizeMarketplaceListing({
         ...item,
@@ -172,16 +210,15 @@ export const getMarketplaceFeed = async ({
   ]
     .filter((item) => matchesCounty(item, normalizedCounty.toLowerCase()))
     .filter((item) => includesTerm(item, searchTerm))
-    .filter((item) => {
-      if (verifiedOnly) {
-        return Boolean(item?.verified || item?.isVerified || item?.seller?.isVerified || item?.owner?.isVerified);
-      }
-      return true;
-    })
-    .sort((a, b) => normalizeDateValue(b?.updatedAt || b?.createdAt) - normalizeDateValue(a?.updatedAt || a?.createdAt));
+    .filter((item) => !verifiedOnly || isVerified(item))
+    .filter((item) => matchesPrice(item, minPrice, maxPrice));
+
+  const sorted = sortListings(all, sort);
 
   return {
-    listings: listings.slice(0, limit),
-    total: listings.length,
+    listings: sorted.slice(0, limit),
+    total: sorted.length,
+    verifiedCount: sorted.filter(isVerified).length,
+    boostedCount: sorted.filter(isBoosted).length,
   };
 };

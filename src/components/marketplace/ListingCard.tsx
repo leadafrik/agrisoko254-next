@@ -1,12 +1,20 @@
+"use client";
+
 import Link from "next/link";
+import { Eye, Bookmark, MessageCircle, ShoppingCart, Zap } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
 import {
   getCategoryByApi,
+  getDeliveryScopeLabel,
   getInitials,
+  getListingEngagement,
   getListingPriceLabel,
   getListingTypeLabel,
   getLocationLabel,
   getPrimaryImageUrl,
   getUserDisplayName,
+  formatLastActive,
+  isListingBoosted,
   isVerifiedProfile,
   normalizeMarketplaceListing,
 } from "@/lib/marketplace";
@@ -24,28 +32,65 @@ export default function ListingCard({
   compact = false,
   showSeller = true,
 }: ListingCardProps) {
-  const normalizedListing = normalizeMarketplaceListing(listing);
-  const category = getCategoryByApi(normalizedListing?.category);
-  const image = getPrimaryImageUrl(normalizedListing, {
+  const { addItem } = useCart();
+  const n = normalizeMarketplaceListing(listing);
+  const category = getCategoryByApi(n?.category);
+  const image = getPrimaryImageUrl(n, {
     width: compact ? 640 : 720,
     height: compact ? 480 : 540,
     fit: "fill",
   });
-  const location = getLocationLabel(normalizedListing);
-  const seller = normalizedListing?.seller || normalizedListing?.user || normalizedListing?.owner;
+  const location = getLocationLabel(n);
+  const seller = n?.seller || n?.user || n?.owner;
   const sellerName = getUserDisplayName(seller);
-  const verified = isVerifiedProfile(seller) || normalizedListing?.verified || normalizedListing?.isVerified;
-  const title = normalizedListing?.title || normalizedListing?.name || "Marketplace listing";
-  const listingHref = href || `/listings/${normalizedListing?._id || normalizedListing?.id}`;
-  const priceLabel = getListingPriceLabel(normalizedListing);
-  const typeLabel = getListingTypeLabel(normalizedListing);
+  const sellerAvatar = seller?.profilePicture || seller?.avatar || null;
+  const verified = isVerifiedProfile(seller) || n?.verified || n?.isVerified;
+  const boosted = isListingBoosted(n);
+  const title = n?.title || n?.name || "Marketplace listing";
+  const listingHref = href || `/listings/${n?._id || n?.id}`;
+  const priceLabel = getListingPriceLabel(n);
+  const typeLabel = getListingTypeLabel(n);
+  const deliveryLabel = getDeliveryScopeLabel(n);
+  const engagement = getListingEngagement(n);
+  const lastActive = formatLastActive(seller?.lastActive || seller?.updatedAt || n?.updatedAt);
+  const responseTime = seller?.responseTime || seller?.responseTimeLabel || null;
+  const hasEngagement = engagement.views > 0 || engagement.saves > 0 || engagement.reachOuts > 0;
+
+  if (compact) {
+    return (
+      <Link
+        href={listingHref}
+        className="group flex h-full flex-col overflow-hidden rounded-[26px] border border-stone-200 bg-white shadow-[0_20px_50px_-35px_rgba(120,83,47,0.45)] transition duration-200 hover:-translate-y-1 hover:border-terra-200 hover:shadow-[0_30px_60px_-35px_rgba(120,83,47,0.55)]"
+      >
+        <div className="aspect-[4/3] bg-stone-100">
+          {image ? (
+            <img src={image} alt={title} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(160,69,46,0.14),_transparent_55%),linear-gradient(135deg,#fffdf8,#f2ece2)] text-sm font-semibold uppercase tracking-[0.2em] text-stone-400">
+              Agrisoko
+            </div>
+          )}
+        </div>
+        <div className="flex flex-1 flex-col p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
+            {typeLabel || category?.shortLabel || "Listing"}
+          </p>
+          <h3 className="mt-2 line-clamp-2 text-xl font-semibold text-stone-900 transition group-hover:text-terra-600">
+            {title}
+          </h3>
+          <div className="mt-5 flex items-end justify-between gap-4">
+            <p className="text-2xl font-bold text-stone-900">{priceLabel}</p>
+            <span className="text-sm font-semibold text-terra-600">View details</span>
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
   return (
-    <Link
-      href={listingHref}
-      className="group flex h-full flex-col overflow-hidden rounded-[26px] border border-stone-200 bg-white shadow-[0_20px_50px_-35px_rgba(120,83,47,0.45)] transition duration-200 hover:-translate-y-1 hover:border-terra-200 hover:shadow-[0_30px_60px_-35px_rgba(120,83,47,0.55)]"
-    >
-      <div className={compact ? "aspect-[4/3] bg-stone-100" : "aspect-[4/3] bg-stone-100"}>
+    <div className="group flex h-full flex-col overflow-hidden rounded-[26px] border border-stone-200 bg-white shadow-[0_20px_50px_-35px_rgba(120,83,47,0.3)] transition duration-200 hover:-translate-y-0.5 hover:border-terra-200 hover:shadow-[0_30px_60px_-35px_rgba(120,83,47,0.45)]">
+      {/* Image */}
+      <Link href={listingHref} className="block aspect-[4/3] overflow-hidden bg-stone-100">
         {image ? (
           <img src={image} alt={title} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
         ) : (
@@ -53,60 +98,111 @@ export default function ListingCard({
             Agrisoko
           </div>
         )}
-      </div>
+      </Link>
 
       <div className="flex flex-1 flex-col p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
-              {typeLabel || category?.shortLabel || "Listing"}
-            </p>
-            <h3 className="mt-2 line-clamp-2 text-xl font-semibold text-stone-900 transition group-hover:text-terra-600">
-              {title}
-            </h3>
-          </div>
-          {verified ? (
-            <span className="rounded-full border border-forest-200 bg-forest-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-forest-700">
+        {/* Badges */}
+        <div className="flex flex-wrap items-center gap-2">
+          {boosted && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-[11px] font-semibold text-white">
+              <Zap className="h-3 w-3" /> Boosted
+            </span>
+          )}
+          {verified && (
+            <span className="rounded-full border border-forest-200 bg-forest-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-forest-700">
               Verified
             </span>
-          ) : null}
+          )}
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-terra-600">
+            {typeLabel || category?.shortLabel || "Listing"}
+          </span>
         </div>
 
-        {normalizedListing?.description ? (
-          <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-stone-600">{normalizedListing.description}</p>
+        {/* Title + Price */}
+        <Link href={listingHref} className="mt-2 block">
+          <h3 className="line-clamp-2 text-lg font-semibold text-stone-900 transition hover:text-terra-600 leading-snug">
+            {title}
+          </h3>
+        </Link>
+        <p className="mt-1 text-xl font-bold text-stone-900">{priceLabel}</p>
+
+        {/* Description */}
+        {n?.description ? (
+          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-stone-500">{n.description}</p>
         ) : null}
 
-        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-stone-500">
-          {location ? <span>{location}</span> : null}
-          {normalizedListing?.quantity ? (
-            <span>
-              {normalizedListing.quantity} {normalizedListing?.unit || ""}
-            </span>
+        {/* Seller */}
+        {showSeller && (
+          <div className="mt-3 flex items-center gap-2">
+            {sellerAvatar ? (
+              <img src={sellerAvatar} alt={sellerName} className="h-7 w-7 rounded-full object-cover border border-stone-200" />
+            ) : (
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-terra-100 text-[10px] font-semibold text-terra-700">
+                {getInitials(sellerName)}
+              </div>
+            )}
+            <p className="truncate text-xs font-medium text-stone-700">{sellerName}</p>
+          </div>
+        )}
+
+        {/* Location + Delivery */}
+        <div className="mt-3 space-y-1">
+          {location ? (
+            <p className="truncate text-[11px] text-stone-500">{location}</p>
           ) : null}
+          <p className="text-[11px] font-medium text-stone-600">{deliveryLabel}</p>
         </div>
 
-        <div className="mt-5 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-400">Price</p>
-            <p className="mt-1 text-2xl font-bold text-stone-900">{priceLabel}</p>
-          </div>
-          <span className="text-sm font-semibold text-terra-600">View details</span>
-        </div>
+        {/* Response time + last active */}
+        {(responseTime || lastActive) && (
+          <p className="mt-1.5 text-[11px] text-stone-400">
+            {[responseTime && `Responds ${responseTime}`, lastActive].filter(Boolean).join(" · ")}
+          </p>
+        )}
 
-        {showSeller ? (
-          <div className="mt-5 flex items-center gap-3 border-t border-stone-100 pt-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-terra-100 text-sm font-semibold text-terra-700">
-              {getInitials(sellerName)}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-stone-900">{sellerName}</p>
-              <p className="truncate text-xs text-stone-500">
-                {verified ? "Identity cues available" : "Marketplace seller"}
-              </p>
-            </div>
+        {/* Engagement stats */}
+        {hasEngagement && (
+          <div className="mt-3 flex items-center gap-4 border-t border-stone-100 pt-3">
+            {engagement.views > 0 && (
+              <span className="flex items-center gap-1 text-[11px] text-stone-400">
+                <Eye className="h-3 w-3" /> {engagement.views} views
+              </span>
+            )}
+            {engagement.saves > 0 && (
+              <span className="flex items-center gap-1 text-[11px] text-stone-400">
+                <Bookmark className="h-3 w-3" /> {engagement.saves} saves
+              </span>
+            )}
+            {engagement.reachOuts > 0 && (
+              <span className="flex items-center gap-1 text-[11px] text-stone-400">
+                <MessageCircle className="h-3 w-3" /> {engagement.reachOuts} reach-outs
+              </span>
+            )}
           </div>
-        ) : null}
+        )}
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Actions */}
+        <div className="mt-4 flex gap-2">
+          <Link
+            href={listingHref}
+            className="flex-1 rounded-xl border border-stone-200 py-2 text-center text-sm font-semibold text-stone-700 transition hover:border-terra-300 hover:bg-terra-50"
+          >
+            View details
+          </Link>
+          {n?.category !== "service" && (
+            <button
+              onClick={() => addItem(n)}
+              className="flex items-center gap-1.5 rounded-xl bg-terra-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-terra-600"
+              aria-label="Add to cart"
+            >
+              <ShoppingCart className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
-    </Link>
+    </div>
   );
 }

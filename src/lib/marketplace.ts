@@ -378,3 +378,33 @@ export const getQuantityLabel = (request: any) => {
   }
   return null;
 };
+
+export const isListingBoosted = (listing: any) =>
+  Boolean(listing?.monetization?.premiumBadge || listing?.boosted || listing?.isBoosted);
+
+export const getDeliveryScopeLabel = (listing: any): string => {
+  const scope = String(listing?.deliveryScope || "").trim();
+  if (scope === "countrywide") return "Countrywide delivery";
+  if (scope === "within_county") return "Within county";
+  return "Delivery negotiable";
+};
+
+export const getListingEngagement = (listing: any) => ({
+  views: Number(listing?.viewCount || listing?.views || 0),
+  saves: Number(listing?.saveCount || listing?.saves || 0),
+  reachOuts: Number(listing?.reachOutCount || listing?.reachOuts || listing?.inquiries || 0),
+});
+
+export const formatLastActive = (value?: string | Date | null): string | null => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const diffMs = Date.now() - date.getTime();
+  const diffMins = Math.max(0, Math.floor(diffMs / 60000));
+  if (diffMins < 60) return `Active ${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `Active ${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `Active ${diffDays}d ago`;
+  return `Active ${date.toLocaleDateString()}`;
+};
