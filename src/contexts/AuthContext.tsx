@@ -3,7 +3,14 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
-import { clearSession, getStoredUser, getToken, storeAdminSession, storeSession } from "@/lib/auth";
+import {
+  clearSession,
+  getAdminToken,
+  getStoredUser,
+  getToken,
+  storeAdminSession,
+  storeSession,
+} from "@/lib/auth";
 
 export interface LegalConsents {
   termsAccepted: boolean;
@@ -72,7 +79,11 @@ type AuthContextType = {
   verifyEmailOtp: (email: string, code: string) => Promise<void>;
   requestSmsOtp: (phone: string) => Promise<void>;
   verifySmsOtp: (phone: string, code: string) => Promise<void>;
-  adminLogin: (token: string, user: User) => void;
+  adminLogin: (
+    token: string,
+    user: User,
+    session?: { refreshToken?: string; expiresIn?: number }
+  ) => void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 };
@@ -107,7 +118,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const refreshUser = useCallback(async () => {
-    const existingToken = getToken();
+    const existingToken = getToken() || getAdminToken();
     if (!existingToken) {
       setUser(null);
       setToken(null);
@@ -130,7 +141,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const storedUser = getStoredUser();
-    const existingToken = getToken();
+    const existingToken = getToken() || getAdminToken();
 
     if (storedUser && existingToken) {
       setUser(storedUser);
@@ -255,11 +266,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     [applyAuthResponse, refreshUser]
   );
 
-  const adminLogin = useCallback((adminToken: string, adminUser: User) => {
-    storeAdminSession(adminToken, adminUser);
-    setToken(adminToken);
-    setUser(adminUser);
-  }, []);
+  const adminLogin = useCallback(
+    (
+      adminToken: string,
+      adminUser: User,
+      session?: { refreshToken?: string; expiresIn?: number }
+    ) => {
+      if (session?.refreshToken || session?.expiresIn) {
+        storeSession({
+          token: adminToken,
+          refreshToken: session.refreshToken,
+          expiresIn: session.expiresIn,
+          user: adminUser,
+        });
+      } else {
+        storeAdminSession(adminToken, adminUser);
+      }
+
+      setToken(adminToken);
+      setUser(adminUser);
+    },
+    []
+  );
 
   const logout = useCallback(async () => {
     try {

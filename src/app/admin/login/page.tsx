@@ -11,7 +11,7 @@ import { apiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 
 function AdminLoginContent() {
-  const { isAuthenticated, isAdmin, adminLogin, user, token, logout } = useAuth();
+  const { isAuthenticated, isAdmin, adminLogin, user, token, logout, login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("from") || "/admin";
@@ -42,18 +42,16 @@ function AdminLoginContent() {
 
     try {
       const identifier = form.identifier.trim();
-      const loginPayload = identifier.includes("@")
-        ? { email: identifier.toLowerCase(), password: form.password }
-        : { phone: identifier, password: form.password };
-
       let data: any;
+
       try {
-        data = await apiRequest(API_ENDPOINTS.admin.login, {
-          method: "POST",
-          body: JSON.stringify(loginPayload),
-        });
+        data = await login(identifier, form.password);
       } catch {
-        data = await apiRequest(API_ENDPOINTS.auth.login, {
+        const loginPayload = identifier.includes("@")
+          ? { email: identifier.toLowerCase(), password: form.password }
+          : { phone: identifier, password: form.password };
+
+        data = await apiRequest(API_ENDPOINTS.admin.login, {
           method: "POST",
           body: JSON.stringify(loginPayload),
         });
@@ -66,7 +64,10 @@ function AdminLoginContent() {
         throw new Error("This account does not have admin access.");
       }
 
-      adminLogin(data.token ?? data.accessToken, resolvedUser);
+      adminLogin(data.token ?? data.accessToken, resolvedUser, {
+        refreshToken: data?.refreshToken,
+        expiresIn: data?.expiresIn,
+      });
       router.replace(redirectTo);
     } catch (loginError: any) {
       setError(loginError?.message ?? "Invalid credentials.");

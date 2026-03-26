@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { apiRequest } from "@/lib/api";
+import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 
 export default function AdminBulkApplicationsPage() {
@@ -22,7 +22,7 @@ export default function AdminBulkApplicationsPage() {
       if (statusFilter) params.set("status", statusFilter);
       if (roleFilter) params.set("role", roleFilter);
       if (search.trim()) params.set("search", search.trim());
-      const res = await apiRequest(`${API_ENDPOINTS.bulkApplications.admin.list}?${params}`);
+      const res = await adminApiRequest(`${API_ENDPOINTS.bulkApplications.admin.list}?${params}`);
       setItems(Array.isArray(res?.data) ? res.data : []);
       setSummary({ pending: res?.summary?.pending || 0, approved: res?.summary?.approved || 0, rejected: res?.summary?.rejected || 0 });
     } catch (err: any) {
@@ -40,7 +40,7 @@ export default function AdminBulkApplicationsPage() {
   const handleApprove = async (id: string) => {
     const notes = reviewNotes[id]?.trim() || undefined;
     try {
-      await apiRequest(API_ENDPOINTS.bulkApplications.admin.approve(id), {
+      await adminApiRequest(API_ENDPOINTS.bulkApplications.admin.approve(id), {
         method: "POST",
         body: JSON.stringify({ reviewNotes: notes }),
       });
@@ -54,7 +54,7 @@ export default function AdminBulkApplicationsPage() {
   const handleReject = async (id: string) => {
     const notes = reviewNotes[id]?.trim() || "Application requires more details.";
     try {
-      await apiRequest(API_ENDPOINTS.bulkApplications.admin.reject(id), {
+      await adminApiRequest(API_ENDPOINTS.bulkApplications.admin.reject(id), {
         method: "POST",
         body: JSON.stringify({ reviewNotes: notes }),
       });

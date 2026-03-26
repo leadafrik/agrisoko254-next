@@ -12,7 +12,7 @@ import {
   ShoppingCart,
   Users,
 } from "lucide-react";
-import { adminApiRequest, apiRequest } from "@/lib/api";
+import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 
 type DashboardStats = {
@@ -136,7 +136,7 @@ export default function AdminDashboardPage() {
       ] = await Promise.all([
         adminApiRequest(API_ENDPOINTS.admin.dashboard),
         adminApiRequest(`${API_ENDPOINTS.admin.users.search}?limit=6&page=1&sortBy=createdAt`),
-        apiRequest(`${API_ENDPOINTS.admin.reports.getAll}?status=pending&limit=6&page=1`),
+        adminApiRequest(`${API_ENDPOINTS.admin.reports.getAll}?status=pending&limit=6&page=1`),
         adminApiRequest(`${API_ENDPOINTS.admin.profiles.pending}?limit=6&page=1&status=pending`),
         adminApiRequest(API_ENDPOINTS.admin.verification.pending),
       ]);

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { apiRequest } from "@/lib/api";
+import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 
 export default function AdminBulkOrdersPage() {
@@ -26,7 +26,7 @@ export default function AdminBulkOrdersPage() {
       if (statusFilter) params.set("status", statusFilter);
       if (category) params.set("category", category);
       if (search.trim()) params.set("search", search.trim());
-      const res = await apiRequest(`${API_ENDPOINTS.bulkOrders.adminList}?${params}`);
+      const res = await adminApiRequest(`${API_ENDPOINTS.bulkOrders.adminList}?${params}`);
       setOrders(Array.isArray(res?.data) ? res.data : []);
     } catch (err: any) {
       setError(err?.message || "Failed to load bulk orders.");

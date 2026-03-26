@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { apiRequest } from "@/lib/api";
+import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 
 const BOOST_PRICE_KES = 500;
@@ -34,7 +34,7 @@ export default function AdminBoostsPage() {
       const params = new URLSearchParams();
       if (statusFilter) params.set("status", statusFilter);
       if (search.trim()) params.set("search", search.trim());
-      const res = await apiRequest(`${API_ENDPOINTS.boosts.admin.list}?${params}`);
+      const res = await adminApiRequest(`${API_ENDPOINTS.boosts.admin.list}?${params}`);
       setItems(Array.isArray(res?.data) ? res.data : []);
       setStats(res?.stats || { total: 0, submitted: 0, approved: 0 });
     } catch (err: any) {
@@ -53,7 +53,7 @@ export default function AdminBoostsPage() {
     setError("");
     try {
       const note = noteInputs[boostId]?.trim() || undefined;
-      await apiRequest(API_ENDPOINTS.boosts.admin.review(boostId), {
+      await adminApiRequest(API_ENDPOINTS.boosts.admin.review(boostId), {
         method: "POST",
         body: JSON.stringify({ action, adminNote: note }),
       });

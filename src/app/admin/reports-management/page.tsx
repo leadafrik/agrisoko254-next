@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle, Clock } from "lucide-react";
-import { apiRequest } from "@/lib/api";
-import { API_ENDPOINTS, API_BASE_URL } from "@/lib/endpoints";
+import { adminApiRequest } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/endpoints";
 
 interface Report {
   _id: string;
@@ -117,7 +117,7 @@ export default function AdminReportsManagementPage() {
         page: String(page),
         limit: "15",
       });
-      const res = await apiRequest(`${API_ENDPOINTS.admin.reports.getAll}?${params}`);
+      const res = await adminApiRequest(`${API_ENDPOINTS.admin.reports.getAll}?${params}`);
       setReports(Array.isArray(res?.data) ? res.data : []);
       setTotal(res?.pagination?.total || 0);
     } catch (err: any) {
@@ -132,7 +132,7 @@ export default function AdminReportsManagementPage() {
   const handleUpdate = async (reportId: string, newStatus: string, resolution?: string) => {
     try {
       const apiStatus = STATUS_MAP[newStatus] || newStatus;
-      await apiRequest(`${API_BASE_URL}/reports/${reportId}`, {
+      await adminApiRequest(API_ENDPOINTS.admin.reports.update(reportId), {
         method: "PATCH",
         body: JSON.stringify({ status: apiStatus, resolution }),
       });

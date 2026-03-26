@@ -1,10 +1,24 @@
 "use client";
 
 import { API_BASE_URL, API_ENDPOINTS } from "./endpoints";
-import { getToken, getRefreshToken, storeSession, clearSession, isTokenExpiringSoon, getAdminToken } from "./auth";
+import {
+  clearAdminSession,
+  clearSession,
+  getAdminToken,
+  getRefreshToken,
+  getToken,
+  isTokenExpiringSoon,
+  storeAdminSession,
+  storeSession,
+} from "./auth";
 
 const CSRF_HEADER = "X-CSRF-Token";
-const MUTATING    = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+type AuthMode = "auto" | "user" | "admin" | "none";
+type ApiRequestOptions = RequestInit & {
+  authMode?: AuthMode;
+};
 
 let csrfCache: string | null = null;
 let csrfFlight: Promise<string | null> | null = null;
@@ -18,87 +32,186 @@ const fetchCsrf = async (force = false): Promise<string | null> => {
     credentials: "include",
     headers: { Accept: "application/json" },
   })
-    .then(async (r) => {
-      const d = await r.json().catch(() => ({}));
-      csrfCache = d?.csrfToken ?? null;
+    .then(async (response) => {
+      const data = await response.json().catch(() => ({}));
+      csrfCache = data?.csrfToken ?? null;
       return csrfCache;
     })
-    .finally(() => { csrfFlight = null; });
+    .finally(() => {
+      csrfFlight = null;
+    });
 
   return csrfFlight;
 };
 
 let refreshFlight: Promise<string | null> | null = null;
 
+const redirectToAdminLogin = () => {
+  if (typeof window === "undefined") return;
+  if (window.location.pathname.startsWith("/admin/login")) return;
+  const from = `${window.location.pathname}${window.location.search}`;
+  window.location.href = `/admin/login?from=${encodeURIComponent(from || "/admin")}`;
+};
+
 const doRefresh = async (): Promise<string | null> => {
   if (refreshFlight) return refreshFlight;
-  const rt = getRefreshToken();
-  if (!rt) return null;
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return null;
 
   refreshFlight = fetch(API_ENDPOINTS.auth.refreshToken, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken: rt }),
+    body: JSON.stringify({ refreshToken }),
   })
-    .then(async (r) => {
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok || !d.accessToken) { clearSession(); return null; }
-      storeSession({ token: d.accessToken, refreshToken: d.refreshToken, expiresIn: d.expiresIn });
-      return d.accessToken as string;
+    .then(async (response) => {
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.accessToken) {
+        clearSession();
+        return null;
+      }
+
+      storeSession({
+        token: data.accessToken,
+        refreshToken: data.refreshToken,
+        expiresIn: data.expiresIn,
+      });
+
+      return data.accessToken as string;
     })
-    .catch(() => { clearSession(); return null; })
-    .finally(() => { refreshFlight = null; });
+    .catch(() => {
+      clearSession();
+      return null;
+    })
+    .finally(() => {
+      refreshFlight = null;
+    });
 
   return refreshFlight;
 };
 
 const SKIP_REFRESH_PATHS = [
-  "/auth/login", "/auth/register", "/auth/refresh-token", "/auth/logout",
-  "/auth/facebook", "/auth/google", "/request-email-otp", "/verify-email-otp",
-  "/request-sms-otp", "/verify-sms-otp",
+  "/auth/login",
+  "/auth/register",
+  "/auth/refresh-token",
+  "/auth/logout",
+  "/auth/facebook",
+  "/auth/google",
+  "/request-email-otp",
+  "/verify-email-otp",
+  "/request-sms-otp",
+  "/verify-sms-otp",
 ];
 
-export const apiRequest = async (url: string, options: RequestInit = {}): Promise<any> => {
-  const isAdmin   = !!getAdminToken();
-  const token     = isAdmin ? getAdminToken() : getToken();
-  const method    = (options.method ?? "GET").toUpperCase();
+const resolveAuthToken = (authMode: AuthMode) => {
+  const userToken = getToken();
+  const adminToken = getAdminToken();
+
+  if (authMode === "none") {
+    return { token: null, canRefresh: false };
+  }
+
+  if (authMode === "admin") {
+    return {
+      token: adminToken || userToken,
+      canRefresh: !adminToken && Boolean(userToken),
+    };
+  }
+
+  return {
+    token: userToken || adminToken,
+    canRefresh: Boolean(userToken),
+  };
+};
+
+const executeRequest = async (
+  url: string,
+  requestOptions: RequestInit,
+  headers: Record<string, string>
+) =>
+  fetch(url, {
+    ...requestOptions,
+    headers,
+    credentials: "include",
+    cache: "no-store",
+  });
+
+const parseResponsePayload = async (response: Response) =>
+  response.headers.get("content-type")?.includes("application/json")
+    ? response.json().catch(() => ({}))
+    : response.text().then((text) => (text ? { message: text } : {}));
+
+export const apiRequest = async (
+  url: string,
+  options: ApiRequestOptions = {}
+): Promise<any> => {
+  const { authMode = "auto", ...requestOptions } = options;
+  const { token, canRefresh } = resolveAuthToken(authMode);
+  const adminToken = getAdminToken();
+  const userToken = getToken();
+  const method = (requestOptions.method ?? "GET").toUpperCase();
   const needsCsrf = MUTATING.has(method) && url.startsWith(API_BASE_URL);
+  const skipRefresh = SKIP_REFRESH_PATHS.some((path) => url.includes(path));
 
   const headers: Record<string, string> = {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(options.headers as Record<string, string>),
+    ...(requestOptions.headers as Record<string, string>),
   };
 
-  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
-  if (!isFormData && options.body && !headers["Content-Type"]) {
+  const isFormData = typeof FormData !== "undefined" && requestOptions.body instanceof FormData;
+  if (!isFormData && requestOptions.body && !headers["Content-Type"]) {
     headers["Content-Type"] = "application/json";
   }
 
   if (needsCsrf) {
-    const csrf = await fetchCsrf();
-    if (csrf) headers[CSRF_HEADER] = csrf;
+    const csrfToken = await fetchCsrf();
+    if (csrfToken) headers[CSRF_HEADER] = csrfToken;
   }
 
-  let res = await fetch(url, { ...options, headers, credentials: "include", cache: "no-store" });
+  let response = await executeRequest(url, requestOptions, headers);
 
-  // Handle CSRF retry
-  if (!res.ok && res.status === 403) {
-    const err = await res.clone().json().catch(() => ({}));
-    if (String(err?.code ?? "").startsWith("CSRF_")) {
+  if (!response.ok && response.status === 403) {
+    const errorData = await response.clone().json().catch(() => ({}));
+    if (String(errorData?.code ?? "").startsWith("CSRF_")) {
       csrfCache = null;
       const newCsrf = await fetchCsrf(true);
       if (newCsrf) headers[CSRF_HEADER] = newCsrf;
-      res = await fetch(url, { ...options, headers, credentials: "include", cache: "no-store" });
+      response = await executeRequest(url, requestOptions, headers);
     }
   }
 
-  // Handle 401 — refresh and retry once
-  if (res.status === 401 && !isAdmin && !SKIP_REFRESH_PATHS.some((p) => url.includes(p))) {
-    const refreshToken = isTokenExpiringSoon() ? await doRefresh() : await doRefresh();
-    if (refreshToken) {
-      headers.Authorization = `Bearer ${refreshToken}`;
-      res = await fetch(url, { ...options, headers, credentials: "include", cache: "no-store" });
+  if (
+    response.status === 401 &&
+    authMode === "admin" &&
+    adminToken &&
+    userToken &&
+    adminToken !== userToken
+  ) {
+    storeAdminSession(userToken);
+    headers.Authorization = `Bearer ${userToken}`;
+    response = await executeRequest(url, requestOptions, headers);
+  }
+
+  if (response.status === 401 && authMode === "admin") {
+    clearAdminSession();
+
+    if (userToken && userToken !== adminToken) {
+      headers.Authorization = `Bearer ${userToken}`;
+    } else {
+      delete headers.Authorization;
+    }
+
+    if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+      redirectToAdminLogin();
+    }
+  }
+
+  if (response.status === 401 && canRefresh && !skipRefresh) {
+    const refreshedToken = isTokenExpiringSoon() ? await doRefresh() : await doRefresh();
+
+    if (refreshedToken) {
+      headers.Authorization = `Bearer ${refreshedToken}`;
+      response = await executeRequest(url, requestOptions, headers);
     } else {
       clearSession();
       if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
@@ -107,25 +220,30 @@ export const apiRequest = async (url: string, options: RequestInit = {}): Promis
     }
   }
 
-  const data = await (res.headers.get("content-type")?.includes("application/json")
-    ? res.json().catch(() => ({}))
-    : res.text().then((t) => (t ? { message: t } : {})));
+  const data = await parseResponsePayload(response);
 
-  if (!res.ok) {
-    const error: any = new Error(data?.message || data?.error || `API error ${res.status}`);
-    error.response = { status: res.status, data };
+  if (!response.ok) {
+    const adminSessionExpired =
+      authMode === "admin" &&
+      response.status === 401 &&
+      String(data?.message || data?.error || "").toLowerCase().includes("token");
+    const error: any = new Error(
+      adminSessionExpired
+        ? "Admin session expired. Sign in again to continue."
+        : data?.message || data?.error || `API error ${response.status}`
+    );
+    error.response = { status: response.status, data };
+    if (adminSessionExpired) {
+      error.requiresAdminLogin = true;
+    }
     throw error;
   }
 
   return data;
 };
 
-export const adminApiRequest = (url: string, options: RequestInit = {}) => {
-  const token = typeof window !== "undefined"
-    ? (localStorage.getItem("kodisha_admin_token") || localStorage.getItem("kodisha_token"))
-    : null;
-  return apiRequest(url, {
+export const adminApiRequest = (url: string, options: RequestInit = {}) =>
+  apiRequest(url, {
     ...options,
-    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers as Record<string, string>) },
+    authMode: "admin",
   });
-};

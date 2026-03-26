@@ -7,9 +7,25 @@ import { apiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 import { formatLongDate, getInitials } from "@/lib/marketplace";
 
+const toFriendlyMessageError = (loadError: any, fallback: string) => {
+  const rawMessage = String(loadError?.message || "");
+  const status = loadError?.response?.status;
+
+  if (
+    status === 401 ||
+    rawMessage.toLowerCase().includes("invalid token") ||
+    rawMessage.toLowerCase().includes("token expired")
+  ) {
+    return "Your session has expired. Sign in again to open your conversations.";
+  }
+
+  return rawMessage || fallback;
+};
+
 export default function MessagesPage() {
   const searchParams = useSearchParams();
-  const selectedUserId = searchParams.get("user") || searchParams.get("seller") || "";
+  const selectedUserId =
+    searchParams.get("user") || searchParams.get("seller") || searchParams.get("userId") || "";
   const [threads, setThreads] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,9 +34,12 @@ export default function MessagesPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    setError("");
     apiRequest(API_ENDPOINTS.messages.threads)
       .then((d) => setThreads(d?.data ?? d?.threads ?? d ?? []))
-      .catch((loadError) => setError(loadError?.message || "Unable to load message threads."))
+      .catch((loadError) =>
+        setError(toFriendlyMessageError(loadError, "Unable to load message threads."))
+      )
       .finally(() => setLoading(false));
   }, []);
 
@@ -31,12 +50,15 @@ export default function MessagesPage() {
     }
 
     setConversationLoading(true);
+    setError("");
     apiRequest(API_ENDPOINTS.messages.withUser(selectedUserId))
       .then((response) => {
         setMessages(response?.data ?? response ?? []);
         return apiRequest(API_ENDPOINTS.messages.markRead(selectedUserId), { method: "PATCH" }).catch(() => null);
       })
-      .catch((loadError) => setError(loadError?.message || "Unable to load the conversation."))
+      .catch((loadError) =>
+        setError(toFriendlyMessageError(loadError, "Unable to load the conversation."))
+      )
       .finally(() => setConversationLoading(false));
   }, [selectedUserId]);
 
@@ -66,7 +88,7 @@ export default function MessagesPage() {
       const threadResponse = await apiRequest(API_ENDPOINTS.messages.threads);
       setThreads(threadResponse?.data ?? threadResponse?.threads ?? threadResponse ?? []);
     } catch (sendError: any) {
-      setError(sendError?.message || "Unable to send the message.");
+      setError(toFriendlyMessageError(sendError, "Unable to send the message."));
     }
   };
 
@@ -86,7 +108,14 @@ export default function MessagesPage() {
 
       {error ? (
         <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          {error}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span>{error}</span>
+            {error.toLowerCase().includes("sign in again") ? (
+              <Link href="/login" className="font-semibold text-red-800 underline underline-offset-2">
+                Go to sign in
+              </Link>
+            ) : null}
+          </div>
         </div>
       ) : null}
 

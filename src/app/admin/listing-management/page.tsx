@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { apiRequest } from "@/lib/api";
+import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 
 const PRODUCT_CATEGORIES = ["produce", "livestock", "inputs", "service"] as const;
@@ -33,7 +33,7 @@ export default function AdminListingManagementPage() {
         tab === "pending"
           ? API_ENDPOINTS.admin.listings.getPending
           : API_ENDPOINTS.admin.listings.getApproved;
-      const res = await apiRequest(url);
+      const res = await adminApiRequest(url);
       const data = res?.data || res?.listings || [];
       setListings(Array.isArray(data) ? data : []);
     } catch (err: any) {
@@ -60,7 +60,7 @@ export default function AdminListingManagementPage() {
     const notes = status === "approved" ? "Approved by admin" : window.prompt("Reason for rejection?") || "Rejected by admin";
     try {
       setActionLoading(id);
-      await apiRequest(API_ENDPOINTS.admin.listings.verify(id), {
+      await adminApiRequest(API_ENDPOINTS.admin.listings.verify(id), {
         method: "PUT",
         body: JSON.stringify({ status, notes }),
       });
@@ -76,7 +76,7 @@ export default function AdminListingManagementPage() {
     if (!window.confirm("Delete this listing? This cannot be undone.")) return;
     try {
       setActionLoading(id);
-      await apiRequest(API_ENDPOINTS.admin.listings.delete(id), { method: "DELETE" });
+      await adminApiRequest(API_ENDPOINTS.admin.listings.delete(id), { method: "DELETE" });
       setListings((prev) => prev.filter((item) => item._id !== id));
     } catch (err: any) {
       setError(err?.message || "Failed to delete listing.");
@@ -101,7 +101,7 @@ export default function AdminListingManagementPage() {
       if (editForm.description.trim()) body.description = editForm.description.trim();
       if (editForm.price !== "") body.price = Number(editForm.price);
       if (editForm.category) body.category = editForm.category;
-      await apiRequest(API_ENDPOINTS.admin.listings.update(editTarget._id), {
+      await adminApiRequest(API_ENDPOINTS.admin.listings.update(editTarget._id), {
         method: "PATCH",
         body: JSON.stringify(body),
       });

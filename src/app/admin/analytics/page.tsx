@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { adminApiRequest, apiRequest } from "@/lib/api";
+import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 
 type DashboardStats = {
@@ -134,7 +134,7 @@ export default function AdminAnalyticsPage() {
           trafficResponse,
         ] = await Promise.all([
           adminApiRequest(API_ENDPOINTS.admin.dashboard),
-          apiRequest(`${API_ENDPOINTS.admin.reports.getAll}?status=pending&limit=5&page=1`),
+          adminApiRequest(`${API_ENDPOINTS.admin.reports.getAll}?status=pending&limit=5&page=1`),
           adminApiRequest(`${API_ENDPOINTS.admin.users.search}?status=flagged&limit=1&page=1`),
           adminApiRequest(`${API_ENDPOINTS.admin.profiles.pending}?status=pending&limit=1&page=1`),
           adminApiRequest(API_ENDPOINTS.admin.verification.pending),

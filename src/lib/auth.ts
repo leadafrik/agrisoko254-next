@@ -51,10 +51,15 @@ export const storeSession = (data: {
 export const storeAdminSession = (token: string, user?: any) => {
   if (typeof window === "undefined") return;
   localStorage.setItem(ADMIN_TOKEN_KEY, token);
-  localStorage.setItem(TOKEN_KEY, token);
-  // Also set a cookie so middleware can read it
+  // Keep admin auth separate so normal marketplace requests can keep using the user token.
   document.cookie = `agrisoko_admin_token=${token}; path=/; SameSite=Lax`;
   if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
+};
+
+export const clearAdminSession = () => {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+  document.cookie = "agrisoko_admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 };
 
 export const clearSession = () => {

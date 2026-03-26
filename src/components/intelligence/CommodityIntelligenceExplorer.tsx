@@ -11,7 +11,6 @@ import {
   formatIntelligenceDate,
   formatKes,
   formatTrendLabel,
-  normalizeIntelligenceHistory,
   normalizeIntelligenceProduct,
 } from "@/lib/market-intelligence";
 
@@ -46,10 +45,8 @@ function TrendPill({ direction, percentage }: { direction: string; percentage: n
 function AiOneLiner({ product }: { product: IntelligenceProductSnapshot }) {
   const [brief, setBrief] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const lastKey = { current: "" };
 
   useEffect(() => {
-    const key = product.productKey;
     if (!product.bestMarket || !product.weakestMarket) return;
     setLoading(true);
     setBrief(null);
@@ -95,7 +92,11 @@ function AiOneLiner({ product }: { product: IntelligenceProductSnapshot }) {
   );
 }
 
-export default function CommodityIntelligenceExplorer({ initialProduct, initialHistory }: Props) {
+export default function CommodityIntelligenceExplorer({
+  initialProduct,
+  initialHistory: _initialHistory,
+}: Props) {
+  void _initialHistory;
   const [product, setProduct] = useState(initialProduct);
   const [selectedMarketKey, setSelectedMarketKey] = useState(
     initialProduct.bestMarket?.marketKey || initialProduct.markets[0]?.marketKey || ""

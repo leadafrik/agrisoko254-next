@@ -255,6 +255,14 @@ function LoginForm() {
                   </label>
                 )}
 
+                {mode === "login" && (
+                  <div className="flex justify-end">
+                    <Link href="/forgot-password" className="text-xs text-stone-400 hover:text-terra-600">
+                      Forgot password?
+                    </Link>
+                  </div>
+                )}
+
                 <button type="submit" disabled={loading} className="primary-button w-full">
                   {loading
                     ? mode === "signup" ? "Creating…" : "Signing in…"
