@@ -26,9 +26,36 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await serverFetch<any>(`${API_BASE_URL}/users/${params.id}`, { revalidate: 60 });
   const user = data?.user ?? data;
   if (!user) return {};
+  const name = getUserDisplayName(user);
+  const county = user?.county || user?.location?.county || user?.address?.county || null;
+  const verified = isVerifiedProfile(user);
+  const canonicalUrl = `https://www.agrisoko254.com/sellers/${params.id}`;
+
+  const descParts = [
+    verified ? `Verified seller on Agrisoko.` : null,
+    county ? `Based in ${county}, Kenya.` : "Kenya.",
+    user?.bio ? user.bio.slice(0, 100).trim() : null,
+    `Browse active listings from ${name} on Agrisoko Kenya's agricultural marketplace.`,
+  ].filter(Boolean);
+
   return {
-    title: `${getUserDisplayName(user)} | Seller Profile`,
-    description: `Browse listings from ${getUserDisplayName(user)} on Agrisoko.`,
+    title: `${name} | Seller on Agrisoko Kenya`,
+    description: descParts.join(" "),
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      type: "profile",
+      url: canonicalUrl,
+      title: `${name} — Agrisoko Seller`,
+      description: descParts.join(" "),
+      images: user?.profilePicture
+        ? [{ url: user.profilePicture, width: 400, height: 400, alt: name }]
+        : [{ url: "/og-image.png", width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary",
+      title: `${name} | Agrisoko Seller`,
+      description: descParts.join(" "),
+    },
   };
 }
 
@@ -63,7 +90,49 @@ export default async function SellerProfilePage({ params }: Props) {
 
   const followerCount = Number(user?.followers?.length ?? user?.followerCount ?? 0);
 
+  const sellerSchema = {
+    "@context": "https://schema.org",
+    "@type": verified ? "Person" : "Person",
+    name: displayName,
+    url: `https://www.agrisoko254.com/sellers/${params.id}`,
+    ...(avatar ? { image: avatar } : {}),
+    ...(user?.bio ? { description: user.bio } : {}),
+    ...(county
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            addressRegion: county,
+            addressCountry: "KE",
+          },
+        }
+      : {}),
+    ...(avgRating > 0 && ratingCount > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: avgRating.toFixed(1),
+            reviewCount: ratingCount,
+            bestRating: "5",
+            worstRating: "1",
+          },
+        }
+      : {}),
+    worksFor: { "@type": "Organization", name: "Agrisoko" },
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Marketplace", item: "https://www.agrisoko254.com/browse" },
+      { "@type": "ListItem", position: 2, name: displayName },
+    ],
+  };
+
   return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(sellerSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <div className="page-shell py-10 sm:py-12">
       {/* Profile hero */}
       <section className="hero-panel p-6 sm:p-8">
@@ -182,5 +251,6 @@ export default async function SellerProfilePage({ params }: Props) {
         )}
       </section>
     </div>
+    </>
   );
 }

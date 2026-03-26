@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -33,6 +34,65 @@ import {
 import LivePricePulse from "@/components/intelligence/LivePricePulse";
 
 export const revalidate = 180;
+
+export const metadata: Metadata = {
+  title: "Agrisoko | Kenya's Agricultural Marketplace — Buy & Sell Direct",
+  description:
+    "Kenya's agricultural marketplace. Buy and sell maize, livestock, farm inputs, and services directly from verified farmers and traders. Live price signals across all 47 counties.",
+  alternates: { canonical: "https://www.agrisoko254.com" },
+  openGraph: {
+    type: "website",
+    url: "https://www.agrisoko254.com",
+    title: "Agrisoko | Kenya's Agricultural Marketplace",
+    description:
+      "Buy and sell produce, livestock, farm inputs, and services directly across Kenya. Live price intelligence. No middlemen.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Agrisoko Kenya Agricultural Marketplace" }],
+  },
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Agrisoko",
+  alternateName: "Agrisoko Kenya",
+  url: "https://www.agrisoko254.com",
+  logo: "https://www.agrisoko254.com/logo192.png",
+  description:
+    "Kenya's agricultural marketplace connecting farmers, traders, agrovets, and buyers across all 47 counties. Direct trade, verified trust signals, and live price intelligence.",
+  foundingLocation: { "@type": "Place", name: "Nairobi, Kenya" },
+  areaServed: { "@type": "Country", name: "Kenya" },
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer support",
+    email: "info@leadafrik.com",
+    availableLanguage: ["English", "Swahili"],
+  },
+  sameAs: [
+    "https://www.facebook.com/agrisoko",
+    "https://twitter.com/agrisoko254",
+  ],
+  parentOrganization: {
+    "@type": "Organization",
+    name: "LeadAfrik Agricultural Solutions",
+  },
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Agrisoko",
+  url: "https://www.agrisoko254.com",
+  description: "Kenya's agricultural marketplace — produce, livestock, inputs, services, and live price intelligence.",
+  inLanguage: "en-KE",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: "https://www.agrisoko254.com/browse?q={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
 
 const categoryIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   produce: Leaf,
@@ -101,6 +161,8 @@ export default async function HomePage() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
       <Navbar />
       <main>
 

@@ -35,13 +35,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!rawListing) return {};
   const listing = normalizeMarketplaceListing(rawListing);
   const images = getListingImageUrls(listing);
+  const title = listing.title || listing.name || "Marketplace listing";
+  const priceLabel = getListingPriceLabel(listing);
+  const location = getLocationLabel(listing);
+  const seller = listing?.seller || listing?.owner || listing?.user;
+  const sellerName = seller?.fullName || seller?.name || "Verified seller";
+
+  const descriptionParts = [
+    priceLabel && priceLabel !== "Contact for price" ? `${priceLabel}.` : null,
+    location ? `Available in ${location}.` : null,
+    listing.description ? listing.description.slice(0, 120).replace(/\s+/g, " ").trim() : null,
+    `Sold by ${sellerName} on Agrisoko Kenya.`,
+  ].filter(Boolean);
+  const description = descriptionParts.join(" ") || "View listing details on Agrisoko, Kenya's agricultural marketplace.";
+
+  const canonicalUrl = `https://www.agrisoko254.com/listings/${params.id}`;
+
   return {
-    title: listing.title || listing.name || "Marketplace listing",
-    description: listing.description || "View listing details on Agrisoko.",
+    title,
+    description,
+    alternates: { canonical: canonicalUrl },
     openGraph: {
-      title: listing.title || listing.name,
-      description: listing.description || "View listing details on Agrisoko.",
-      images: images[0] ? [images[0]] : [],
+      type: "website",
+      url: canonicalUrl,
+      title,
+      description,
+      images: images[0]
+        ? [{ url: images[0], width: 800, height: 600, alt: title }]
+        : [{ url: "/og-image.png", width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: images[0] ? [images[0]] : ["/og-image.png"],
     },
   };
 }
@@ -90,7 +117,63 @@ export default async function ListingDetailPage({ params }: Props) {
 
   const hasEngagement = engagement.views > 0 || engagement.saves > 0 || engagement.reachOuts > 0;
 
+  const numericPrice = Number(
+    listing?.price || listing?.pricePerUnit || listing?.unitPrice ||
+    listing?.askingPrice || listing?.sellingPrice || listing?.basePrice || 0
+  );
+  const sellerName = seller?.fullName || seller?.name || "Agrisoko Seller";
+  const county = listing?.location?.county || seller?.county || null;
+  const galleryImagesForSchema = getListingImageUrls(listing);
+
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: listing?.title || listing?.name,
+    description: listing?.description || undefined,
+    image: galleryImagesForSchema.length ? galleryImagesForSchema : undefined,
+    category: category?.label || listing?.category || undefined,
+    brand: { "@type": "Brand", name: "Agrisoko" },
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "KES",
+      price: numericPrice > 0 ? numericPrice : undefined,
+      priceValidUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      availability: "https://schema.org/InStock",
+      url: `https://www.agrisoko254.com/listings/${listingId}`,
+      seller: {
+        "@type": "Person",
+        name: sellerName,
+        ...(sellerId ? { url: `https://www.agrisoko254.com/sellers/${sellerId}` } : {}),
+      },
+      availableAtOrFrom: county
+        ? {
+            "@type": "Place",
+            address: {
+              "@type": "PostalAddress",
+              addressRegion: county,
+              addressCountry: "KE",
+            },
+          }
+        : undefined,
+    },
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Browse", item: "https://www.agrisoko254.com/browse" },
+      ...(category
+        ? [{ "@type": "ListItem", position: 2, name: category.label, item: `https://www.agrisoko254.com/browse/${category.slug}` }]
+        : []),
+      { "@type": "ListItem", position: category ? 3 : 2, name: listing?.title || listing?.name },
+    ],
+  };
+
   return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <div className="page-shell py-8 sm:py-10">
       <Link
         href="/browse"
@@ -282,5 +365,6 @@ export default async function ListingDetailPage({ params }: Props) {
         </section>
       )}
     </div>
+    </>
   );
 }

@@ -9,13 +9,36 @@ export const metadata: Metadata = {
     template: "%s | Agrisoko",
   },
   description:
-    "Buy and sell produce, livestock, farm inputs, and services in Kenya. Verified trust signals, direct trade, and practical market access for farmers.",
+    "Kenya's agricultural marketplace — buy and sell produce, livestock, farm inputs, and services directly. Live price intelligence across all 47 counties. No middlemen.",
   keywords: [
-    "kenya agriculture",
-    "farm produce kenya",
-    "buy maize kenya",
-    "sell livestock kenya",
-    "agrisoko",
+    // Brand
+    "agrisoko", "agrisoko kenya", "agrisoko254",
+    // Core
+    "kenya agricultural marketplace", "kenya farming marketplace", "kenya farmers market online",
+    "buy farm produce kenya", "sell farm produce kenya", "agricultural trade kenya",
+    // Produce
+    "buy maize kenya", "sell maize kenya", "maize price kenya", "unga price kenya",
+    "buy onions kenya", "sell onions kenya", "buy tomatoes kenya", "buy potatoes kenya",
+    "buy beans kenya", "buy vegetables kenya", "farm produce nairobi",
+    // Livestock
+    "buy cattle kenya", "sell cattle kenya", "livestock market kenya",
+    "buy goats kenya", "sell goats kenya", "buy poultry kenya", "broilers kenya",
+    "buy dairy cows kenya", "livestock prices kenya",
+    // Inputs
+    "farm inputs kenya", "seeds kenya", "fertilizer kenya", "animal feeds kenya",
+    "farming tools kenya", "agrochemicals kenya",
+    // Services
+    "farm services kenya", "agronomy services kenya", "tractor hire kenya",
+    "spraying services kenya", "transport farm produce kenya",
+    // Price intelligence
+    "maize price nairobi", "market prices kenya", "agricultural prices kenya",
+    "farm gate prices kenya", "market intelligence kenya",
+    // Counties
+    "nairobi farm produce", "kiambu farming", "nakuru market", "meru produce",
+    "kisumu agriculture", "eldoret grain market", "trans nzoia maize",
+    // Intent
+    "sell directly to buyer kenya", "buy directly from farmer kenya",
+    "no middlemen kenya farming", "verified farmer kenya",
   ],
   openGraph: {
     type: "website",
@@ -23,13 +46,24 @@ export const metadata: Metadata = {
     url: "https://www.agrisoko254.com",
     siteName: "Agrisoko",
     title: "Agrisoko | Kenya's Agricultural Marketplace",
-    description: "Buy and sell produce, livestock, farm inputs, and services in Kenya.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    description:
+      "Kenya's agricultural marketplace — buy and sell produce, livestock, farm inputs, and services directly. Live price intelligence, verified sellers.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Agrisoko — Kenya's Agricultural Marketplace",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
+    site: "@agrisoko254",
+    creator: "@agrisoko254",
     title: "Agrisoko | Kenya's Agricultural Marketplace",
-    description: "Buy and sell produce, livestock, farm inputs, and services in Kenya.",
+    description:
+      "Buy and sell produce, livestock, farm inputs and services across Kenya. Live price intelligence. No middlemen.",
     images: ["/og-image.png"],
   },
   icons: {
@@ -37,7 +71,11 @@ export const metadata: Metadata = {
     apple: "/logo192.png",
     shortcut: "/favicon.ico",
   },
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
   alternates: { canonical: "https://www.agrisoko254.com" },
 };
 

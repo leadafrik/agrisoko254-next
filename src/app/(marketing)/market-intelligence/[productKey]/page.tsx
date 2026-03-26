@@ -31,12 +31,43 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  const avg = product.overallAverage > 0 ? `KES ${product.overallAverage.toLocaleString()}` : null;
+  const best = product.bestMarket
+    ? `Best market: ${product.bestMarket.marketName} (${product.bestMarket.county}) at KES ${product.bestMarket.avgPrice.toLocaleString()}.`
+    : null;
+  const descParts = [
+    `Live ${product.productName.toLowerCase()} price signals across ${product.approvedMarkets} Kenyan markets.`,
+    avg ? `Board average: ${avg} / ${product.unit}.` : null,
+    best,
+    `${product.submissionsCount} reviewed field reports. Updated ${new Date(product.lastUpdated || "").toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" })}.`,
+  ].filter(Boolean);
+
   return {
-    title: `${product.productName} Market Intelligence | Agrisoko`,
-    description:
-      `${product.productName} price signals across Kenyan markets, including best places to sell, trend direction, and reviewed market submissions.`,
+    title: `${product.productName} Price Kenya ${new Date().getFullYear()} | Live Market Intelligence | Agrisoko`,
+    description: descParts.join(" "),
+    keywords: [
+      `${product.productName.toLowerCase()} price kenya`,
+      `${product.productName.toLowerCase()} price ${new Date().getFullYear()}`,
+      `${product.productName.toLowerCase()} market kenya`,
+      `buy ${product.productName.toLowerCase()} kenya`,
+      `sell ${product.productName.toLowerCase()} kenya`,
+      `${product.productName.toLowerCase()} price nairobi`,
+      `agrisoko ${product.productName.toLowerCase()}`,
+    ] as string[],
     alternates: {
       canonical: `https://www.agrisoko254.com/market-intelligence/${product.productKey}`,
+    },
+    openGraph: {
+      type: "website",
+      url: `https://www.agrisoko254.com/market-intelligence/${product.productKey}`,
+      title: `${product.productName} Prices Kenya — Live Market Board`,
+      description: descParts.join(" "),
+      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.productName} Price Kenya | Agrisoko`,
+      description: descParts.slice(0, 2).join(" "),
     },
   };
 }
@@ -60,7 +91,45 @@ export default async function CommodityIntelligencePage({ params }: Props) {
 
   if (!product || !history) notFound();
 
+  const datasetSchema = {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: `${product.productName} Price Intelligence Kenya ${new Date().getFullYear()}`,
+    description: `Live ${product.productName.toLowerCase()} price data across ${product.approvedMarkets} Kenyan markets. ${product.submissionsCount} reviewed field reports from farmers and traders.`,
+    keywords: [
+      `${product.productName.toLowerCase()} price kenya`,
+      `kenya ${product.productName.toLowerCase()} market`,
+      "agricultural price data kenya",
+      "market intelligence kenya",
+      "agrisoko",
+    ],
+    url: `https://www.agrisoko254.com/market-intelligence/${product.productKey}`,
+    provider: {
+      "@type": "Organization",
+      name: "Agrisoko",
+      url: "https://www.agrisoko254.com",
+    },
+    spatialCoverage: { "@type": "Place", name: "Kenya" },
+    temporalCoverage: new Date().getFullYear().toString(),
+    measurementTechnique: "Field reports from farmers and traders, reviewed by Agrisoko team.",
+    variableMeasured: `${product.productName} wholesale and retail prices per ${product.unit}`,
+    license: "https://creativecommons.org/licenses/by/4.0/",
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Market Intelligence", item: "https://www.agrisoko254.com/market-intelligence" },
+      { "@type": "ListItem", position: 2, name: product.productName },
+    ],
+  };
+
   return (
-    <CommodityIntelligenceExplorer initialProduct={product} initialHistory={history} />
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <CommodityIntelligenceExplorer initialProduct={product} initialHistory={history} />
+    </>
   );
 }
