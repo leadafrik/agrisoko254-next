@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
@@ -54,7 +55,15 @@ export default function CartPage() {
                 <div className="flex flex-col gap-4 md:flex-row md:items-start">
                   <div className="h-28 w-full overflow-hidden rounded-xl bg-stone-100 md:w-36">
                     {item.image ? (
-                      <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                      <div className="relative h-full w-full">
+                        <Image
+                          src={item.image}
+                          alt={item.title}
+                          fill
+                          sizes="144px"
+                          className="object-cover"
+                        />
+                      </div>
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs font-semibold text-stone-400">No image</div>
                     )}
