@@ -1,32 +1,52 @@
-import Anthropic from "@anthropic-ai/sdk";
+import Groq from "groq-sdk";
+import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 
-export const maxDuration = 30;
+export const maxDuration = 20;
 
-type MarketEntry = {
-  name: string;
-  price: number;
+type InsightRequest = {
+  productKey: string;
+  productName: string;
   unit: string;
-  trend: string;
+  overallAverage: number;
+  overallTrend: string;
   bestMarket: string;
   bestCounty: string;
   bestPrice: number;
+  weakestMarket: string;
+  weakestCounty: string;
+  weakestPrice: number;
 };
 
-type InsightRequest = {
-  category: "produce" | "livestock" | "inputs";
-  products: MarketEntry[];
-};
+const getInsight = unstable_cache(
+  async (req: InsightRequest): Promise<string | null> => {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) return null;
 
-const categoryLabel: Record<string, string> = {
-  produce: "agricultural produce",
-  livestock: "livestock",
-  inputs: "farm inputs (fertilizers)",
-};
+    const client = new Groq({ apiKey });
+
+    const prompt = `You are a Kenyan agricultural market analyst writing for farmers and traders. In 1 to 2 sentences (60 words max), give the single most actionable insight about ${req.productName} prices right now. Be specific — use county names and KES prices. No preamble. No bullet points. No sign-off.
+
+Current data:
+- Board average: KES ${req.overallAverage.toLocaleString()} / ${req.unit} · ${req.overallTrend}
+- Best market: ${req.bestMarket}, ${req.bestCounty} at KES ${req.bestPrice.toLocaleString()}
+- Weakest market: ${req.weakestMarket}, ${req.weakestCounty} at KES ${req.weakestPrice.toLocaleString()}`;
+
+    const completion = await client.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      max_tokens: 120,
+      temperature: 0.4,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    return completion.choices[0]?.message?.content?.trim() ?? null;
+  },
+  ["market-brief"],
+  { revalidate: 18000 } // 5 hours
+);
 
 export async function POST(request: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
+  if (!process.env.GROQ_API_KEY) {
     return NextResponse.json({ brief: null }, { status: 200 });
   }
 
@@ -37,42 +57,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const { category, products } = body;
-  if (!products?.length) {
-    return NextResponse.json({ brief: null }, { status: 200 });
-  }
-
-  const productLines = products
-    .map(
-      (p) =>
-        `- ${p.name}: average KES ${p.price.toLocaleString()}/${p.unit}, trend ${p.trend}, strongest at ${p.bestMarket} (${p.bestCounty}) at KES ${p.bestPrice.toLocaleString()}`
-    )
-    .join("\n");
-
-  const prompt = `You are a senior agricultural market analyst covering Kenya. Based on the following live market data for ${categoryLabel[category] ?? category}, write a concise, actionable market brief for Kenyan farmers and traders.
-
-Current market data:
-${productLines}
-
-Write 3 short, sharp paragraphs:
-1. What the current market conditions look like overall (2 sentences max)
-2. The key opportunity or risk right now — where should farmers focus attention (2 sentences max)
-3. One practical, specific action recommendation (1-2 sentences)
-
-Write directly to the farmer/trader. Use plain language. Be specific about counties, prices, and commodities. Do not use bullet points. Do not add a title or header. Do not mention that this is AI-generated.`;
-
   try {
-    const client = new Anthropic({ apiKey });
-    const message = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 400,
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    const text =
-      message.content[0]?.type === "text" ? message.content[0].text.trim() : null;
-
-    return NextResponse.json({ brief: text }, { status: 200 });
+    const brief = await getInsight(body);
+    return NextResponse.json(
+      { brief },
+      {
+        status: 200,
+        headers: { "Cache-Control": "public, max-age=18000, stale-while-revalidate=3600" },
+      }
+    );
   } catch (err) {
     console.error("[market-intelligence/insight]", err);
     return NextResponse.json({ brief: null }, { status: 200 });

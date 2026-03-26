@@ -30,6 +30,7 @@ import {
   formatTrendLabel,
   normalizeIntelligenceOverview,
 } from "@/lib/market-intelligence";
+import LivePricePulse from "@/components/intelligence/LivePricePulse";
 
 export const revalidate = 180;
 
@@ -74,8 +75,23 @@ export default async function HomePage() {
   const featuredSignals = intelligence.topSignals.slice(0, 4);
   const produceBoard = intelligence.produceBoard.slice(0, 6);
 
-  // Duplicate for seamless CSS marquee
-  const tickerItems = produceBoard.length > 0 ? [...produceBoard, ...produceBoard] : [];
+  // Build pulse items from produce board (high/low derived from market spread)
+  const pulseItems = produceBoard.map((item) => {
+    const markets = item.markets ?? [];
+    const prices = markets.map((m: any) => m.avgPrice).filter(Boolean);
+    const high = prices.length ? Math.max(...prices) : item.overallAverage;
+    const low = prices.length ? Math.min(...prices) : item.overallAverage;
+    return {
+      productKey: item.productKey,
+      productName: item.productName,
+      unit: item.unit ?? "kg",
+      avgPrice: item.overallAverage,
+      highPrice: high,
+      lowPrice: low,
+      bestCounty: item.bestMarket?.county ?? "",
+      trendDirection: item.overallTrendDirection ?? "stable",
+    };
+  });
 
   return (
     <>
@@ -221,52 +237,8 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Scrolling price ticker */}
-          {tickerItems.length > 0 && (
-            <div className="overflow-hidden border-t border-stone-200 bg-stone-900 py-2.5">
-              <style>{`
-                @keyframes agrisoko-ticker {
-                  0%   { transform: translateX(0); }
-                  100% { transform: translateX(-50%); }
-                }
-                .agrisoko-ticker {
-                  animation: agrisoko-ticker 50s linear infinite;
-                  will-change: transform;
-                }
-                .agrisoko-ticker:hover { animation-play-state: paused; }
-              `}</style>
-              <div className="agrisoko-ticker flex items-center whitespace-nowrap">
-                {tickerItems.map((item, i) => (
-                  <Link
-                    key={`${item.productKey}-${i}`}
-                    href={`/market-intelligence/${item.productKey}`}
-                    className="inline-flex items-center gap-2 px-7 text-xs transition hover:opacity-100"
-                  >
-                    <span className="font-semibold text-white/65">{item.productName}</span>
-                    <span className="font-mono font-bold text-amber-300/90">
-                      {item.bestMarket?.avgPrice ? formatKes(item.bestMarket.avgPrice) : "—"}
-                    </span>
-                    <span
-                      className={`font-bold ${
-                        item.overallTrendDirection === "up"
-                          ? "text-green-400"
-                          : item.overallTrendDirection === "down"
-                            ? "text-red-400"
-                            : "text-white/30"
-                      }`}
-                    >
-                      {item.overallTrendDirection === "up"
-                        ? "↑"
-                        : item.overallTrendDirection === "down"
-                          ? "↓"
-                          : "—"}
-                    </span>
-                    <span className="ml-3 text-white/15">·</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Live price pulse — cycles in place, no scroll */}
+          {pulseItems.length > 0 && <LivePricePulse items={pulseItems} />}
         </section>
 
         {/* ━━━━━━━━━━━━━━━━━━ LIVE MARKETPLACE ━━━━━━━━━━━━━━━━━━ */}
