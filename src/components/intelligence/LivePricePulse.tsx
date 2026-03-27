@@ -50,16 +50,16 @@ function MobileChips({ items }: { items: PulseItem[] }) {
         <Link
           key={item.productKey}
           href={`/market-intelligence/${item.productKey}`}
-          className="flex shrink-0 flex-col rounded-2xl border border-stone-200 bg-white px-3 py-2 active:bg-stone-50"
+          className="flex shrink-0 flex-col rounded-xl border border-stone-200 bg-white px-2.5 py-1.5 active:bg-stone-50"
         >
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <span className="text-[11px] font-semibold text-stone-600 whitespace-nowrap">
               {item.productName}
             </span>
             <TrendIcon dir={item.trendDirection} />
           </div>
-          <div className="mt-0.5 flex items-baseline gap-1">
-            <span className="font-mono text-sm font-bold text-terra-600">
+          <div className="flex items-baseline gap-1">
+            <span className="font-mono text-xs font-bold text-terra-600">
               {fmt(item.avgPrice)}
             </span>
             {item.unit ? (
@@ -67,9 +67,11 @@ function MobileChips({ items }: { items: PulseItem[] }) {
             ) : null}
           </div>
           {item.highPrice && item.lowPrice ? (
-            <div className="mt-0.5 flex items-center gap-1.5 text-[10px]">
+            <div className="flex items-center gap-1 text-[10px]">
+              <span className="text-stone-400 font-semibold">H</span>
               <span className="text-green-600 font-medium">{fmt(item.highPrice)}</span>
               <span className="text-stone-300">·</span>
+              <span className="text-stone-400 font-semibold">L</span>
               <span className="text-red-500 font-medium">{fmt(item.lowPrice)}</span>
             </div>
           ) : null}
