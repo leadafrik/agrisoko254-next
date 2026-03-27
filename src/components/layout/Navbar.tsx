@@ -102,7 +102,6 @@ export default function Navbar() {
   }, [mobileOpen]);
 
   const hoverProps = (
-    open: boolean,
     setOpen: (v: boolean) => void,
     timer: React.MutableRefObject<ReturnType<typeof setTimeout> | null>
   ) => ({
@@ -158,7 +157,7 @@ export default function Navbar() {
             ))}
 
             {/* Sell dropdown */}
-            <div className="relative ml-1" {...hoverProps(sellOpen, setSellOpen, sellTimer)}>
+            <div className="relative ml-1" {...hoverProps(setSellOpen, sellTimer)}>
               <button
                 type="button"
                 onClick={() => setSellOpen((v) => !v)}
@@ -251,7 +250,7 @@ export default function Navbar() {
                 </Link>
 
                 {/* User dropdown */}
-                <div className="relative" {...hoverProps(userOpen, setUserOpen, userTimer)}>
+                <div className="relative" {...hoverProps(setUserOpen, userTimer)}>
                   <button
                     type="button"
                     onClick={() => setUserOpen((v) => !v)}
