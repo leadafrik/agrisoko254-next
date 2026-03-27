@@ -76,8 +76,17 @@ export const CREATE_LISTING_CATEGORY_DETAILS: Record<
     placeholderTitle: "Example: Dry maize in 90kg bags",
     placeholderDescription: "Mention variety, moisture, packaging, harvest timing, and how delivery works.",
     quantityLabel: "Available quantity",
-    quantityHint: "Use the number of bags, crates, kilograms, or tonnes available now.",
-    unitOptions: ["kg", "bag", "crate", "tonne", "box", "bunch", "dozen"],
+    quantityHint: "Enter the number of bags, crates, or kilograms you have ready now.",
+    unitOptions: [
+      "kg",
+      "90kg bag",   // maize, beans, wheat — standard grain bag
+      "50kg bag",   // general produce, onion nets
+      "120kg bag",  // Irish potatoes
+      "crate",      // tomatoes (~64kg Nairobi crate)
+      "bunch",      // kale, spinach, sukuma
+      "tonne",      // large wholesale volumes
+      "box",        // bananas, avocados
+    ],
   },
   livestock: {
     heading: "List livestock",
@@ -85,8 +94,14 @@ export const CREATE_LISTING_CATEGORY_DETAILS: Record<
     placeholderTitle: "Example: Dairy heifers, in-calf",
     placeholderDescription: "Mention breed, age, health, feeding routine, and whether transport can be arranged.",
     quantityLabel: "Animals available",
-    quantityHint: "Use the count of head, birds, or pairs available.",
-    unitOptions: ["head", "bird", "pair", "herd", "tray"],
+    quantityHint: "Enter the count of head, birds, or trays available.",
+    unitOptions: [
+      "head",              // cattle, goats, sheep, pigs
+      "bird",              // broilers, layers sold as whole birds
+      "kg live weight",    // poultry or small stock priced per kg
+      "tray (30 eggs)",    // egg trays
+      "dozen",             // eggs sold retail
+    ],
   },
   inputs: {
     heading: "List farm inputs",
@@ -94,8 +109,16 @@ export const CREATE_LISTING_CATEGORY_DETAILS: Record<
     placeholderTitle: "Example: DAP fertilizer, 50kg bags",
     placeholderDescription: "Mention brand, pack size, crop fit, and any minimum order or delivery detail.",
     quantityLabel: "Stock available",
-    quantityHint: "Use the amount currently in stock and ready for delivery.",
-    unitOptions: ["bag", "kg", "litre", "piece", "box", "crate", "packet"],
+    quantityHint: "Enter the number of bags, litres, or pieces currently in stock.",
+    unitOptions: [
+      "50kg bag",  // DAP, CAN, UREA, NPK — standard fertilizer bag
+      "25kg bag",  // smaller fertilizer or seed packs
+      "kg",        // loose seed, lime, supplements
+      "litre",     // chemicals, liquid fertilizer
+      "500ml",     // small chemical bottles
+      "packet",    // seed packets (specific weight on label)
+      "piece",     // tools, sprayers, single items
+    ],
   },
   service: {
     heading: "List a service",
@@ -103,8 +126,8 @@ export const CREATE_LISTING_CATEGORY_DETAILS: Record<
     placeholderTitle: "Example: Tractor ploughing in Nakuru",
     placeholderDescription: "Describe the service, response time, pricing basis, and whether operator cost is included.",
     quantityLabel: "Coverage or capacity",
-    quantityHint: "Use acres, jobs, hours, or units of capacity depending on the service.",
-    unitOptions: ["hour", "day", "acre", "job", "session", "unit"],
+    quantityHint: "Enter acres, jobs, or hours available per day or week.",
+    unitOptions: ["acre", "hour", "day", "job", "session"],
   },
 };
 

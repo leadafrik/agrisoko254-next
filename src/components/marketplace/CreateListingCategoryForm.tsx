@@ -418,7 +418,9 @@ export default function CreateListingCategoryForm({
 
             <div className="grid gap-5 md:grid-cols-3">
               <div>
-                <label className="field-label">Price in KES</label>
+                <label className="field-label">
+                  Price (KES){form.unit ? ` — per ${form.unit}` : ""}
+                </label>
                 <input
                   type="number"
                   min="1"
@@ -443,7 +445,7 @@ export default function CreateListingCategoryForm({
                 />
               </div>
               <div>
-                <label className="field-label">Unit</label>
+                <label className="field-label">Unit (what the price is per)</label>
                 <select
                   value={form.unit}
                   onChange={(event) => handleChange("unit", event.target.value)}
@@ -693,7 +695,12 @@ export default function CreateListingCategoryForm({
             <div className="mt-5 grid gap-3">
               <div className="rounded-2xl bg-stone-50 px-4 py-3">
                 <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Price</p>
-                <p className="mt-1 font-semibold text-stone-900">{publishPreview}</p>
+                <p className="mt-1 font-semibold text-stone-900">
+                  {publishPreview}
+                  {form.unit && form.price ? (
+                    <span className="ml-1 text-sm font-normal text-stone-500">per {form.unit}</span>
+                  ) : null}
+                </p>
               </div>
               <div className="rounded-2xl bg-stone-50 px-4 py-3">
                 <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Coverage</p>

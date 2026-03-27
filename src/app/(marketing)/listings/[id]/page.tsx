@@ -246,7 +246,7 @@ export default async function ListingDetailPage({ params }: Props) {
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.16em] text-stone-400">Availability</p>
                   <p className="text-sm font-semibold text-stone-900">
-                    {listing?.quantity ? `${listing.quantity}${listing?.unit ? ` ${listing.unit}` : ""}` : "Contact seller"}
+                    {listing?.quantity ? `${listing.quantity} ${listing?.unit ?? ""}`.trim() : "Contact seller"}
                   </p>
                 </div>
               </div>
