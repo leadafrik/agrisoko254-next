@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import { CATEGORY_META } from "@/lib/mdx";
 
 export default function LearnLayout({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
       </div>
       <main className="min-h-screen pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</main>
       <Footer />
+      <MobileBottomNav />
     </>
   );
 }

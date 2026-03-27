@@ -22,7 +22,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
-import MobileBottomNav from "@/components/layout/MobileBottomNav";
 
 const navLinks = [
   { href: "/browse", label: "Marketplace" },
@@ -437,8 +436,6 @@ export default function Navbar() {
           </div>
         </div>
       )}
-
-      <MobileBottomNav />
     </header>
   );
 }
