@@ -17,7 +17,7 @@ export default function ListingMap({ lat, lng, height = "250px" }: Props) {
     if (!mapRef.current) return;
 
     if (!isGoogleMapsConfigured()) {
-      setError("Map unavailable.");
+      setError("Map view is temporarily unavailable right now.");
       return;
     }
 
@@ -39,7 +39,7 @@ export default function ListingMap({ lat, lng, height = "250px" }: Props) {
 
         new google.maps.Marker({ position: { lat, lng }, map });
       } catch {
-        if (!cancelled) setError("Map failed to load.");
+        if (!cancelled) setError("Map view failed to load right now.");
       }
     };
 

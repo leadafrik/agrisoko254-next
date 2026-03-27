@@ -8,6 +8,7 @@ import DecisionSnapshotCard from "@/components/intelligence/DecisionSnapshotCard
 import IntelligenceStatusStrip from "@/components/intelligence/IntelligenceStatusStrip";
 import MarketBoardTable from "@/components/intelligence/MarketBoardTable";
 import MarketPulsePanel from "@/components/intelligence/MarketPulsePanel";
+import ShareIntelligenceSnapshotButton from "@/components/intelligence/ShareIntelligenceSnapshotButton";
 import SharePricePrompt from "@/components/intelligence/SharePricePrompt";
 import TradingActionBar from "@/components/intelligence/TradingActionBar";
 import { API_ENDPOINTS } from "@/lib/endpoints";
@@ -179,14 +180,31 @@ export default function MarketIntelligenceExplorer({ initialOverview }: Props) {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => void handleRefresh()}
-            className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-600 transition hover:border-terra-200 hover:text-terra-700"
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-            Refresh board
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {scopedProduct ? (
+              <ShareIntelligenceSnapshotButton
+                productKey={scopedProduct.productKey}
+                productName={scopedProduct.productName}
+                avgPrice={scopedProduct.overallAverage}
+                bestPrice={focusMarket?.avgPrice || scopedProduct.bestMarket?.avgPrice}
+                bestCounty={focusMarket?.county || scopedProduct.bestMarket?.county}
+                bestMarketName={focusMarket?.marketName || scopedProduct.bestMarket?.marketName}
+                unit={scopedProduct.unit}
+                trendDirection={scopedProduct.overallTrendDirection}
+                trendPercentage={scopedProduct.overallTrendPercentage}
+                label="Share snapshot"
+                className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-600 transition hover:border-terra-200 hover:text-terra-700"
+              />
+            ) : null}
+            <button
+              type="button"
+              onClick={() => void handleRefresh()}
+              className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-600 transition hover:border-terra-200 hover:text-terra-700"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+              Refresh board
+            </button>
+          </div>
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2">

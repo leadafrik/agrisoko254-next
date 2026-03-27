@@ -29,7 +29,7 @@ export default function TradingActionBar({
 }: Props) {
   return (
     <div
-      className={`sticky bottom-4 z-20 rounded-[26px] border border-stone-200 bg-white/94 p-3 shadow-[0_22px_55px_-34px_rgba(28,25,23,0.35)] backdrop-blur md:static md:border-0 md:bg-transparent md:p-0 md:shadow-none ${className}`}
+      className={`sticky bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-20 rounded-[26px] border border-stone-200 bg-white/94 p-3 shadow-[0_22px_55px_-34px_rgba(28,25,23,0.35)] backdrop-blur md:static md:border-0 md:bg-transparent md:p-0 md:shadow-none ${className}`}
     >
       <div className="grid gap-3 md:grid-cols-3">
         <Link href={submitHref} className="primary-button w-full justify-center gap-2">

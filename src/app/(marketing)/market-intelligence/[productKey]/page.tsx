@@ -16,12 +16,12 @@ type Props = {
   };
 };
 
-export const revalidate = 300;
+export const revalidate = 120;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const fallback = getFallbackProductSnapshot(params.productKey);
   const live = await serverFetch<any>(API_ENDPOINTS.marketIntelligence.byProduct(params.productKey), {
-    revalidate: 300,
+    revalidate: 120,
   });
   const product = normalizeIntelligenceProduct(live, params.productKey) || fallback;
 
@@ -49,6 +49,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     best,
     `${product.submissionsCount} reviewed field reports. Updated ${updatedDate}.`,
   ].filter(Boolean);
+  const updatedKey = encodeURIComponent(product.lastUpdated || product.generatedAt || "live");
+  const shareImageUrl = `/market-intelligence/${product.productKey}/opengraph-image?updated=${updatedKey}`;
 
   return {
     title: `${product.productName} Price Kenya ${new Date().getFullYear()} | Live Market Intelligence | Agrisoko`,
@@ -70,12 +72,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `https://www.agrisoko254.com/market-intelligence/${product.productKey}`,
       title: `${product.productName} Prices Kenya - Live Market Board`,
       description: descParts.join(" "),
-      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+      images: [
+        {
+          url: shareImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${product.productName} live market snapshot on Agrisoko`,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: `${product.productName} Price Kenya | Agrisoko`,
       description: descParts.slice(0, 2).join(" "),
+      images: [shareImageUrl],
     },
   };
 }
@@ -83,10 +93,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CommodityIntelligencePage({ params }: Props) {
   const [productPayload, historyPayload] = await Promise.all([
     serverFetch<any>(API_ENDPOINTS.marketIntelligence.byProduct(params.productKey), {
-      revalidate: 300,
+      revalidate: 120,
     }),
     serverFetch<any>(API_ENDPOINTS.marketIntelligence.history(params.productKey), {
-      revalidate: 300,
+      revalidate: 120,
     }),
   ]);
 

@@ -32,6 +32,7 @@ import {
   normalizeIntelligenceOverview,
 } from "@/lib/market-intelligence";
 import LivePricePulse from "@/components/intelligence/LivePricePulse";
+import ShareIntelligenceSnapshotButton from "@/components/intelligence/ShareIntelligenceSnapshotButton";
 
 export const revalidate = 180;
 
@@ -196,6 +197,8 @@ export default async function HomePage() {
   const requests = requestsData?.data ?? requestsData?.requests ?? requestsData ?? [];
   const intelligence = normalizeIntelligenceOverview(intelligenceData);
   const featuredSignals = intelligence.topSignals.slice(0, 4);
+  const leadSignal = featuredSignals[0] || null;
+  const secondarySignals = featuredSignals.slice(1, 4);
   const produceBoard = intelligence.produceBoard.slice(0, 6);
 
   // All boards combined — produce + inputs + livestock — for the live pulse strip
@@ -217,8 +220,11 @@ export default async function HomePage() {
       avgPrice: item.overallAverage,
       highPrice: high,
       lowPrice: low,
+      bestPrice: item.bestMarket?.avgPrice ?? high,
       bestCounty: item.bestMarket?.county ?? "",
+      bestMarketName: item.bestMarket?.marketName ?? "",
       trendDirection: item.overallTrendDirection ?? "stable",
+      trendPercentage: item.overallTrendPercentage ?? 0,
     };
   });
 
@@ -228,7 +234,7 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Navbar />
-      <main>
+      <main className="pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-0">
 
         {/* ━━━━━━━━━━━━━━━━ LIVE PRICE STRIP — just below navbar ━━━━━━━━━━━━ */}
         {pulseItems.length > 0 && <LivePricePulse items={pulseItems} />}
@@ -325,7 +331,103 @@ export default async function HomePage() {
                     }
                   `}</style>
 
-                  <div className="mt-4 space-y-1.5">
+                  {leadSignal ? (
+                    <div className="mt-4 sm:hidden">
+                      <div className="rounded-[22px] border border-[#7a4e1a]/45 bg-[linear-gradient(180deg,rgba(58,32,12,0.92)_0%,rgba(29,16,6,0.96)_100%)] p-4 shadow-[0_20px_48px_-34px_rgba(0,0,0,0.6)]">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#c4a060]/70">
+                              Mobile spotlight
+                            </p>
+                            <h3 className="mt-2 text-2xl font-bold text-white">
+                              {leadSignal.productName}
+                            </h3>
+                            <p className="mt-1 text-sm text-[#e6c78d]">
+                              {leadSignal.bestMarketName}, {leadSignal.bestCounty}
+                            </p>
+                          </div>
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                              leadSignal.trendDirection === "up"
+                                ? "bg-green-500/15 text-green-300"
+                                : leadSignal.trendDirection === "down"
+                                  ? "bg-red-500/15 text-red-300"
+                                  : "bg-white/10 text-white/70"
+                            }`}
+                          >
+                            {formatTrendLabel(leadSignal.trendDirection, leadSignal.trendPercentage)}
+                          </span>
+                        </div>
+
+                        <div className="mt-4 grid grid-cols-2 gap-3">
+                          <div className="rounded-[18px] border border-[#7a4e1a]/35 bg-[#1b0f06] p-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c4a060]/60">
+                              Best price
+                            </p>
+                            <p className="mt-2 font-mono text-xl font-bold text-amber-300">
+                              {formatKes(leadSignal.bestPrice)}
+                            </p>
+                          </div>
+                          <div className="rounded-[18px] border border-[#7a4e1a]/35 bg-[#1b0f06] p-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c4a060]/60">
+                              Best county
+                            </p>
+                            <p className="mt-2 text-lg font-bold text-white">
+                              {leadSignal.bestCounty}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 grid gap-2">
+                          <Link
+                            href={`/market-intelligence/${leadSignal.productKey}`}
+                            className="inline-flex items-center justify-center gap-2 rounded-full bg-amber-400 px-4 py-3 text-sm font-semibold text-stone-950 transition hover:bg-amber-300"
+                          >
+                            Open live board
+                            <ArrowRight className="h-4 w-4" />
+                          </Link>
+                          <ShareIntelligenceSnapshotButton
+                            productKey={leadSignal.productKey}
+                            productName={leadSignal.productName}
+                            bestPrice={leadSignal.bestPrice}
+                            bestCounty={leadSignal.bestCounty}
+                            bestMarketName={leadSignal.bestMarketName}
+                            trendDirection={leadSignal.trendDirection}
+                            trendPercentage={leadSignal.trendPercentage}
+                            className="inline-flex items-center justify-center gap-2 rounded-full border border-[#7a4e1a]/45 bg-[#2a1508]/75 px-4 py-3 text-sm font-semibold text-white transition hover:border-amber-300/50 hover:text-amber-200"
+                          />
+                        </div>
+                      </div>
+
+                      {secondarySignals.length > 0 ? (
+                        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                          {secondarySignals.map((signal) => (
+                            <Link
+                              key={signal.productKey}
+                              href={`/market-intelligence/${signal.productKey}`}
+                              className="min-w-[190px] flex-none rounded-[18px] border border-[#4a2e0a]/40 bg-[#2a1508]/45 px-4 py-3"
+                            >
+                              <p className="text-sm font-semibold text-white/90">
+                                {signal.productName}
+                              </p>
+                              <p className="mt-1 text-[11px] text-[#c4a060]/60">
+                                {signal.bestCounty}
+                              </p>
+                              <p className="mt-2 font-mono text-sm font-bold text-amber-300">
+                                {formatKes(signal.bestPrice)}
+                              </p>
+                            </Link>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="mt-4 rounded-[18px] border border-[#4a2e0a]/30 bg-[#2a1508]/40 px-4 py-5 text-center text-sm text-white/30 sm:hidden">
+                      Price data grows as field contributors submit reports.
+                    </div>
+                  )}
+
+                  <div className="hidden space-y-1.5 sm:block">
                     {featuredSignals.length > 0 ? (
                       featuredSignals.map((signal, i) => (
                         <Link

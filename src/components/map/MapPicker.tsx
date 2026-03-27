@@ -23,7 +23,7 @@ export default function MapPicker({ onChange, defaultCenter = NAIROBI, height = 
     if (!mapRef.current) return;
 
     if (!isGoogleMapsConfigured()) {
-      setError("Map unavailable. Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to enable map selection.");
+      setError("Map selection is temporarily unavailable right now.");
       return;
     }
 
@@ -63,7 +63,7 @@ export default function MapPicker({ onChange, defaultCenter = NAIROBI, height = 
           onChangeRef.current({ lat: e.latLng.lat(), lng: e.latLng.lng() });
         });
       } catch {
-        if (!cancelled) setError("Map failed to load.");
+        if (!cancelled) setError("Map failed to load right now.");
       }
     };
 
