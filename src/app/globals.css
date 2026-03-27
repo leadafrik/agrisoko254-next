@@ -166,3 +166,11 @@ body {
 .home-handwritten span {
   font-family: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive !important;
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
