@@ -110,12 +110,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex min-h-screen">
         <aside className="hidden w-72 shrink-0 border-r border-white/10 bg-stone-950 text-stone-300 lg:flex lg:flex-col">
           <div className="border-b border-white/10 px-6 py-6">
-            <Link href="/admin" className="block">
-              <p className="text-lg font-bold text-white">Agrisoko</p>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
-                Admin console
-              </p>
-            </Link>
+            <div className="flex items-center justify-between gap-3">
+              <Link href="/admin" className="block">
+                <p className="text-lg font-bold text-white">Agrisoko</p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
+                  Admin console
+                </p>
+              </Link>
+              <Link
+                href="/"
+                title="Back to marketplace"
+                className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 text-stone-400 transition hover:border-white/20 hover:text-white"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                </svg>
+              </Link>
+            </div>
             <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
               <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Signed in as</p>
               <p className="mt-1 font-semibold text-white">
@@ -180,6 +191,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </h1>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-600 transition hover:border-stone-300 hover:text-stone-900"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                  </svg>
+                  Marketplace
+                </Link>
                 <button
                   type="button"
                   onClick={() => void refreshUser()}
