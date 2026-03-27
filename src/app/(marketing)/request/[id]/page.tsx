@@ -60,7 +60,7 @@ export default async function BuyerRequestDetailPage({ params }: Props) {
           )}
         </div>
 
-        <Link href={`/login?redirect=/request/${params.id}`}
+        <Link href={`/request/${params.id}/respond`}
           className="block w-full bg-terra-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-terra-600 transition-colors">
           Respond to this Request
         </Link>

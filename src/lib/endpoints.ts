@@ -105,6 +105,7 @@ export const API_ENDPOINTS = {
     byUser: (id: string) => `${API_BASE_URL}/buyer-requests/user/${id}`,
     create: `${API_BASE_URL}/buyer-requests`,
     respond:(id: string) => `${API_BASE_URL}/buyer-requests/${id}/respond`,
+    deliveryOffer: (id: string) => `${API_BASE_URL}/buyer-requests/${id}/delivery-offers`,
   },
   orders: {
     checkout: `${API_BASE_URL}/orders/checkout`,
