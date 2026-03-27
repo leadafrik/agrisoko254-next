@@ -62,7 +62,7 @@ export default function DecisionSnapshotCard({
             {formatKes(product.overallAverage)}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-stone-600">
-            Average approved price for {product.unit}.
+            Average price for {product.unit}.
           </p>
         </div>
 
@@ -93,7 +93,7 @@ export default function DecisionSnapshotCard({
               {effectiveFocus.marketName || effectiveFocus.county}
             </p>
             <p className="mt-1 text-sm text-stone-600">
-              {effectiveFocus.county} is the active read on the board right now.
+              {effectiveFocus.county} is the market currently in focus.
             </p>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function DecisionSnapshotCard({
             <TrendIcon className="h-5 w-5 text-terra-600" />
             {formatTrendLabel(product.overallTrendDirection, product.overallTrendPercentage)}
           </div>
-          <p className="mt-2 text-sm text-stone-600">Board direction across the current approved signals.</p>
+          <p className="mt-2 text-sm text-stone-600">How prices are moving across the latest reports.</p>
         </div>
 
         <div className="rounded-[22px] border border-emerald-200 bg-emerald-50 p-4">

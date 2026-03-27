@@ -52,14 +52,14 @@ const normalizeText = (value?: string | null) => String(value || "").trim().toLo
 
 const buildFeedbackCopy = (feedback: IntelligenceSubmissionFeedback) => {
   if (feedback.comparisonLabel === "above") {
-    return `Your price is ${Math.abs(feedback.deltaPercentage).toFixed(1)}% above the current approved average.`;
+    return `Your price is ${Math.abs(feedback.deltaPercentage).toFixed(1)}% above the current average.`;
   }
 
   if (feedback.comparisonLabel === "below") {
-    return `Your price is ${Math.abs(feedback.deltaPercentage).toFixed(1)}% below the current approved average.`;
+    return `Your price is ${Math.abs(feedback.deltaPercentage).toFixed(1)}% below the current average.`;
   }
 
-  return "Your price sits close to the current approved average.";
+  return "Your price is close to the current average.";
 };
 
 const getCategoryFromProductKey = (productKey?: string): IntelligenceCategory => {
@@ -273,8 +273,8 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
           </div>
           <h2 className="mt-4 text-2xl font-bold text-stone-900">Price report received</h2>
           <p className="mt-2 text-sm leading-relaxed text-stone-600">
-            Your report for {success.marketName}, {success.county} is in review. Approved reports
-            update the live board automatically.
+            Your price for {success.marketName}, {success.county} has been received. Once checked,
+            it will appear on the market page.
           </p>
 
           {success.feedback ? (
@@ -283,7 +283,7 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
                 Impact
               </p>
               <p className="mt-2 text-sm font-semibold text-stone-900">
-                {success.feedback.reportsToday} report
+                {success.feedback.reportsToday} price
                 {success.feedback.reportsToday !== 1 ? "s" : ""} logged today
               </p>
               <p className="mt-1 text-sm text-stone-600">{buildFeedbackCopy(success.feedback)}</p>
@@ -322,11 +322,11 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
       <div className="max-w-3xl">
         <p className="section-kicker">Submit a price</p>
         <h1 className="mt-3 text-4xl font-bold text-stone-900 sm:text-5xl">
-          Participate in the market, not just the form.
+          Share today&apos;s market price
         </h1>
         <p className="mt-3 text-base leading-relaxed text-stone-600">
-          Pick the commodity, confirm the live board, tap the market you are reporting on, then
-          submit one clean price. Every approved report strengthens the board for farmers and buyers.
+          Choose the crop or input, check the latest market prices, then add what you are seeing in
+          your market. It should take less than a minute.
         </p>
       </div>
 
@@ -357,8 +357,8 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
 
       <CommodityQuickPicker
         className="mt-6"
-        title={`Choose a ${CATEGORY_LABELS[activeCategory].toLowerCase()} product`}
-        description="Start with the commodity you want to report today."
+        title={`Choose a ${CATEGORY_LABELS[activeCategory].toLowerCase()} commodity`}
+        description="Start with what you want to price today."
         products={categoryProducts.map((product) => {
           const snapshot =
             allBoards.find((item) => item.productKey === product.key) ||
@@ -369,7 +369,7 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
             value: snapshot ? formatKes(snapshot.overallAverage) : undefined,
             helper: snapshot?.bestMarket
               ? `Best sell: ${snapshot.bestMarket.county} at ${formatKes(snapshot.bestMarket.avgPrice)}`
-              : "Waiting for approved signals",
+              : "No price reports yet",
           };
         })}
         selectedKey={form.productKey}
@@ -387,7 +387,7 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
         <div className="space-y-6">
           <IntelligenceStatusStrip items={statusItems} />
           <MarketPulsePanel
-            title="Live guidance"
+            title="Quick take"
             items={buildProductPulseItems(
               selectedSnapshot,
               selectedSnapshot.markets.find((market) => market.marketKey === selectedMarketKey) ||
@@ -398,7 +398,7 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
       </div>
 
       <div className="mt-6 rounded-[24px] border border-stone-200 bg-[#faf7f2] px-5 py-4 text-sm text-stone-600">
-        Tap a market row below to prefill the county and market fields automatically.
+        Tap a market below to fill the county and market name automatically.
       </div>
 
       <MarketBoardTable
@@ -414,12 +414,11 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
-                Low-friction reporting
+                Add your price
               </p>
-              <h2 className="mt-2 text-2xl font-bold text-stone-900">Share one clean price</h2>
+              <h2 className="mt-2 text-2xl font-bold text-stone-900">Share today&apos;s price</h2>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-600">
-                Start with the market and price. Date, notes, and contact details are optional unless
-                you want to add more context.
+                Start with the market and price. Notes, date, and contact details are optional.
               </p>
             </div>
             <div className="rounded-[22px] border border-stone-200 bg-[#faf7f2] px-4 py-3 text-sm text-stone-600">
@@ -507,13 +506,13 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
             </div>
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
-                Current board average
+                Current average price
               </p>
               <p className="mt-2 text-base font-semibold text-stone-900">
                 {formatKes(selectedSnapshot.overallAverage)}
               </p>
               <p className="mt-1 text-sm text-stone-600">
-                Use the board as context, then report what you are seeing now.
+                Use this as a guide, then add the price you are seeing now.
               </p>
             </div>
           </div>
@@ -617,10 +616,10 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
 
           <div className="space-y-3">
             <button type="submit" disabled={saving} className="primary-button w-full">
-              {saving ? "Submitting..." : "Share this price"}
+              {saving ? "Submitting..." : "Submit price"}
             </button>
             <p className="text-center text-sm text-stone-500">
-              You can submit anonymously. Adding a name or phone is optional.
+              Name and phone are optional.
             </p>
           </div>
         </form>
@@ -628,14 +627,13 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm text-stone-500">
         <span>
-          Need the full board for {selectedProduct.name.toLowerCase()}? Open the decision page for
-          this commodity.
+          Want more detail for {selectedProduct.name.toLowerCase()}?
         </span>
         <Link
           href={`/market-intelligence/${form.productKey}`}
           className="font-semibold text-terra-600 hover:text-terra-700"
         >
-          View full board
+          Open price page
         </Link>
       </div>
     </div>

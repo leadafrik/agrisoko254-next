@@ -29,7 +29,7 @@ export default function MarketPulsePanel({
               {title}
             </p>
             <p className="mt-1 text-sm text-stone-600">
-              Read this first if you want the short version.
+              A quick read from the latest prices.
             </p>
           </div>
         </div>

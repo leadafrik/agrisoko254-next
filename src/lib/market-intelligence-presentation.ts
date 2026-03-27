@@ -101,12 +101,12 @@ export function buildProductPulseItems(
     const delta = focusMarket.avgPrice - product.overallAverage;
     const deltaLabel =
       Math.abs(delta) < 1
-        ? "near the board average"
+        ? "close to the average price"
         : delta > 0
-          ? `${formatKes(Math.abs(delta))} above the board average`
-          : `${formatKes(Math.abs(delta))} below the board average`;
+          ? `${formatKes(Math.abs(delta))} above the average price`
+          : `${formatKes(Math.abs(delta))} below the average price`;
     items.push(
-      `${focusMarket.marketName} is ${deltaLabel} with ${focusMarket.submissionsCount} approved report${focusMarket.submissionsCount === 1 ? "" : "s"}.`
+      `${focusMarket.marketName} is ${deltaLabel} with ${focusMarket.submissionsCount} recent report${focusMarket.submissionsCount === 1 ? "" : "s"}.`
     );
   }
 
