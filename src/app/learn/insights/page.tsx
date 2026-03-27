@@ -4,30 +4,44 @@ import Link from "next/link";
 import InsightsSearch from "@/components/learn/InsightsSearch";
 import JsonLd from "@/components/seo/JsonLd";
 import { getInsightPosts } from "@/lib/content-hub";
+import { buildSocialImageMetadata } from "@/lib/content-images";
 
 export const revalidate = 3600;
 
 const pageDescription =
   "Editorial market updates, field observations, policy shifts, and Agrisoko commentary inside the Learn hub.";
 
-export const metadata: Metadata = {
-  title: "Market Insights",
-  description: pageDescription,
-  keywords: [
-    "Kenya agriculture insights",
-    "market intelligence Kenya",
-    "maize prices Kenya",
-    "farm policy Kenya",
-    "Agrisoko insights",
-  ],
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  const posts = await getInsightPosts(6);
+  const featured = posts.find((post) => post.featured) ?? posts[0] ?? null;
+  const socialImages = buildSocialImageMetadata(featured?.coverImage, "Agrisoko market insights");
+
+  return {
     title: "Market Insights",
     description: pageDescription,
-    type: "website",
-    url: "https://www.agrisoko254.com/learn/insights",
-  },
-  alternates: { canonical: "https://www.agrisoko254.com/learn/insights" },
-};
+    keywords: [
+      "Kenya agriculture insights",
+      "market intelligence Kenya",
+      "maize prices Kenya",
+      "farm policy Kenya",
+      "Agrisoko insights",
+    ],
+    openGraph: {
+      title: "Market Insights",
+      description: pageDescription,
+      type: "website",
+      url: "https://www.agrisoko254.com/learn/insights",
+      images: socialImages.openGraph,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Market Insights",
+      description: pageDescription,
+      images: socialImages.twitter,
+    },
+    alternates: { canonical: "https://www.agrisoko254.com/learn/insights" },
+  };
+}
 
 const formatInsightDate = (value: string | null) => {
   if (!value) return "Recent update";

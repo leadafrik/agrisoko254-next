@@ -4,31 +4,46 @@ import Link from "next/link";
 import JsonLd from "@/components/seo/JsonLd";
 import { getAllCategories, getArticlesByCategory, getFeaturedArticles, CATEGORY_META } from "@/lib/mdx";
 import { getInsightPosts } from "@/lib/content-hub";
+import { buildSocialImageMetadata } from "@/lib/content-images";
 
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: "Agrisoko Learn Hub",
-  description:
-    "Practical farming guides, market insights, and Agrisoko editorial updates for Kenyan farmers, buyers, and agri-business teams.",
-  keywords: [
-    "farming guides kenya",
-    "agriculture learn kenya",
-    "how to sell maize kenya",
-    "fertilizer guide kenya",
-    "agrisoko learn",
-    "market insights kenya",
-  ],
-  alternates: { canonical: "https://www.agrisoko254.com/learn" },
-  openGraph: {
-    type: "website",
-    url: "https://www.agrisoko254.com/learn",
-    title: "Agrisoko Learn Hub",
-    description:
-      "Practical farming guides, market insights, and trade-readiness content for Kenyan agriculture.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
-  },
-};
+const pageTitle = "Agrisoko Learn Hub";
+const pageDescription =
+  "Practical farming guides, market insights, and Agrisoko editorial updates for Kenyan farmers, buyers, and agri-business teams.";
+
+export function generateMetadata(): Metadata {
+  const shareImage = getFeaturedArticles(1)[0]?.coverImage;
+  const socialImages = buildSocialImageMetadata(shareImage, pageTitle);
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    keywords: [
+      "farming guides kenya",
+      "agriculture learn kenya",
+      "how to sell maize kenya",
+      "fertilizer guide kenya",
+      "agrisoko learn",
+      "market insights kenya",
+    ],
+    alternates: { canonical: "https://www.agrisoko254.com/learn" },
+    openGraph: {
+      type: "website",
+      url: "https://www.agrisoko254.com/learn",
+      title: pageTitle,
+      description:
+        "Practical farming guides, market insights, and trade-readiness content for Kenyan agriculture.",
+      images: socialImages.openGraph,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: pageTitle,
+      description: pageDescription,
+      images: socialImages.twitter,
+    },
+  };
+}
 
 const formatInsightDate = (value: string | null) => {
   if (!value) return "Recent update";

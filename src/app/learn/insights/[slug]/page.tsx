@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getInsightPost, getInsightPosts } from "@/lib/content-hub";
 import ShareButton from "@/components/learn/ShareButton";
+import { buildSocialImageMetadata, getAbsoluteContentImageUrl } from "@/lib/content-images";
 
 interface Props {
   params: { slug: string };
@@ -26,6 +27,7 @@ const formatInsightDate = (value: string | null) => {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getInsightPost(params.slug);
   if (!post) return {};
+  const socialImages = buildSocialImageMetadata(post.coverImage, post.title);
 
   return {
     title: post.title,
@@ -37,18 +39,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       url: `https://www.agrisoko254.com/learn/insights/${params.slug}`,
       publishedTime: post.publishedAt ?? undefined,
-      images: post.coverImage
-        ? [{ url: post.coverImage.startsWith("http") ? post.coverImage : `https://www.agrisoko254.com${post.coverImage}`, width: 1200, height: 630, alt: post.title }]
-        : [{ url: "https://www.agrisoko254.com/og-image.png", width: 1200, height: 630 }],
+      images: socialImages.openGraph,
       tags: post.tags,
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
-      images: post.coverImage
-        ? [post.coverImage.startsWith("http") ? post.coverImage : `https://www.agrisoko254.com${post.coverImage}`]
-        : ["https://www.agrisoko254.com/og-image.png"],
+      images: socialImages.twitter,
     },
     alternates: {
       canonical: `https://www.agrisoko254.com/learn/insights/${params.slug}`,
@@ -80,7 +78,7 @@ export default async function LearnInsightDetailPage({ params }: Props) {
       logo: { "@type": "ImageObject", url: "https://www.agrisoko254.com/logo192.png" },
     },
     keywords: post.tags.join(", "),
-    ...(post.coverImage ? { image: post.coverImage } : {}),
+    ...(post.coverImage ? { image: getAbsoluteContentImageUrl(post.coverImage) } : {}),
   };
 
   const breadcrumbSchema = {

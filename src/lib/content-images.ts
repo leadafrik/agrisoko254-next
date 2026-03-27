@@ -104,6 +104,23 @@ const slugToPoolImage = (slug: string) => {
 
 export const getDefaultContentCover = () => PREFERRED_POOL[0];
 
+export const getAbsoluteContentImageUrl = (value?: string | null) => {
+  const resolved = value || getDefaultContentCover();
+  return resolved.startsWith("http") ? resolved : `https://www.agrisoko254.com${resolved}`;
+};
+
+export const buildSocialImageMetadata = (
+  value?: string | null,
+  alt = "Agrisoko content image"
+) => {
+  const absoluteUrl = getAbsoluteContentImageUrl(value);
+
+  return {
+    openGraph: [{ url: absoluteUrl, width: 1200, height: 630, alt }],
+    twitter: [absoluteUrl],
+  };
+};
+
 export const resolveLearnCoverImage = (
   category: string,
   slug: string,

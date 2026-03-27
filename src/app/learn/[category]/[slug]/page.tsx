@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import { CATEGORY_META, getAllArticleSlugs, getArticle, getArticlesByCategory } from "@/lib/mdx";
+import { buildSocialImageMetadata, getAbsoluteContentImageUrl } from "@/lib/content-images";
 
 interface Props {
   params: { category: string; slug: string };
@@ -21,6 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!article) return {};
 
   const canonical = `https://www.agrisoko254.com/learn/${params.category}/${params.slug}`;
+  const socialImages = buildSocialImageMetadata(article.coverImage, article.title);
 
   return {
     title: article.title,
@@ -32,18 +34,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       url: canonical,
       publishedTime: article.publishedAt,
-      images: article.coverImage
-        ? [{ url: article.coverImage.startsWith("http") ? article.coverImage : `https://www.agrisoko254.com${article.coverImage}`, width: 1200, height: 630, alt: article.title }]
-        : [{ url: "https://www.agrisoko254.com/og-image.png", width: 1200, height: 630 }],
+      images: socialImages.openGraph,
       tags: article.tags,
     },
     twitter: {
       card: "summary_large_image",
       title: article.title,
       description: article.description,
-      images: article.coverImage
-        ? [article.coverImage.startsWith("http") ? article.coverImage : `https://www.agrisoko254.com${article.coverImage}`]
-        : ["https://www.agrisoko254.com/og-image.png"],
+      images: socialImages.twitter,
     },
     alternates: {
       canonical,
@@ -78,7 +76,7 @@ export default function ArticlePage({ params }: Props) {
       logo: { "@type": "ImageObject", url: "https://www.agrisoko254.com/logo192.png" },
     },
     keywords: article.tags?.join(", "),
-    ...(article.coverImage ? { image: article.coverImage } : {}),
+    ...(article.coverImage ? { image: getAbsoluteContentImageUrl(article.coverImage) } : {}),
   };
 
   const breadcrumbSchema = {

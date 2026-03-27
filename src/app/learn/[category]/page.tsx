@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/seo/JsonLd";
 import { CATEGORY_META, getAllCategories, getArticlesByCategory } from "@/lib/mdx";
+import { buildSocialImageMetadata, getAbsoluteContentImageUrl } from "@/lib/content-images";
 
 interface Props {
   params: { category: string };
@@ -20,6 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = `${meta.description}. Practical guides, pricing context, and selling tips for Kenyan farmers.`;
   const canonical = `https://www.agrisoko254.com/learn/${params.category}`;
   const leadImage = getArticlesByCategory(params.category)[0]?.coverImage ?? null;
+  const socialImages = buildSocialImageMetadata(leadImage, `${meta.label} farming guides`);
 
   return {
     title: `${meta.label} Farming Guides for Kenya | Agrisoko Learn`,
@@ -37,7 +39,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       type: "website",
       url: canonical,
-      images: leadImage ? [leadImage] : [],
+      images: socialImages.openGraph,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${meta.label} Farming Guides for Kenya`,
+      description,
+      images: socialImages.twitter,
     },
     alternates: { canonical },
   };
@@ -55,6 +63,7 @@ export default function CategoryPage({ params }: Props) {
     name: `${meta.label} Farming Guides for Kenya`,
     description: `${meta.description}. Practical guides, pricing context, and selling tips for Kenyan farmers.`,
     url: `https://www.agrisoko254.com/learn/${params.category}`,
+    ...(articles[0]?.coverImage ? { image: getAbsoluteContentImageUrl(articles[0].coverImage) } : {}),
     isPartOf: {
       "@type": "WebSite",
       name: "Agrisoko",
