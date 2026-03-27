@@ -61,14 +61,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       images: images[0]
-        ? [{ url: images[0], width: 800, height: 600, alt: title }]
-        : [{ url: "/og-image.png", width: 1200, height: 630 }],
+        ? [{ url: images[0], width: 1200, height: 630, alt: title }]
+        : [{ url: "https://www.agrisoko254.com/og-image.png", width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: images[0] ? [images[0]] : ["/og-image.png"],
+      images: images[0] ? [images[0]] : ["https://www.agrisoko254.com/og-image.png"],
     },
   };
 }

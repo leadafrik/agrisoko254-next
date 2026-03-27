@@ -37,14 +37,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       url: `https://www.agrisoko254.com/learn/insights/${params.slug}`,
       publishedTime: post.publishedAt ?? undefined,
-      images: post.coverImage ? [post.coverImage] : [],
+      images: post.coverImage
+        ? [{ url: post.coverImage.startsWith("http") ? post.coverImage : `https://www.agrisoko254.com${post.coverImage}`, width: 1200, height: 630, alt: post.title }]
+        : [{ url: "https://www.agrisoko254.com/og-image.png", width: 1200, height: 630 }],
       tags: post.tags,
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
-      images: post.coverImage ? [post.coverImage] : [],
+      images: post.coverImage
+        ? [post.coverImage.startsWith("http") ? post.coverImage : `https://www.agrisoko254.com${post.coverImage}`]
+        : ["https://www.agrisoko254.com/og-image.png"],
     },
     alternates: {
       canonical: `https://www.agrisoko254.com/learn/insights/${params.slug}`,
