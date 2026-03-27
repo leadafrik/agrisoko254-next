@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   MessageSquare,
+  NotebookText,
   Package,
   ShoppingCart,
   User,
@@ -83,6 +84,8 @@ export default function Navbar() {
   const userFirstName = user?.fullName?.split(" ")[0] || user?.name?.split(" ")[0] || "Account";
   const resolveSellHref = (href: string) =>
     isAuthenticated ? href : `/login?mode=signup&redirect=${encodeURIComponent(href)}`;
+  const resolveAuthedHref = (href: string) =>
+    isAuthenticated ? href : `/login?redirect=${encodeURIComponent(href)}`;
 
   useEffect(() => {
     setMobileOpen(false);
@@ -314,14 +317,56 @@ export default function Navbar() {
           </div>
 
           {/* ── Mobile hamburger ── */}
-          <button
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 transition hover:bg-stone-50 lg:hidden"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="h-4.5 w-4.5 h-[18px] w-[18px]" /> : <Menu className="h-[18px] w-[18px]" />}
-          </button>
+          <div className="flex items-center gap-1.5 lg:hidden">
+            {[
+              {
+                href: "/learn",
+                label: "Learn",
+                Icon: NotebookText,
+                active: isActive(pathname, "/learn"),
+              },
+              {
+                href: resolveAuthedHref("/messages"),
+                label: "Messages",
+                Icon: MessageSquare,
+                active: pathname === "/messages" || pathname.startsWith("/messages/"),
+              },
+              {
+                href: "/cart",
+                label: "Cart",
+                Icon: ShoppingCart,
+                active: pathname === "/cart" || pathname.startsWith("/checkout"),
+                badge: itemCount,
+              },
+            ].map(({ href, label, Icon, active, badge }) => (
+              <Link
+                key={label}
+                href={href}
+                aria-label={label}
+                className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition ${
+                  active
+                    ? "border-terra-200 bg-terra-50 text-terra-700"
+                    : "border-stone-200 bg-white text-stone-700 hover:bg-stone-50"
+                }`}
+              >
+                <Icon className="h-[18px] w-[18px]" />
+                {badge && badge > 0 ? (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-terra-500 text-[10px] font-bold text-white">
+                    {badge > 9 ? "9+" : badge}
+                  </span>
+                ) : null}
+              </Link>
+            ))}
+
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 transition hover:bg-stone-50"
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="h-[18px] w-[18px]" /> : <Menu className="h-[18px] w-[18px]" />}
+            </button>
+          </div>
         </div>
       </div>
 

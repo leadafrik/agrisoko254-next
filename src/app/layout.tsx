@@ -93,9 +93,12 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   icons: {
-    icon: "/logo192.png",
-    apple: "/logo192.png",
-    shortcut: "/favicon.ico",
+    icon: [
+      { url: "/logo192.png", sizes: "192x192", type: "image/png" },
+      { url: "/logo512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/logo192.png", sizes: "192x192", type: "image/png" }],
+    shortcut: [{ url: "/logo192.png", sizes: "192x192", type: "image/png" }],
   },
   robots: {
     index: true,

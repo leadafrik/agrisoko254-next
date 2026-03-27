@@ -20,17 +20,19 @@ const MARKETPLACE_SUGGESTIONS = ["Browse listings", "How to list", "Contact supp
 const LEARN_SUGGESTIONS = ["How to sell maize?", "Who started Agrisoko?", "Contact support"];
 const SUPPORT_EMAIL = "info@leadafrik.com";
 const SUPPORT_WHATSAPP_URL = "https://chat.whatsapp.com/HzCaV5YVz86CjwajiOHR5i";
+const HIDDEN_PREFIXES = ["/admin", "/login", "/forgot-password", "/welcome/setup-password", "/messages"];
 
 export default function ChatbotWidget() {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [error, setError] = useState("");
   const [chatSession, setChatSession] = useState<ChatSession | null>(null);
-  const endRef = useRef<HTMLDivElement | null>(null);
+  const messagesRef = useRef<HTMLDivElement | null>(null);
 
   // Drag state
   const [pos, setPos] = useState({ x: 0, y: 0 }); // offset from default bottom-right
@@ -39,11 +41,44 @@ export default function ChatbotWidget() {
   });
   const btnRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => { setIsMounted(true); }, []);
+  useEffect(() => {
+    setIsMounted(true);
+
+    const syncViewport = () => setIsMobile(window.innerWidth < 1024);
+    syncViewport();
+    window.addEventListener("resize", syncViewport);
+
+    return () => window.removeEventListener("resize", syncViewport);
+  }, []);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isMobile) {
+      setPos({ x: 0, y: 0 });
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
+    const container = messagesRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: messages.length > 1 ? "smooth" : "auto",
+    });
   }, [messages, loading]);
+
+  useEffect(() => {
+    if (!isMounted || !isMobile) return;
+
+    const previousOverflow = document.body.style.overflow;
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isMounted, isMobile, isOpen]);
 
   const starterSuggestions = pathname.startsWith("/learn")
     ? LEARN_SUGGESTIONS
@@ -74,6 +109,8 @@ export default function ChatbotWidget() {
 
   // Drag handlers
   const onDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    if (isMobile) return;
+
     const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
     const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
     dragState.current = { dragging: true, startX: clientX, startY: clientY, originX: pos.x, originY: pos.y };
@@ -103,7 +140,7 @@ export default function ChatbotWidget() {
   };
 
   if (!isMounted) return null;
-  if (pathname.startsWith("/admin")) return null;
+  if (HIDDEN_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return null;
 
   const sendMessage = async (messageText = inputValue) => {
     const message = messageText.trim();
@@ -146,17 +183,22 @@ export default function ChatbotWidget() {
 
   const btnStyle: React.CSSProperties = {
     position: "fixed",
-    bottom: `calc(1.5rem - ${pos.y}px)`,
-    right: `calc(1.5rem - ${pos.x}px)`,
-    zIndex: 40,
-    cursor: dragState.current.dragging ? "grabbing" : "grab",
+    bottom: isMobile
+      ? "calc(env(safe-area-inset-bottom) + 5.75rem)"
+      : `calc(1.5rem - ${pos.y}px)`,
+    right: isMobile ? "1rem" : `calc(1.5rem - ${pos.x}px)`,
+    zIndex: 45,
+    cursor: isMobile ? "pointer" : dragState.current.dragging ? "grabbing" : "grab",
   };
 
   const panelStyle: React.CSSProperties = {
     position: "fixed",
-    bottom: `calc(5.5rem - ${pos.y}px)`,
-    right: `calc(1.5rem - ${pos.x}px)`,
-    zIndex: 40,
+    left: isMobile ? "0.75rem" : undefined,
+    right: isMobile ? "0.75rem" : `calc(1.5rem - ${pos.x}px)`,
+    bottom: isMobile
+      ? "calc(env(safe-area-inset-bottom) + 5.5rem)"
+      : `calc(5.5rem - ${pos.y}px)`,
+    zIndex: 46,
   };
 
   return (
@@ -166,9 +208,13 @@ export default function ChatbotWidget() {
           ref={btnRef}
           type="button"
           style={btnStyle}
-          onMouseDown={onDragStart}
-          onTouchStart={onDragStart}
-          onClick={() => { if (!dragState.current.dragging) { setPos({ x: 0, y: 0 }); setIsOpen(true); } }}
+          onMouseDown={isMobile ? undefined : onDragStart}
+          onTouchStart={isMobile ? undefined : onDragStart}
+          onClick={() => {
+            if (!dragState.current.dragging) {
+              setIsOpen(true);
+            }
+          }}
           className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-terra-500 text-white shadow-[0_18px_40px_-18px_rgba(120,83,47,0.7)] transition hover:bg-terra-600 select-none"
           aria-label="Open support chat"
         >
@@ -179,15 +225,30 @@ export default function ChatbotWidget() {
       )}
 
       {isOpen && (
+        <>
+        {isMobile ? (
+          <button
+            type="button"
+            aria-label="Close support chat"
+            onClick={() => setIsOpen(false)}
+            className="fixed inset-0 z-[44] bg-stone-950/28 lg:hidden"
+          />
+        ) : null}
         <div
           style={panelStyle}
-          className="flex h-[min(38rem,calc(100vh-9rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-[0_30px_80px_-34px_rgba(28,25,23,0.4)]"
+          className={`flex flex-col overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-[0_30px_80px_-34px_rgba(28,25,23,0.4)] ${
+            isMobile
+              ? "h-[min(34rem,calc(100dvh-8.5rem-env(safe-area-inset-bottom)))] overscroll-contain"
+              : "h-[min(38rem,calc(100vh-9rem))] w-[min(24rem,calc(100vw-2rem))]"
+          }`}
         >
           {/* Header — drag handle */}
           <div
-            className="flex cursor-grab items-center justify-between bg-terra-500 px-5 py-4 text-white select-none active:cursor-grabbing"
-            onMouseDown={onDragStart}
-            onTouchStart={onDragStart}
+            className={`flex items-center justify-between bg-terra-500 px-5 py-4 text-white select-none ${
+              isMobile ? "" : "cursor-grab active:cursor-grabbing"
+            }`}
+            onMouseDown={isMobile ? undefined : onDragStart}
+            onTouchStart={isMobile ? undefined : onDragStart}
           >
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/75">Support</p>
@@ -200,7 +261,7 @@ export default function ChatbotWidget() {
             </button>
           </div>
 
-          <div className="flex-1 space-y-3 overflow-y-auto bg-[#f8f3eb] px-4 py-4">
+          <div ref={messagesRef} className="flex-1 space-y-3 overflow-y-auto overscroll-contain bg-[#f8f3eb] px-4 py-4">
             {messages.map((message) => (
               <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[84%] rounded-3xl px-4 py-3 text-sm leading-relaxed ${message.sender === "user" ? "rounded-br-lg bg-terra-500 text-white" : "rounded-bl-lg border border-stone-200 bg-white text-stone-700"}`}>
@@ -218,7 +279,6 @@ export default function ChatbotWidget() {
               </div>
             ))}
             {loading && <div className="max-w-[84%] rounded-3xl rounded-bl-lg border border-stone-200 bg-white px-4 py-3 text-sm text-stone-500">Thinking...</div>}
-            <div ref={endRef} />
           </div>
 
           {error && <div className="border-t border-red-200 bg-red-50 px-4 py-2 text-xs font-medium text-red-700">{error}</div>}
@@ -244,6 +304,7 @@ export default function ChatbotWidget() {
             </div>
           </div>
         </div>
+        </>
       )}
     </>
   );

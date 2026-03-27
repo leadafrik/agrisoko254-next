@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CirclePlus,
-  MessageSquare,
   NotebookText,
   Search,
   User,
@@ -21,7 +20,6 @@ const isActive = (pathname: string, href: string) => {
     );
   }
   if (href === "/request") return pathname === "/request" || pathname.startsWith("/request/");
-  if (href === "/messages") return pathname === "/messages" || pathname.startsWith("/messages/");
   if (href === "/profile") return pathname === "/profile" || pathname.startsWith("/profile/");
   if (href === "/create-listing")
     return pathname === "/create-listing" || pathname.startsWith("/create-listing/");
@@ -61,12 +59,6 @@ export default function MobileBottomNav() {
       Icon: NotebookText,
     },
     {
-      href: "/messages",
-      label: "Messages",
-      Icon: MessageSquare,
-      resolvedHref: resolveAuthedHref("/messages"),
-    },
-    {
       href: "/profile",
       label: "Profile",
       Icon: User,
@@ -76,7 +68,7 @@ export default function MobileBottomNav() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200/90 bg-[rgba(255,253,248,0.97)] px-2 pb-[calc(env(safe-area-inset-bottom)+0.55rem)] pt-2 backdrop-blur-xl lg:hidden">
-      <div className="mx-auto grid max-w-xl grid-cols-5 gap-1 rounded-[26px] border border-stone-200/80 bg-white/90 p-1.5 shadow-[0_-16px_42px_-30px_rgba(28,25,23,0.35)]">
+      <div className="mx-auto grid max-w-xl grid-cols-4 gap-1 rounded-[26px] border border-stone-200/80 bg-white/90 p-1.5 shadow-[0_-16px_42px_-30px_rgba(28,25,23,0.35)]">
         {items.map(({ href, label, Icon, resolvedHref }) => {
           const active = isActive(pathname, href);
           const isSell = href === "/create-listing";
