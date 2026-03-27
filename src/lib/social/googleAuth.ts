@@ -11,31 +11,70 @@ type GoogleUser = {
   picture?: string;
 };
 
+type GoogleCredential = {
+  user: GoogleUser;
+  idToken: string;
+};
+
+type GoogleCredentialHandlers = {
+  onSuccess: (credential: GoogleCredential) => void;
+  onError?: (error: Error) => void;
+};
+
+type GoogleButtonOptions = {
+  theme?: "outline" | "filled_blue" | "filled_black";
+  text?: "continue_with" | "signin_with" | "signup_with";
+  shape?: "rectangular" | "pill";
+  width?: number;
+};
+
 class GoogleAuthService {
   private initialized = false;
   private clientId = "";
   private scriptPromise: Promise<void> | null = null;
-  private pendingResolve: ((value: { user: GoogleUser; idToken: string }) => void) | null = null;
-  private pendingReject: ((reason: Error) => void) | null = null;
+  private handlers: GoogleCredentialHandlers | null = null;
+
+  private decodePayload(segment: string) {
+    const base64 = segment.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+
+    return JSON.parse(
+      decodeURIComponent(
+        atob(padded)
+          .split("")
+          .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, "0")}`)
+          .join("")
+      )
+    );
+  }
+
+  private parseCredential(response: any): GoogleCredential {
+    if (!response?.credential) throw new Error("No Google credential received.");
+    const tokenParts = response.credential.split(".");
+    if (tokenParts.length !== 3) throw new Error("Invalid Google credential format.");
+
+    const payload = this.decodePayload(tokenParts[1]);
+
+    return {
+      user: {
+        id: payload.sub,
+        email: payload.email,
+        name: payload.name,
+        picture: payload.picture,
+      },
+      idToken: response.credential,
+    };
+  }
 
   private handleCredentialResponse = (response: any) => {
-    if (!this.pendingResolve || !this.pendingReject) return;
-    const resolve = this.pendingResolve;
-    const reject = this.pendingReject;
-    this.pendingResolve = null;
-    this.pendingReject = null;
+    if (!this.handlers) return;
 
     try {
-      if (!response?.credential) throw new Error("No Google credential received.");
-      const tokenParts = response.credential.split(".");
-      if (tokenParts.length !== 3) throw new Error("Invalid Google credential format.");
-      const payload = JSON.parse(atob(tokenParts[1].replace(/-/g, "+").replace(/_/g, "/")));
-      resolve({
-        user: { id: payload.sub, email: payload.email, name: payload.name, picture: payload.picture },
-        idToken: response.credential,
-      });
+      this.handlers.onSuccess(this.parseCredential(response));
     } catch (error: any) {
-      reject(error);
+      this.handlers.onError?.(
+        error instanceof Error ? error : new Error("Google sign-in failed.")
+      );
     }
   };
 
@@ -74,7 +113,6 @@ class GoogleAuthService {
 
     if (!window.google) throw new Error("Google SDK loaded but Google sign-in is unavailable.");
 
-    // initialize() called ONCE here, not on every sign-in
     window.google.accounts.id.initialize({
       client_id: this.clientId,
       callback: this.handleCredentialResponse,
@@ -87,40 +125,34 @@ class GoogleAuthService {
     return this.initialized && typeof window !== "undefined" && Boolean(window.google);
   }
 
-  async signIn(): Promise<{ user: GoogleUser; idToken: string }> {
+  clearHandlers() {
+    this.handlers = null;
+  }
+
+  renderButton(
+    container: HTMLElement,
+    handlers: GoogleCredentialHandlers,
+    options: GoogleButtonOptions = {}
+  ) {
     if (!this.isInitialized() || !window.google) {
       throw new Error("Google sign-in is not ready yet.");
     }
 
-    // Cancel any in-flight sign-in before starting a new one
-    if (this.pendingReject) {
-      this.pendingReject(new Error("Sign-in cancelled by new request."));
-      this.pendingResolve = null;
-      this.pendingReject = null;
-    }
+    this.handlers = handlers;
+    container.innerHTML = "";
 
-    return new Promise((resolve, reject) => {
-      const timeout = window.setTimeout(() => {
-        if (this.pendingReject === reject) {
-          this.pendingResolve = null;
-          this.pendingReject = null;
-          reject(new Error("Google sign-in timed out. Please try again."));
-        }
-      }, 15000);
+    const width =
+      options.width ??
+      Math.max(Math.round(container.getBoundingClientRect().width) || 0, 280);
 
-      this.pendingResolve = (value) => { window.clearTimeout(timeout); resolve(value); };
-      this.pendingReject = (err) => { window.clearTimeout(timeout); reject(err); };
-
-      window.google.accounts.id.prompt((notification: any) => {
-        if (notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()) {
-          if (this.pendingReject) {
-            const r = this.pendingReject;
-            this.pendingResolve = null;
-            this.pendingReject = null;
-            r(new Error("Google sign-in is unavailable on this device right now."));
-          }
-        }
-      });
+    window.google.accounts.id.renderButton(container, {
+      type: "standard",
+      theme: options.theme ?? "outline",
+      size: "large",
+      shape: options.shape ?? "pill",
+      text: options.text ?? "continue_with",
+      logo_alignment: "left",
+      width,
     });
   }
 }

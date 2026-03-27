@@ -9,10 +9,12 @@ import { VerificationProvider } from "@/contexts/VerificationContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import WelcomeModal from "@/components/common/WelcomeModal";
 import CookieConsentBanner from "@/components/common/CookieConsentBanner";
+import LegacyPwaCleanup from "@/components/common/LegacyPwaCleanup";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
+      <LegacyPwaCleanup />
       <CartProvider>
         <FavoritesProvider>
         <ToastProvider>
