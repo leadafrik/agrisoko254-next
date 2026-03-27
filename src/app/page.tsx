@@ -232,7 +232,7 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Navbar />
-      <main className="pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+      <main className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">
 
         {/* ━━━━━━━━━━━━━━━━ LIVE PRICE STRIP — just below navbar ━━━━━━━━━━━━ */}
         {pulseItems.length > 0 && <LivePricePulse items={pulseItems} />}

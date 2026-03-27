@@ -28,7 +28,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
           ))}
         </div>
       </div>
-      <main className="min-h-screen pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</main>
+      <main className="min-h-screen pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</main>
       <Footer />
       <MobileBottomNav />
     </>

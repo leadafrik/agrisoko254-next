@@ -184,7 +184,7 @@ export default function ChatbotWidget() {
   const btnStyle: React.CSSProperties = {
     position: "fixed",
     bottom: isMobile
-      ? "calc(env(safe-area-inset-bottom) + 5.75rem)"
+      ? "calc(env(safe-area-inset-bottom) + 5rem)"
       : `calc(1.5rem - ${pos.y}px)`,
     right: isMobile ? "1rem" : `calc(1.5rem - ${pos.x}px)`,
     zIndex: 45,
@@ -196,7 +196,7 @@ export default function ChatbotWidget() {
     left: isMobile ? "0.75rem" : undefined,
     right: isMobile ? "0.75rem" : `calc(1.5rem - ${pos.x}px)`,
     bottom: isMobile
-      ? "calc(env(safe-area-inset-bottom) + 5.5rem)"
+      ? "calc(env(safe-area-inset-bottom) + 4.8rem)"
       : `calc(5.5rem - ${pos.y}px)`,
     zIndex: 46,
   };
@@ -238,7 +238,7 @@ export default function ChatbotWidget() {
           style={panelStyle}
           className={`flex flex-col overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-[0_30px_80px_-34px_rgba(28,25,23,0.4)] ${
             isMobile
-              ? "h-[min(34rem,calc(100dvh-8.5rem-env(safe-area-inset-bottom)))] overscroll-contain"
+              ? "h-[min(34rem,calc(100dvh-7.75rem-env(safe-area-inset-bottom)))] overscroll-contain"
               : "h-[min(38rem,calc(100vh-9rem))] w-[min(24rem,calc(100vw-2rem))]"
           }`}
         >

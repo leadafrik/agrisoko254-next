@@ -67,8 +67,8 @@ export default function MobileBottomNav() {
   ];
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200/90 bg-[rgba(255,253,248,0.97)] px-2 pb-[calc(env(safe-area-inset-bottom)+0.55rem)] pt-2 backdrop-blur-xl lg:hidden">
-      <div className="mx-auto grid max-w-xl grid-cols-4 gap-1 rounded-[26px] border border-stone-200/80 bg-white/90 p-1.5 shadow-[0_-16px_42px_-30px_rgba(28,25,23,0.35)]">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200/90 bg-[rgba(255,253,248,0.97)] px-2 pb-[calc(env(safe-area-inset-bottom)+0.35rem)] pt-1.5 backdrop-blur-xl lg:hidden">
+      <div className="mx-auto grid max-w-lg grid-cols-4 gap-0.5 rounded-[24px] border border-stone-200/80 bg-white/90 p-1 shadow-[0_-12px_32px_-26px_rgba(28,25,23,0.32)]">
         {items.map(({ href, label, Icon, resolvedHref }) => {
           const active = isActive(pathname, href);
           const isSell = href === "/create-listing";
@@ -77,7 +77,7 @@ export default function MobileBottomNav() {
             <Link
               key={href}
               href={resolvedHref ?? href}
-              className={`flex min-h-[62px] flex-col items-center justify-center gap-1 rounded-[20px] px-1.5 text-[11px] font-semibold transition ${
+              className={`flex min-h-[54px] flex-col items-center justify-center gap-0.5 rounded-[17px] px-1 text-[10px] font-semibold leading-none tracking-[0.01em] transition ${
                 isSell
                   ? active
                     ? "bg-terra-600 text-white shadow-[0_18px_30px_-18px_rgba(160,69,46,0.9)]"
@@ -87,7 +87,7 @@ export default function MobileBottomNav() {
                     : "text-stone-500 hover:bg-stone-100 hover:text-stone-900"
               }`}
             >
-              <Icon className={`h-[18px] w-[18px] ${isSell ? "h-5 w-5" : ""}`} />
+              <Icon className={`h-4 w-4 ${isSell ? "h-[18px] w-[18px]" : ""}`} />
               <span>{label}</span>
             </Link>
           );

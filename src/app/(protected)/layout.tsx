@@ -24,7 +24,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     return (
       <>
         <Navbar />
-        <main className="page-shell py-16 pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-center text-stone-500 lg:pb-16">Loading your account...</main>
+        <main className="page-shell py-16 pb-[calc(5.5rem+env(safe-area-inset-bottom))] text-center text-stone-500 lg:pb-16">Loading your account...</main>
         <Footer />
         <MobileBottomNav />
       </>
@@ -35,7 +35,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     return (
       <>
         <Navbar />
-        <main className="page-shell py-16 pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-center text-stone-500 lg:pb-16">Redirecting to sign in...</main>
+        <main className="page-shell py-16 pb-[calc(5.5rem+env(safe-area-inset-bottom))] text-center text-stone-500 lg:pb-16">Redirecting to sign in...</main>
         <Footer />
         <MobileBottomNav />
       </>
@@ -45,7 +45,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   return (
     <>
       <Navbar />
-      <main className="pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</main>
+      <main className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</main>
       <Footer />
       <MobileBottomNav />
     </>

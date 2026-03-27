@@ -6,7 +6,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <>
       <Navbar />
-      <main className="pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</main>
+      <main className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</main>
       <Footer />
       <MobileBottomNav />
     </>
