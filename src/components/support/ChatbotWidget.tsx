@@ -16,8 +16,10 @@ type ChatSession = {
   sessionId: string;
 };
 
-const MARKETPLACE_SUGGESTIONS = ["Browse listings", "How to list", "ID verification"];
-const LEARN_SUGGESTIONS = ["How to sell maize?", "Verify my profile", "Best practices for listing"];
+const MARKETPLACE_SUGGESTIONS = ["Browse listings", "How to list", "Contact support"];
+const LEARN_SUGGESTIONS = ["How to sell maize?", "Who started Agrisoko?", "Contact support"];
+const SUPPORT_EMAIL = "info@leadafrik.com";
+const SUPPORT_WHATSAPP_URL = "https://chat.whatsapp.com/HzCaV5YVz86CjwajiOHR5i";
 
 export default function ChatbotWidget() {
   const pathname = usePathname();
@@ -127,7 +129,14 @@ export default function ChatbotWidget() {
       const response = await fetch(API_ENDPOINTS.chat.escalate(chatSession.chatId), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reason: "User requested human support" }) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data?.success) throw new Error(data?.message || "Unable to escalate chat.");
-      setMessages((current) => [...current, { id: `${Date.now()}-escalate`, sender: "bot", message: "Our support team is available on WhatsApp. Use the link below and include the context from this chat so they can help faster.\n\nhttps://chat.whatsapp.com/HzCaV5YVz86CjwajiOHR5i" }]);
+      setMessages((current) => [
+        ...current,
+        {
+          id: `${Date.now()}-escalate`,
+          sender: "bot",
+          message: `You can reach our support team by email or WhatsApp.\n\nEmail: ${SUPPORT_EMAIL}\nWhatsApp: ${SUPPORT_WHATSAPP_URL}\n\nInclude the context from this chat so they can help faster.`,
+        },
+      ]);
     } catch (escalateError: any) {
       setError(escalateError?.message || "Unable to escalate chat.");
     } finally {
@@ -159,7 +168,7 @@ export default function ChatbotWidget() {
           style={btnStyle}
           onMouseDown={onDragStart}
           onTouchStart={onDragStart}
-          onClick={() => { if (!dragState.current.dragging) setIsOpen(true); }}
+          onClick={() => { if (!dragState.current.dragging) { setPos({ x: 0, y: 0 }); setIsOpen(true); } }}
           className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-terra-500 text-white shadow-[0_18px_40px_-18px_rgba(120,83,47,0.7)] transition hover:bg-terra-600 select-none"
           aria-label="Open support chat"
         >
@@ -230,8 +239,8 @@ export default function ChatbotWidget() {
               </button>
             </div>
             <div className="mt-3 flex items-center justify-between gap-3">
-              <p className="text-xs text-stone-500">Need a person? We can move you to WhatsApp support.</p>
-              <button type="button" onClick={() => void escalate()} className="text-xs font-semibold text-terra-600 hover:text-terra-700">Talk to support</button>
+              <p className="text-xs text-stone-500">Need a person? Email {SUPPORT_EMAIL} or continue on WhatsApp.</p>
+              <button type="button" onClick={() => void escalate()} className="text-xs font-semibold text-terra-600 hover:text-terra-700">Contact support</button>
             </div>
           </div>
         </div>

@@ -35,9 +35,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.title,
       description: post.excerpt,
       type: "article",
+      url: `https://www.agrisoko254.com/learn/insights/${params.slug}`,
       publishedTime: post.publishedAt ?? undefined,
       images: post.coverImage ? [post.coverImage] : [],
       tags: post.tags,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt,
+      images: post.coverImage ? [post.coverImage] : [],
     },
     alternates: {
       canonical: `https://www.agrisoko254.com/learn/insights/${params.slug}`,
@@ -150,9 +157,12 @@ export default async function LearnInsightDetailPage({ params }: Props) {
           <div className="mt-12 rounded-[28px] border border-terra-200 bg-terra-50 p-6">
             <h2 className="text-xl font-bold text-stone-900">Move from insight into action</h2>
             <p className="mt-3 text-sm leading-relaxed text-stone-600">
-              Use the marketplace once you are ready to buy, sell, or respond to live demand.
+              Use live price boards, the marketplace, and buyer demand once you are ready to act.
             </p>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <Link href="/market-intelligence" className="primary-button">
+                Check price intelligence
+              </Link>
               <Link href="/browse" className="primary-button">
                 Browse listings
               </Link>

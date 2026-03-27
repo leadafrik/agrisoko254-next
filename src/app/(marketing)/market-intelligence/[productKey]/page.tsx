@@ -138,6 +138,10 @@ export default async function CommodityIntelligencePage({ params }: Props) {
     ],
   };
 
+  const updatedLabel = product.lastUpdated
+    ? new Date(product.lastUpdated).toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" })
+    : "recently";
+
   return (
     <>
       <script
@@ -148,6 +152,35 @@ export default async function CommodityIntelligencePage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
+
+      {/* Server-rendered price summary — visible to crawlers and AI engines */}
+      <div className="max-w-4xl mx-auto px-4 pt-8 sm:px-6 lg:px-8">
+        <p className="text-sm text-stone-600 leading-relaxed">
+          <strong>{product.productName} price in Kenya ({new Date().getFullYear()}):</strong>{" "}
+          Board average KES {product.overallAverage.toLocaleString()} per {product.unit} across {product.approvedMarkets} markets.{" "}
+          {product.bestMarket && (
+            <>Best price: KES {product.bestMarket.avgPrice.toLocaleString()} at {product.bestMarket.marketName}, {product.bestMarket.county}. </>
+          )}
+          {product.weakestMarket && (
+            <>Lowest signal: KES {product.weakestMarket.avgPrice.toLocaleString()} at {product.weakestMarket.marketName}. </>
+          )}
+          Based on {product.submissionsCount} reviewed field reports. Updated {updatedLabel}.
+        </p>
+        {product.insight && (
+          <p className="mt-2 text-sm text-stone-500 italic">{product.insight}</p>
+        )}
+        {product.markets && product.markets.length > 0 && (
+          <ul className="mt-3 sr-only">
+            {product.markets.map((m) => (
+              <li key={m.marketKey}>
+                {m.marketName}, {m.county}: KES {m.avgPrice.toLocaleString()} per {product.unit}
+                {m.notes ? ` — ${m.notes}` : ""}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       <CommodityIntelligenceExplorer initialProduct={product} initialHistory={history} />
     </>
   );

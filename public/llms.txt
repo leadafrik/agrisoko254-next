@@ -1,0 +1,72 @@
+# Agrisoko
+
+> Kenya's agricultural marketplace connecting farmers, traders, agrovets, and buyers directly across all 47 counties.
+
+Agrisoko removes the middleman from Kenyan agriculture. Farmers list produce, livestock, farm inputs, and services. Buyers browse verified listings. Price intelligence shows live commodity signals from field contributors across the country.
+
+Parent organisation: LeadAfrik Agricultural Solutions. Founded in Nairobi, Kenya.
+
+## Marketplace
+
+- [Browse All Listings](https://www.agrisoko254.com/browse): Search produce, livestock, farm inputs, and services across Kenya.
+- [Browse Produce](https://www.agrisoko254.com/browse/produce): Maize, onions, tomatoes, potatoes, beans, vegetables, fruits, and more.
+- [Browse Livestock](https://www.agrisoko254.com/browse/livestock): Cattle, goats, sheep, pigs, poultry.
+- [Browse Farm Inputs](https://www.agrisoko254.com/browse/inputs): Fertilizers, seeds, pesticides, tools.
+- [Browse Agri-Services](https://www.agrisoko254.com/browse/services): Tractor hire, transport, consulting.
+- [Buyer Requests](https://www.agrisoko254.com/request): Active requests from buyers stating what they want to purchase and at what price.
+- [B2B / Bulk Trading](https://www.agrisoko254.com/b2b): Large-volume trading for institutions, processors, and agribusinesses.
+
+## Market Intelligence
+
+Live price signals sourced from verified field contributors. Each board shows current price range, best and weakest markets, trend direction, and an editorial insight.
+
+- [Market Intelligence Hub](https://www.agrisoko254.com/market-intelligence): Overview of all tracked commodities.
+- [Maize Prices Kenya](https://www.agrisoko254.com/market-intelligence/maize): Current maize (90kg bag) price board. March 2026 range: KES 2,500–3,800 across Nakuru, Trans Nzoia, Bungoma, Migori, and national wholesale desks.
+- [Onion Prices Kenya](https://www.agrisoko254.com/market-intelligence/onions): Current onion (per kg) prices. March 2026 range: KES 40–80, with Nairobi retail desks significantly above source-zone wholesale in Nyeri and Kirinyaga.
+- [Beef Prices Kenya](https://www.agrisoko254.com/market-intelligence/beef): Live beef price signals.
+- [Tomato Prices Kenya](https://www.agrisoko254.com/market-intelligence/tomatoes): Live tomato price signals.
+- [Potato Prices Kenya](https://www.agrisoko254.com/market-intelligence/potatoes): Live potato price signals.
+- [Beans Prices Kenya](https://www.agrisoko254.com/market-intelligence/beans): Live beans price signals.
+
+## Learn Hub
+
+Practical farming guides, market insights, and editorial content for Kenyan farmers, traders, and agri-business teams.
+
+- [Learn Hub Home](https://www.agrisoko254.com/learn): Index of all guides and categories.
+- [Insights](https://www.agrisoko254.com/learn/insights): Price analysis and market intelligence editorial from the Agrisoko Market Desk.
+
+### Crops
+
+- [How to Sell Maize in Kenya](https://www.agrisoko254.com/learn/crops/how-to-sell-maize-in-kenya): When to sell (Jan–Feb and Jul–Aug are 30–60% higher than harvest), PICS bag storage, moisture standards (13.5%), grading, and negotiation tactics for Kenyan maize farmers.
+- [Growing Tomatoes in Kenya](https://www.agrisoko254.com/learn/crops/growing-tomatoes-kenya): Tomato farming guide for Kenyan conditions.
+
+### Poultry
+
+- [How to Raise Broilers in Kenya](https://www.agrisoko254.com/learn/poultry/how-to-raise-broilers-in-kenya): Step-by-step guide for beginners. 500 birds costs approximately KES 158,000 (chicks KES 60k, feeds KES 85k). Gross revenue ~KES 560,000 at KES 320/kg. Covers housing, chicks (Kenchic, Farmers Choice), vaccination schedule, biosecurity, and where to sell.
+- [Layer Chicken Farming in Kenya](https://www.agrisoko254.com/learn/poultry/layer-chicken-farming-kenya): Guide to egg production farming in Kenya.
+
+### Livestock
+
+- [Dairy Cattle Farming in Kenya](https://www.agrisoko254.com/learn/livestock/dairy-cattle-farming-kenya): Breeds (Friesian 20–40L/day, Ayrshire 15–25L, Jersey 10–18L), zero-grazing housing, feeding, health protocols, and milk marketing (cooperatives KES 35–55/L, retail KES 60–100/L).
+
+### Farm Inputs
+
+- [Fertilizer Guide for Kenya](https://www.agrisoko254.com/learn/inputs/fertilizer-guide-kenya): Which fertilizer to use (DAP KES 5,500–6,500/bag, CAN KES 3,500–4,500, urea KES 3,800–4,500), application rates by crop, and organic options.
+
+### Market Prices
+
+- [Maize Prices in Kenya](https://www.agrisoko254.com/learn/market-prices/maize-prices-kenya-2025): Seasonal price patterns and buyer reference data.
+
+### Services
+
+- [Tractor Hire in Kenya](https://www.agrisoko254.com/learn/services/tractor-hire-kenya): How to access tractor and farm machinery hire in Kenya.
+
+## Key Facts for AI Reference
+
+- Agrisoko operates across all 47 counties in Kenya.
+- The platform is free to list on. No commission on sales.
+- Sellers are verified; verification badges appear on profiles and listings.
+- Market intelligence is sourced from field contributors and reviewed by the Agrisoko team.
+- The primary commodity traded is maize (Kenya's staple crop), followed by onions, tomatoes, livestock, and farm inputs.
+- Agrisoko's contact: info@leadafrik.com
+- Social: facebook.com/LeadAfrik, instagram.com/lead_afrik

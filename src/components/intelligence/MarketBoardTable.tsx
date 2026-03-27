@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, TrendingDown, TrendingUp } from "lucide-react";
+import { MapPin, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import type {
   IntelligenceMarket,
   IntelligenceProductSnapshot,
@@ -21,10 +21,7 @@ const trendIcon = {
   stable: Minus,
 } as const;
 
-const getSignalMeta = (
-  product: IntelligenceProductSnapshot,
-  market: IntelligenceMarket
-) => {
+const getSignalMeta = (product: IntelligenceProductSnapshot, market: IntelligenceMarket) => {
   if (market.marketKey === product.bestMarket?.marketKey) {
     return {
       label: "SELL",
@@ -72,18 +69,21 @@ export default function MarketBoardTable({
   className = "",
 }: Props) {
   return (
-    <div className={`surface-card p-0 overflow-hidden ${className}`}>
-      <div className="border-b border-stone-200 bg-stone-50 px-5 py-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500">
-          Market board
-        </p>
-        <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+    <div
+      className={`overflow-hidden rounded-[30px] border border-stone-200 bg-white shadow-[0_22px_54px_-40px_rgba(120,83,47,0.28)] ${className}`}
+    >
+      <div className="border-b border-stone-200 bg-[#fcf8f2] px-5 py-4 sm:px-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-stone-900">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500">
+              Market board
+            </p>
+            <h2 className="mt-2 text-2xl font-bold text-stone-900">
               Live prices for {product.productName.toLowerCase()}
             </h2>
-            <p className="mt-1 text-sm text-stone-500">
-              {markets.length} market{markets.length === 1 ? "" : "s"} in {product.unit}
+            <p className="mt-1 text-sm text-stone-600">
+              Tap a row to focus on that market. {markets.length} active market
+              {markets.length === 1 ? "" : "s"} in {product.unit}.
             </p>
           </div>
           <span className="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-semibold text-stone-600">
@@ -92,7 +92,7 @@ export default function MarketBoardTable({
         </div>
       </div>
 
-      <div className="hidden md:grid grid-cols-[1.7fr_0.9fr_0.8fr_0.8fr] gap-4 border-b border-stone-100 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-400">
+      <div className="hidden grid-cols-[1.7fr_0.9fr_0.8fr_0.9fr] gap-4 border-b border-stone-100 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-400 md:grid">
         <span>Market</span>
         <span className="text-right">Price</span>
         <span className="text-right">Trend</span>
@@ -105,20 +105,22 @@ export default function MarketBoardTable({
           const signal = getSignalMeta(product, market);
           const interactive = typeof onSelectMarket === "function";
           const selected = selectedMarketKey === market.marketKey;
-          const deltaPrefix = market.trendDirection === "up" ? "+" : market.trendDirection === "down" ? "-" : "";
+          const deltaPrefix =
+            market.trendDirection === "up" ? "+" : market.trendDirection === "down" ? "-" : "";
 
-          const rowClass = `w-full border-b border-stone-100 px-5 py-4 last:border-0 transition ${
+          const rowClass = `w-full border-b border-stone-100 px-5 py-4 text-left last:border-0 transition ${
             interactive ? "hover:bg-stone-50" : ""
-          } ${
-            selected ? "bg-terra-50" : "bg-white"
-          }`;
+          } ${selected ? "bg-terra-50/70 ring-1 ring-inset ring-terra-200" : "bg-white"}`;
 
           const content = (
             <>
-              <div className="hidden md:grid md:grid-cols-[1.7fr_0.9fr_0.8fr_0.8fr] md:items-center md:gap-4">
+              <div className="hidden md:grid md:grid-cols-[1.7fr_0.9fr_0.8fr_0.9fr] md:items-center md:gap-4">
                 <div>
                   <p className="text-sm font-semibold text-stone-900">{market.marketName}</p>
-                  <p className="mt-1 text-xs text-stone-500">{market.county}</p>
+                  <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-stone-500">
+                    <MapPin className="h-3.5 w-3.5 text-stone-400" />
+                    {market.county}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-stone-900">{formatKes(market.avgPrice)}</p>
@@ -132,9 +134,14 @@ export default function MarketBoardTable({
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${signal.cls}`}>
-                    {signal.label}
-                  </span>
+                  <div className="inline-flex flex-col items-end gap-1">
+                    <span
+                      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${signal.cls}`}
+                    >
+                      {signal.label}
+                    </span>
+                    <span className="text-[11px] text-stone-400">{signal.helper}</span>
+                  </div>
                 </div>
               </div>
 
@@ -142,9 +149,14 @@ export default function MarketBoardTable({
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-stone-900">{market.marketName}</p>
-                    <p className="mt-1 text-xs text-stone-500">{market.county}</p>
+                    <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-stone-500">
+                      <MapPin className="h-3.5 w-3.5 text-stone-400" />
+                      {market.county}
+                    </p>
                   </div>
-                  <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${signal.cls}`}>
+                  <span
+                    className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${signal.cls}`}
+                  >
                     {signal.label}
                   </span>
                 </div>
@@ -153,7 +165,9 @@ export default function MarketBoardTable({
                     <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">
                       Price
                     </p>
-                    <p className="mt-1 text-sm font-bold text-stone-900">{formatKes(market.avgPrice)}</p>
+                    <p className="mt-1 text-sm font-bold text-stone-900">
+                      {formatKes(market.avgPrice)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">

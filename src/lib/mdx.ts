@@ -1,8 +1,19 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { resolveLearnCoverImage } from "./content-images";
 
 const CONTENT_DIR = path.join(process.cwd(), "src", "content", "learn");
+
+export interface ArticleFaq {
+  q: string;
+  a: string;
+}
+
+export interface ArticleStep {
+  name: string;
+  text: string;
+}
 
 export interface ArticleFrontmatter {
   title: string;
@@ -14,6 +25,8 @@ export interface ArticleFrontmatter {
   tags: string[];
   coverImage?: string;
   featured?: boolean;
+  faqs?: ArticleFaq[];
+  steps?: ArticleStep[];
 }
 
 export interface Article extends ArticleFrontmatter {
@@ -31,7 +44,16 @@ export const getArticlesByCategory = (category: string): ArticleFrontmatter[] =>
       const slug = file.replace(/\.mdx$/, "");
       const raw  = fs.readFileSync(path.join(dir, file), "utf-8");
       const { data } = matter(raw);
-      return { ...(data as Omit<ArticleFrontmatter, "slug" | "category">), slug, category };
+      return {
+        ...(data as Omit<ArticleFrontmatter, "slug" | "category">),
+        slug,
+        category,
+        coverImage: resolveLearnCoverImage(
+          category,
+          slug,
+          typeof data.coverImage === "string" ? data.coverImage : null
+        ),
+      };
     })
     .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 };
@@ -42,7 +64,17 @@ export const getArticle = (category: string, slug: string): Article | null => {
 
   const raw = fs.readFileSync(filePath, "utf-8");
   const { data, content } = matter(raw);
-  return { ...(data as Omit<ArticleFrontmatter, "slug" | "category">), slug, category, content };
+  return {
+    ...(data as Omit<ArticleFrontmatter, "slug" | "category">),
+    slug,
+    category,
+    content,
+    coverImage: resolveLearnCoverImage(
+      category,
+      slug,
+      typeof data.coverImage === "string" ? data.coverImage : null
+    ),
+  };
 };
 
 export const getAllArticleSlugs = (): { category: string; slug: string }[] => {

@@ -1,15 +1,31 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { getInsightPosts } from "@/lib/content-hub";
 import InsightsSearch from "@/components/learn/InsightsSearch";
+import JsonLd from "@/components/seo/JsonLd";
+import { getInsightPosts } from "@/lib/content-hub";
 
 export const revalidate = 3600;
 
+const pageDescription =
+  "Editorial market updates, field observations, policy shifts, and Agrisoko commentary inside the Learn hub.";
+
 export const metadata: Metadata = {
   title: "Market Insights",
-  description:
-    "Editorial market updates, field observations, and Agrisoko commentary now live inside the Learn hub.",
+  description: pageDescription,
+  keywords: [
+    "Kenya agriculture insights",
+    "market intelligence Kenya",
+    "maize prices Kenya",
+    "farm policy Kenya",
+    "Agrisoko insights",
+  ],
+  openGraph: {
+    title: "Market Insights",
+    description: pageDescription,
+    type: "website",
+    url: "https://www.agrisoko254.com/learn/insights",
+  },
   alternates: { canonical: "https://www.agrisoko254.com/learn/insights" },
 };
 
@@ -28,8 +44,27 @@ export default async function LearnInsightsPage() {
   const featured = posts.find((post) => post.featured) ?? posts[0] ?? null;
   const rest = posts.filter((post) => post.slug !== featured?.slug);
 
+  const collectionSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Agrisoko Market Insights",
+    description: pageDescription,
+    url: "https://www.agrisoko254.com/learn/insights",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: posts.map((post, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: post.title,
+        url: `https://www.agrisoko254.com/learn/insights/${post.slug}`,
+      })),
+    },
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+      <JsonLd data={collectionSchema} />
+
       <div className="mb-10">
         <nav className="flex items-center gap-1 text-sm text-stone-500">
           <Link href="/learn" className="hover:text-forest-700">
@@ -51,6 +86,41 @@ export default async function LearnInsightsPage() {
         </p>
       </div>
 
+      <div className="mb-10 grid gap-4 rounded-[28px] border border-stone-200 bg-[#FFF9F5] p-5 sm:grid-cols-3">
+        <Link
+          href="/market-intelligence"
+          className="rounded-[22px] border border-stone-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-terra-200"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-terra-600">Price board</p>
+          <h2 className="mt-2 text-lg font-semibold text-stone-900">Check live market intelligence</h2>
+          <p className="mt-2 text-sm leading-relaxed text-stone-600">
+            Compare commodity averages, county spreads, and signals before you act.
+          </p>
+        </Link>
+
+        <Link
+          href="/browse"
+          className="rounded-[22px] border border-stone-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-terra-200"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-terra-600">Marketplace</p>
+          <h2 className="mt-2 text-lg font-semibold text-stone-900">Browse active listings</h2>
+          <p className="mt-2 text-sm leading-relaxed text-stone-600">
+            Move from editorial insight into live supply across Kenyan counties.
+          </p>
+        </Link>
+
+        <Link
+          href="/request"
+          className="rounded-[22px] border border-stone-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-terra-200"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-terra-600">Buyer demand</p>
+          <h2 className="mt-2 text-lg font-semibold text-stone-900">See what buyers need now</h2>
+          <p className="mt-2 text-sm leading-relaxed text-stone-600">
+            Cross-check commentary against current buy requests and demand signals.
+          </p>
+        </Link>
+      </div>
+
       {featured ? (
         <Link
           href={`/learn/insights/${featured.slug}`}
@@ -61,14 +131,18 @@ export default async function LearnInsightsPage() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
                 Featured insight
               </p>
-              <h2 className="mt-4 text-3xl font-bold text-stone-900 transition group-hover:text-terra-700 sm:text-4xl">{featured.title}</h2>
+              <h2 className="mt-4 text-3xl font-bold text-stone-900 transition group-hover:text-terra-700 sm:text-4xl">
+                {featured.title}
+              </h2>
               <p className="mt-4 max-w-2xl text-base leading-relaxed text-stone-600">
                 {featured.excerpt || "Agrisoko editorial insight."}
               </p>
               <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-stone-400">
                 {featured.readTimeMinutes ? <span>{featured.readTimeMinutes} min read</span> : null}
                 <span>{formatInsightDate(featured.publishedAt)}</span>
-                {featured.authorName ? <span className="font-medium text-stone-600">{featured.authorName}</span> : null}
+                {featured.authorName ? (
+                  <span className="font-medium text-stone-600">{featured.authorName}</span>
+                ) : null}
               </div>
             </div>
 
@@ -89,15 +163,18 @@ export default async function LearnInsightsPage() {
         </Link>
       ) : (
         <div className="rounded-[28px] border border-stone-200 bg-white p-12 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-400">Coming soon</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-400">
+            Coming soon
+          </p>
           <p className="mt-3 text-xl font-semibold text-stone-700">No insights published yet</p>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-stone-500">
-            The first article published from the admin panel will appear here automatically as the featured insight.
+            The first article published from the admin panel will appear here automatically as the
+            featured insight.
           </p>
         </div>
       )}
 
-      {rest.length > 0 ? (
+      {rest.length ? (
         <section className="mt-10">
           <InsightsSearch posts={rest} />
         </section>

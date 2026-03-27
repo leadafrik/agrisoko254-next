@@ -94,6 +94,69 @@ const websiteSchema = {
   },
 };
 
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is Agrisoko?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Agrisoko is Kenya's agricultural marketplace for buying and selling produce, livestock, farm inputs, and agri-services directly across all 47 counties. It connects farmers, traders, agrovets, and buyers without middlemen and provides live price intelligence for key commodities.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is Agrisoko free to use?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. Listing produce, livestock, farm inputs, or services on Agrisoko is free. Farmers and sellers can create a listing in minutes without paying a fee.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Which counties does Agrisoko cover in Kenya?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Agrisoko operates across all 47 counties in Kenya. Active trading is concentrated in Nairobi, Nakuru, Kiambu, Meru, Kisumu, Eldoret, Machakos, and the broader Rift Valley and Central regions.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What can I buy on Agrisoko?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "You can buy produce (maize, tomatoes, onions, potatoes, beans, vegetables, fruits), livestock (cattle, goats, sheep, pigs, poultry), farm inputs (fertilizers, seeds, pesticides, tools), and agri-services such as tractor hire, transport, and consulting.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How does market intelligence work on Agrisoko?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Agrisoko's market intelligence shows live price signals for key commodities — maize, onions, tomatoes, beef, and more — sourced from verified field contributors across Kenya. Each product page shows the current price range, best and weakest markets, trend direction, and an editorial insight explaining what the signals mean for farmers and buyers.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How do I sell maize or other produce on Agrisoko?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Create a free account, then post a listing with your product name, quantity, price, county, and a description of quality and delivery terms. Interested buyers contact you directly through the platform.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Does Agrisoko verify sellers?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. Agrisoko has a verification system for sellers. Verified badges are shown on profiles and listings to indicate identity has been confirmed, which helps buyers trade with greater confidence.",
+      },
+    },
+  ],
+};
+
 const categoryIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   produce: Leaf,
   livestock: Beef,
@@ -163,6 +226,7 @@ export default async function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Navbar />
       <main>
 

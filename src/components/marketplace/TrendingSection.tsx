@@ -15,7 +15,7 @@ import {
   isVerifiedProfile,
   normalizeMarketplaceListing,
 } from "@/lib/marketplace";
-import { Zap, TrendingUp } from "lucide-react";
+import { Zap, TrendingUp, MapPin } from "lucide-react";
 
 interface Props {
   category?: string;
@@ -122,7 +122,8 @@ export default function TrendingSection({ category }: Props) {
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-terra-600">{typeLabel}</span>
                   </div>
                   {location && (
-                    <span className="shrink-0 truncate rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[10px] font-medium text-stone-500">
+                    <span className="inline-flex max-w-full shrink-0 items-center gap-1 truncate rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[10px] font-medium text-stone-500">
+                      <MapPin className="h-3 w-3 shrink-0 text-stone-400" />
                       {location}
                     </span>
                   )}

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Eye, Bookmark, MessageCircle, ShoppingCart, Zap } from "lucide-react";
+import { Eye, Bookmark, MessageCircle, ShoppingCart, Zap, MapPin } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import {
   formatLastActive,
@@ -105,7 +105,8 @@ export default function ListingCard({
               {typeLabel || category?.shortLabel || "Listing"}
             </p>
             {location && (
-              <span className="truncate rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[10px] font-medium text-stone-500">
+              <span className="inline-flex max-w-full items-center gap-1 truncate rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[10px] font-medium text-stone-500">
+                <MapPin className="h-3 w-3 shrink-0 text-stone-400" />
                 {location}
               </span>
             )}
@@ -184,7 +185,10 @@ export default function ListingCard({
 
         <div className="mt-3 space-y-1">
           {location ? (
-            <p className="truncate text-[11px] text-stone-500">{location}</p>
+            <p className="inline-flex max-w-full items-center gap-1.5 truncate text-[11px] text-stone-500">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-stone-400" />
+              <span className="truncate">{location}</span>
+            </p>
           ) : null}
           <p className="text-[11px] font-medium text-stone-600">{deliveryLabel}</p>
         </div>

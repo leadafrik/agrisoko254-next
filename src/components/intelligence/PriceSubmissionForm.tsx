@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import CommodityQuickPicker from "@/components/intelligence/CommodityQuickPicker";
 import DecisionSnapshotCard from "@/components/intelligence/DecisionSnapshotCard";
 import IntelligenceStatusStrip from "@/components/intelligence/IntelligenceStatusStrip";
@@ -68,7 +68,7 @@ const getCategoryFromProductKey = (productKey?: string): IntelligenceCategory =>
 };
 
 export default function PriceSubmissionForm({ defaults, initialOverview }: Props) {
-  const { isAuthenticated, user } = useAuth();
+  const { user } = useAuth();
   const [overview, setOverview] = useState<IntelligenceOverview>(
     initialOverview || getFallbackIntelligenceOverview()
   );
@@ -90,6 +90,8 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState<SubmissionState | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showContact, setShowContact] = useState(Boolean(user?.phone || user?.fullName || user?.name));
 
   const selectedProduct =
     TRACKED_INTELLIGENCE_PRODUCTS.find((product) => product.key === form.productKey) ||
@@ -148,6 +150,12 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
       contributorName: current.contributorName || user?.fullName || user?.name || "",
       contributorPhone: current.contributorPhone || user?.phone || "",
     }));
+  }, [user?.fullName, user?.name, user?.phone]);
+
+  useEffect(() => {
+    if (user?.phone || user?.fullName || user?.name) {
+      setShowContact(true);
+    }
   }, [user?.fullName, user?.name, user?.phone]);
 
   useEffect(() => {
@@ -221,9 +229,9 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
           unit: form.unit,
           price: Number(form.price),
           observationDate: form.observationDate,
-          notes: form.notes,
-          contributorName: form.contributorName,
-          contributorPhone: form.contributorPhone,
+          notes: form.notes.trim() || undefined,
+          contributorName: form.contributorName.trim() || undefined,
+          contributorPhone: form.contributorPhone.trim() || undefined,
         }),
       });
 
@@ -403,6 +411,22 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
 
       <div className="mt-8 rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_20px_60px_-36px_rgba(120,83,47,0.3)] sm:p-8">
         <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
+                Low-friction reporting
+              </p>
+              <h2 className="mt-2 text-2xl font-bold text-stone-900">Share one clean price</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-600">
+                Start with the market and price. Date, notes, and contact details are optional unless
+                you want to add more context.
+              </p>
+            </div>
+            <div className="rounded-[22px] border border-stone-200 bg-[#faf7f2] px-4 py-3 text-sm text-stone-600">
+              Unit: <span className="font-semibold text-stone-900">{form.unit}</span>
+            </div>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <label>
               <span className="field-label">Product</span>
@@ -459,19 +483,6 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
               />
             </label>
             <label>
-              <span className="field-label">Unit</span>
-              <input
-                value={form.unit}
-                onChange={(event) => setForm((current) => ({ ...current, unit: event.target.value }))}
-                className="field-input"
-                placeholder="90kg bag"
-                required
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label>
               <span className="field-label">Price (KES)</span>
               <input
                 type="number"
@@ -484,55 +495,119 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
                 required
               />
             </label>
-            <label>
-              <span className="field-label">Observed on</span>
-              <input
-                type="date"
-                value={form.observationDate}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, observationDate: event.target.value }))
-                }
-                className="field-input"
-                required
-              />
-            </label>
           </div>
 
-          <label>
-            <span className="field-label">Notes - optional</span>
-            <textarea
-              value={form.notes}
-              onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
-              className="field-textarea min-h-[80px]"
-              placeholder="Oversupply, premium grade, transport pressure, buyer shortage..."
-            />
-          </label>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label>
-              <span className="field-label">Your name</span>
-              <input
-                value={form.contributorName}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, contributorName: event.target.value }))
-                }
-                className="field-input"
-                placeholder="Your name"
-                required={!isAuthenticated && !form.contributorPhone}
-              />
-            </label>
-            <label>
-              <span className="field-label">Phone for verification</span>
-              <input
-                value={form.contributorPhone}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, contributorPhone: event.target.value }))
-                }
-                className="field-input"
-                placeholder="+254712345678"
-              />
-            </label>
+          <div className="grid gap-3 rounded-[24px] border border-stone-200 bg-[#fcf8f2] p-4 sm:grid-cols-2">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+                Selected market
+              </p>
+              <p className="mt-2 text-base font-semibold text-stone-900">{form.marketName}</p>
+              <p className="mt-1 text-sm text-stone-600">{form.county}</p>
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+                Current board average
+              </p>
+              <p className="mt-2 text-base font-semibold text-stone-900">
+                {formatKes(selectedSnapshot.overallAverage)}
+              </p>
+              <p className="mt-1 text-sm text-stone-600">
+                Use the board as context, then report what you are seeing now.
+              </p>
+            </div>
           </div>
+
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced((current) => !current)}
+              className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-600 transition hover:border-terra-200 hover:text-terra-700"
+            >
+              {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {showAdvanced ? "Hide extra details" : "Add notes or change date"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowContact((current) => !current)}
+              className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-600 transition hover:border-terra-200 hover:text-terra-700"
+            >
+              {showContact ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {showContact ? "Hide contact details" : "Add contact details"}
+            </button>
+          </div>
+
+          {showAdvanced ? (
+            <div className="grid gap-4 rounded-[24px] border border-stone-200 bg-[#fcf8f2] p-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label>
+                  <span className="field-label">Observed on</span>
+                  <input
+                    type="date"
+                    value={form.observationDate}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, observationDate: event.target.value }))
+                    }
+                    className="field-input"
+                    required
+                  />
+                </label>
+                <label>
+                  <span className="field-label">Unit</span>
+                  <input
+                    value={form.unit}
+                    onChange={(event) => setForm((current) => ({ ...current, unit: event.target.value }))}
+                    className="field-input"
+                    placeholder="90kg bag"
+                    required
+                  />
+                </label>
+              </div>
+
+              <label>
+                <span className="field-label">Notes - optional</span>
+                <textarea
+                  value={form.notes}
+                  onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
+                  className="field-textarea min-h-[80px]"
+                  placeholder="Oversupply, premium grade, transport pressure, buyer shortage..."
+                />
+              </label>
+            </div>
+          ) : null}
+
+          {showContact ? (
+            <div className="grid gap-4 rounded-[24px] border border-stone-200 bg-[#fcf8f2] p-4">
+              <p className="text-sm leading-relaxed text-stone-600">
+                Contact details are optional. They only help if the Agrisoko team needs to verify a
+                price or follow up with you.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label>
+                  <span className="field-label">Your name - optional</span>
+                  <input
+                    value={form.contributorName}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, contributorName: event.target.value }))
+                    }
+                    className="field-input"
+                    placeholder="Your name"
+                  />
+                </label>
+                <label>
+                  <span className="field-label">Phone - optional</span>
+                  <input
+                    value={form.contributorPhone}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, contributorPhone: event.target.value }))
+                    }
+                    className="field-input"
+                    placeholder="+254712345678"
+                  />
+                </label>
+              </div>
+            </div>
+          ) : null}
 
           {error ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -540,9 +615,14 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
             </div>
           ) : null}
 
-          <button type="submit" disabled={saving} className="primary-button w-full">
-            {saving ? "Submitting..." : "Submit price report"}
-          </button>
+          <div className="space-y-3">
+            <button type="submit" disabled={saving} className="primary-button w-full">
+              {saving ? "Submitting..." : "Share this price"}
+            </button>
+            <p className="text-center text-sm text-stone-500">
+              You can submit anonymously. Adding a name or phone is optional.
+            </p>
+          </div>
         </form>
       </div>
 

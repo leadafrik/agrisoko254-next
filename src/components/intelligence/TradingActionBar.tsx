@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowRightLeft, PlusCircle } from "lucide-react";
 import InvitePriceButton from "@/components/intelligence/InvitePriceButton";
 
 type Props = {
@@ -28,10 +29,11 @@ export default function TradingActionBar({
 }: Props) {
   return (
     <div
-      className={`sticky bottom-4 z-20 mt-8 rounded-[24px] border border-stone-200 bg-white/90 p-3 shadow-[0_22px_55px_-34px_rgba(28,25,23,0.4)] backdrop-blur md:static md:bg-white ${className}`}
+      className={`sticky bottom-4 z-20 rounded-[26px] border border-stone-200 bg-white/94 p-3 shadow-[0_22px_55px_-34px_rgba(28,25,23,0.35)] backdrop-blur md:static md:border-0 md:bg-transparent md:p-0 md:shadow-none ${className}`}
     >
       <div className="grid gap-3 md:grid-cols-3">
-        <Link href={submitHref} className="primary-button w-full justify-center">
+        <Link href={submitHref} className="primary-button w-full justify-center gap-2">
+          <PlusCircle className="h-4 w-4" />
           {submitLabel}
         </Link>
         {invite ? (
@@ -46,7 +48,8 @@ export default function TradingActionBar({
         ) : (
           <div />
         )}
-        <Link href={compareHref} className="secondary-button w-full justify-center">
+        <Link href={compareHref} className="secondary-button w-full justify-center gap-2">
+          <ArrowRightLeft className="h-4 w-4" />
           {compareLabel}
         </Link>
       </div>
