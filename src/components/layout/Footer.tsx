@@ -36,7 +36,7 @@ const ODPC_URL = "https://www.odpc.go.ke";
 
 export default function Footer() {
   return (
-    <footer className="mt-20 border-t border-stone-200 bg-[#f4ede3]">
+    <footer className="mt-20 border-t border-stone-200 bg-[#f4ede3] pb-24 lg:pb-0">
       <div className="page-shell py-12">
         <div className="grid gap-10 xl:grid-cols-[1.2fr_0.8fr_0.8fr_0.95fr]">
           <div>
