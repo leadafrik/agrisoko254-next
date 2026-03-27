@@ -8,6 +8,7 @@ import IntelligenceStatusStrip from "@/components/intelligence/IntelligenceStatu
 import MarketBoardTable from "@/components/intelligence/MarketBoardTable";
 import MarketPulsePanel from "@/components/intelligence/MarketPulsePanel";
 import ShareIntelligenceSnapshotButton from "@/components/intelligence/ShareIntelligenceSnapshotButton";
+import PriceSubmitModal from "@/components/intelligence/PriceSubmitModal";
 import TradingActionBar from "@/components/intelligence/TradingActionBar";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 import {
@@ -75,6 +76,7 @@ export default function CommodityIntelligenceExplorer({
   );
   const [historyMode, setHistoryMode] = useState<HistoryMode>("market");
   const [refreshing, setRefreshing] = useState(false);
+  const [submitOpen, setSubmitOpen] = useState(false);
 
   const countyOptions = Array.from(new Set(product.markets.map((market) => market.county))).sort();
 
@@ -251,6 +253,7 @@ export default function CommodityIntelligenceExplorer({
 
       <TradingActionBar
         submitHref={`/market-intelligence/submit?product=${product.productKey}`}
+        onSubmitClick={() => setSubmitOpen(true)}
         compareHref="/market-intelligence"
         compareLabel="All commodities"
         invite={{
@@ -260,6 +263,11 @@ export default function CommodityIntelligenceExplorer({
           marketName: focusMarket?.marketName,
           unit: product.unit,
         }}
+      />
+      <PriceSubmitModal
+        open={submitOpen}
+        onClose={() => setSubmitOpen(false)}
+        defaultProductKey={product.productKey}
       />
 
       <div className="mt-8 flex flex-wrap items-center gap-2">

@@ -33,6 +33,7 @@ import {
   normalizeIntelligenceOverview,
 } from "@/lib/market-intelligence";
 import LivePricePulse from "@/components/intelligence/LivePricePulse";
+import SharePriceButton from "@/components/intelligence/SharePriceButton";
 
 export const revalidate = 180;
 
@@ -375,12 +376,7 @@ export default async function HomePage() {
                         ? "Starter board while live submissions build"
                         : "Built from approved field submissions"}
                     </span>
-                    <Link
-                      href="/market-intelligence/submit"
-                      className="font-semibold text-amber-400 transition hover:text-amber-300"
-                    >
-                      Share a price →
-                    </Link>
+                    <SharePriceButton className="font-semibold text-amber-400 transition hover:text-amber-300" />
                   </div>
                 </div>
               </div>

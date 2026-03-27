@@ -10,6 +10,7 @@ import MarketBoardTable from "@/components/intelligence/MarketBoardTable";
 import MarketPulsePanel from "@/components/intelligence/MarketPulsePanel";
 import ShareIntelligenceSnapshotButton from "@/components/intelligence/ShareIntelligenceSnapshotButton";
 import SharePricePrompt from "@/components/intelligence/SharePricePrompt";
+import PriceSubmitModal from "@/components/intelligence/PriceSubmitModal";
 import TradingActionBar from "@/components/intelligence/TradingActionBar";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 import {
@@ -55,6 +56,7 @@ export default function MarketIntelligenceExplorer({ initialOverview }: Props) {
   const [selectedMarketKey, setSelectedMarketKey] = useState("");
   const [countyFilter, setCountyFilter] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
+  const [submitOpen, setSubmitOpen] = useState(false);
 
   const boards: Record<IntelligenceCategory, IntelligenceProductSnapshot[]> = {
     produce: overview.produceBoard,
@@ -274,6 +276,7 @@ export default function MarketIntelligenceExplorer({ initialOverview }: Props) {
                   <TradingActionBar
                     className="md:rounded-[28px] md:border md:border-stone-200 md:bg-white md:p-4 md:shadow-[0_20px_48px_-40px_rgba(120,83,47,0.28)]"
                     submitHref={`/market-intelligence/submit?product=${scopedProduct.productKey}`}
+                    onSubmitClick={() => setSubmitOpen(true)}
                     compareHref={`/market-intelligence/${scopedProduct.productKey}`}
                     invite={{
                       productKey: scopedProduct.productKey,
@@ -282,6 +285,11 @@ export default function MarketIntelligenceExplorer({ initialOverview }: Props) {
                       marketName: focusMarket?.marketName,
                       unit: scopedProduct.unit,
                     }}
+                  />
+                  <PriceSubmitModal
+                    open={submitOpen}
+                    onClose={() => setSubmitOpen(false)}
+                    defaultProductKey={scopedProduct.productKey}
                   />
                   <div className="rounded-[28px] border border-stone-200 bg-[#fcf8f2] p-5 text-sm leading-relaxed text-stone-600">
                     <div className="flex items-center gap-2 text-stone-900">

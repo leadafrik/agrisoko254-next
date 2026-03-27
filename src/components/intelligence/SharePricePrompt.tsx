@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BellRing, X } from "lucide-react";
+import PriceSubmitModal from "@/components/intelligence/PriceSubmitModal";
 
 type Props = {
   productKey: string;
@@ -14,6 +14,7 @@ const DISMISS_WINDOW_MS = 12 * 60 * 60 * 1000;
 
 export default function SharePricePrompt({ productKey, productName }: Props) {
   const [open, setOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -37,48 +38,56 @@ export default function SharePricePrompt({ productKey, productName }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-x-4 bottom-5 z-30 md:inset-auto md:right-6 md:bottom-6 md:w-[380px]">
-      <div className="rounded-[28px] border border-stone-200 bg-white p-5 shadow-[0_26px_64px_-34px_rgba(28,25,23,0.35)]">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="rounded-full bg-terra-100 p-2 text-terra-700">
-              <BellRing className="h-4 w-4" />
+    <>
+      <div className="fixed inset-x-4 bottom-5 z-30 md:inset-auto md:right-6 md:bottom-6 md:w-[380px]">
+        <div className="rounded-[28px] border border-stone-200 bg-white p-5 shadow-[0_26px_64px_-34px_rgba(28,25,23,0.35)]">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-terra-100 p-2 text-terra-700">
+                <BellRing className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-stone-900">
+                  Can you share today&apos;s {productName.toLowerCase()} price?
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-stone-600">
+                  One clean report helps make the board more useful for other farmers and buyers.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-stone-900">
-                Can you share today&apos;s {productName.toLowerCase()} price?
-              </p>
-              <p className="mt-1 text-sm leading-relaxed text-stone-600">
-                One clean report helps make the board more useful for other farmers and buyers.
-              </p>
-            </div>
+            <button
+              type="button"
+              onClick={handleDismiss}
+              className="rounded-full p-1 text-stone-400 transition hover:bg-stone-100 hover:text-stone-700"
+              aria-label="Close share price prompt"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={handleDismiss}
-            className="rounded-full p-1 text-stone-400 transition hover:bg-stone-100 hover:text-stone-700"
-            aria-label="Close share price prompt"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
 
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-          <Link
-            href={`/market-intelligence/submit?product=${productKey}`}
-            className="primary-button w-full justify-center"
-          >
-            Share a price
-          </Link>
-          <button
-            type="button"
-            onClick={handleDismiss}
-            className="secondary-button w-full justify-center"
-          >
-            Maybe later
-          </button>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => { setOpen(false); setModalOpen(true); }}
+              className="primary-button w-full justify-center"
+            >
+              Share a price
+            </button>
+            <button
+              type="button"
+              onClick={handleDismiss}
+              className="secondary-button w-full justify-center"
+            >
+              Maybe later
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+      <PriceSubmitModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        defaultProductKey={productKey}
+      />
+    </>
   );
 }
