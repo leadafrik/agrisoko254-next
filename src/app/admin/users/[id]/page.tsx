@@ -17,7 +17,7 @@ import {
 import { adminApiRequest, apiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 import { buildMarketplaceCards, MarketplaceCard } from "@/lib/marketplace-cards";
-import { normalizeKenyanPhone } from "@/utils/phone";
+import { normalizeKenyanPhone } from "@/lib/phone";
 
 type AdminUserDetail = {
   _id: string;

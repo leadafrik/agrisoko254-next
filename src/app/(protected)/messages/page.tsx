@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -125,7 +126,15 @@ function Ticks({ mine, read }: { mine: boolean; read: boolean }) {
 function Avatar({ name, src, size = "md" }: { name?: string; src?: string; size?: "sm" | "md" }) {
   const dim = size === "sm" ? "h-8 w-8 text-xs" : "h-11 w-11 text-sm";
   if (src) {
-    return <img src={src} alt={name ?? ""} className={`${dim} rounded-full object-cover flex-shrink-0`} />;
+    return (
+      <Image
+        src={src}
+        alt={name ?? ""}
+        width={size === "sm" ? 32 : 44}
+        height={size === "sm" ? 32 : 44}
+        className={`${dim} rounded-full object-cover flex-shrink-0`}
+      />
+    );
   }
   return (
     <div className={`${dim} flex flex-shrink-0 items-center justify-center rounded-full bg-terra-100 font-semibold text-terra-700`}>
