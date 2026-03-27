@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { apiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 import {
+  clearAdminSession,
   clearSession,
   getAdminToken,
   getStoredUser,
@@ -128,7 +129,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     try {
       const payload = await apiRequest(API_ENDPOINTS.auth.me);
-      setUser(payload?.user ?? payload ?? null);
+      const nextUser = payload?.user ?? payload ?? null;
+      const userToken = getToken();
+      const adminToken = getAdminToken();
+
+      if (nextUser && userToken) {
+        storeSession({ token: userToken, user: nextUser });
+      } else if (nextUser && adminToken) {
+        const isAdminUser = nextUser.role === "admin" || nextUser.role === "super_admin";
+        if (isAdminUser) {
+          storeAdminSession(adminToken, nextUser);
+        } else {
+          clearAdminSession();
+        }
+      }
+
+      setUser(nextUser);
       setToken(existingToken);
     } catch {
       clearSession();

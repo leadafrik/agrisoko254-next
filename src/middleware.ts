@@ -9,7 +9,8 @@ export function middleware(req: NextRequest) {
   if (PUBLIC_ADMIN_PATHS.some((p) => pathname.startsWith(p))) return NextResponse.next();
 
   const adminToken = req.cookies.get("agrisoko_admin_token")?.value;
-  if (!adminToken) {
+  const authToken = req.cookies.get("agrisoko_auth_token")?.value;
+  if (!adminToken && !authToken) {
     const url = new URL("/admin/login", req.url);
     url.searchParams.set("from", pathname);
     return NextResponse.redirect(url);
