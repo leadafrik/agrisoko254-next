@@ -87,7 +87,12 @@ function LoginForm() {
       });
       await beginOtp(phone || trimmed.toLowerCase(), Boolean(phone), res?.message || "Account created. Enter the code we sent.");
     } catch (err: any) {
-      setError(err?.message || "Unable to create account.");
+      const msg: string = err?.message || "Unable to create account.";
+      if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already exists")) {
+        setError("__duplicate_email__");
+      } else {
+        setError(msg);
+      }
     } finally { setLoading(false); }
   };
 
@@ -133,11 +138,25 @@ function LoginForm() {
           )}
 
           {/* Alerts */}
-          {error && (
+          {error === "__duplicate_email__" ? (
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <p className="font-semibold">You already have an account with this email.</p>
+              <p className="mt-1">
+                If you signed up with Google, use the Google button above.{" "}
+                <button
+                  type="button"
+                  onClick={() => switchMode("login")}
+                  className="font-semibold underline underline-offset-2 hover:text-amber-900"
+                >
+                  Sign in instead
+                </button>
+              </p>
+            </div>
+          ) : error ? (
             <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}
             </div>
-          )}
+          ) : null}
           {info && (
             <div className="mt-4 rounded-2xl border border-forest-200 bg-forest-50 px-4 py-3 text-sm text-forest-700">
               {info}
