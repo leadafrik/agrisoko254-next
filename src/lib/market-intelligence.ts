@@ -150,6 +150,17 @@ export const TRACKED_INTELLIGENCE_PRODUCTS = [
   { key: "korn-kali", name: "Korn Kali", category: "inputs", defaultUnit: "50kg bag" },
 ] as const;
 
+export const ALL_KENYA_COUNTIES = [
+  "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo-Marakwet", "Embu",
+  "Garissa", "Homa Bay", "Isiolo", "Kajiado", "Kakamega", "Kericho",
+  "Kiambu", "Kilifi", "Kirinyaga", "Kisii", "Kisumu", "Kitui",
+  "Kwale", "Laikipia", "Lamu", "Machakos", "Makueni", "Mandera",
+  "Marsabit", "Meru", "Migori", "Mombasa", "Murang'a", "Nairobi",
+  "Nakuru", "Nandi", "Narok", "Nyamira", "Nyandarua", "Nyeri",
+  "Samburu", "Siaya", "Taita-Taveta", "Tana River", "Tharaka-Nithi",
+  "Trans Nzoia", "Turkana", "Uasin Gishu", "Vihiga", "Wajir", "West Pokot",
+] as const;
+
 export const TRACKED_INTELLIGENCE_MARKETS = [
   { county: "Nairobi", marketName: "Wakulima Market" },
   { county: "Uasin Gishu", marketName: "Eldoret Market" },

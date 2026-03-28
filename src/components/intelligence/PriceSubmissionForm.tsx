@@ -15,6 +15,7 @@ import {
   type IntelligenceCategory,
   type IntelligenceOverview,
   type IntelligenceSubmissionFeedback,
+  ALL_KENYA_COUNTIES,
   TRACKED_INTELLIGENCE_MARKETS,
   TRACKED_INTELLIGENCE_PRODUCTS,
   formatKes,
@@ -141,13 +142,7 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
     (product) => product.category === activeCategory
   );
 
-  const countyList = Array.from(
-    new Set(
-      selectedSnapshot.markets.length
-        ? selectedSnapshot.markets.map((market) => market.county)
-        : TRACKED_INTELLIGENCE_MARKETS.map((market) => market.county)
-    )
-  ).sort();
+  const countyList = ALL_KENYA_COUNTIES;
 
   const statusItems = [
     { label: "Board average", value: formatKes(selectedSnapshot.overallAverage) },
