@@ -182,6 +182,10 @@ export default function CreateBuyerRequestForm() {
     [form.constituency, form.county]
   );
   const qualityScore = useMemo(() => computeRequestScore(form), [form]);
+  const selectedCategoryOption = useMemo(
+    () => CATEGORY_OPTIONS.find((option) => option.value === form.category),
+    [form.category]
+  );
 
   useEffect(() => {
     if (!form.county) {
@@ -404,22 +408,28 @@ export default function CreateBuyerRequestForm() {
           <div className="mt-8 grid gap-6">
             {step === 1 ? (
               <>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {CATEGORY_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setForm((current) => ({ ...current, category: option.value }))}
-                      className={`rounded-[24px] border px-5 py-5 text-left transition ${
-                        form.category === option.value
-                          ? "border-terra-300 bg-terra-50"
-                          : "border-stone-200 bg-stone-50 hover:border-terra-200"
-                      }`}
-                    >
-                      <p className="font-semibold text-stone-900">{option.label}</p>
-                      <p className="mt-1 text-sm text-stone-600">{option.hint}</p>
-                    </button>
-                  ))}
+                <div>
+                  <label className="field-label">Request category</label>
+                  <select
+                    value={form.category}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        category: event.target.value as RequestCategory,
+                      }))
+                    }
+                    className="field-select"
+                  >
+                    {CATEGORY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-2 text-sm text-stone-500">
+                    {selectedCategoryOption?.hint ||
+                      "Choose the type that best matches what you are sourcing."}
+                  </p>
                 </div>
 
                 <div>

@@ -44,6 +44,7 @@ type CreateListingCategoryFormProps = {
 };
 
 type DeliveryScope = "countrywide" | "within_county" | "negotiable";
+type ListingEntryMode = "single" | "batch";
 
 type FormState = {
   title: string;
@@ -63,7 +64,32 @@ type FormState = {
   images: File[];
 };
 
+type BatchListingItem = {
+  id: string;
+  title: string;
+  description: string;
+  price: string;
+  quantity: string;
+  unit: string;
+  deliveryScope: DeliveryScope;
+  images: File[];
+};
+
+type SuccessState =
+  | {
+      mode: "single";
+      publishStatus: string;
+      listingId?: string;
+    }
+  | {
+      mode: "batch";
+      createdCount: number;
+      activeCount: number;
+      failedCount: number;
+    };
+
 const MAX_IMAGES = 5;
+const MAX_BATCH_ITEMS = 20;
 
 const DELIVERY_SCOPE_OPTIONS: Array<{
   value: DeliveryScope;
@@ -91,6 +117,20 @@ const buildImagePreview = (file: File) => ({
   key: `${file.name}-${file.size}-${file.lastModified}`,
   file,
   url: URL.createObjectURL(file),
+});
+
+const createBatchItem = (
+  unit: string,
+  deliveryScope: DeliveryScope = "negotiable"
+): BatchListingItem => ({
+  id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  title: "",
+  description: "",
+  price: "",
+  quantity: "",
+  unit,
+  deliveryScope,
+  images: [],
 });
 
 export default function CreateListingCategoryForm({
@@ -122,11 +162,13 @@ export default function CreateListingCategoryForm({
     images: [],
   });
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState<{
-    publishStatus: string;
-    listingId?: string;
-  } | null>(null);
+  const [entryMode, setEntryMode] = useState<ListingEntryMode>("single");
+  const [batchItems, setBatchItems] = useState<BatchListingItem[]>([
+    createBatchItem(details.unitOptions[0], "negotiable"),
+  ]);
+  const [success, setSuccess] = useState<SuccessState | null>(null);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const constituencyOptions = useMemo(
     () => (form.county ? getConstituenciesByCounty(form.county) : []),
@@ -144,12 +186,23 @@ export default function CreateListingCategoryForm({
     () => form.images.map((file) => buildImagePreview(file)),
     [form.images]
   );
+  const batchPreviewGroups = useMemo(
+    () =>
+      batchItems.map((item) => ({
+        id: item.id,
+        previews: item.images.map((file) => buildImagePreview(file)),
+      })),
+    [batchItems]
+  );
 
   useEffect(() => {
     return () => {
       previewImages.forEach((item) => URL.revokeObjectURL(item.url));
+      batchPreviewGroups.forEach((group) => {
+        group.previews.forEach((item) => URL.revokeObjectURL(item.url));
+      });
     };
-  }, [previewImages]);
+  }, [batchPreviewGroups, previewImages]);
 
   useEffect(() => {
     if (!user?.phone && !user?.email) return;
@@ -195,6 +248,30 @@ export default function CreateListingCategoryForm({
       .filter(Boolean)
       .join(", ");
   }, [form.approximateLocation, form.constituency, form.county, form.ward]);
+  const batchReadiness = useMemo(() => {
+    const itemCount = batchItems.length;
+    const readyCount = batchItems.filter((item) => {
+      return (
+        item.title.trim().length >= 4 &&
+        item.description.trim().length >= 20 &&
+        !!item.price.trim() &&
+        item.images.length > 0
+      );
+    }).length;
+    return { itemCount, readyCount };
+  }, [batchItems]);
+  const batchImageCount = useMemo(
+    () => batchItems.reduce((sum, item) => sum + item.images.length, 0),
+    [batchItems]
+  );
+  const batchTitlePreview = useMemo(
+    () =>
+      batchItems
+        .map((item) => item.title.trim())
+        .filter(Boolean)
+        .slice(0, 4),
+    [batchItems]
+  );
 
   const handleChange = (field: keyof FormState, value: string | File[]) => {
     setForm((current) => ({ ...current, [field]: value } as FormState));
@@ -214,6 +291,59 @@ export default function CreateListingCategoryForm({
       ...current,
       images: current.images.filter((_, imageIndex) => imageIndex !== index),
     }));
+  };
+
+  const updateBatchItem = (
+    itemId: string,
+    updater: (item: BatchListingItem) => BatchListingItem
+  ) => {
+    setBatchItems((current) =>
+      current.map((item) => (item.id === itemId ? updater(item) : item))
+    );
+  };
+
+  const handleBatchImageSelection = (
+    itemId: string,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+
+    updateBatchItem(itemId, (item) => ({
+      ...item,
+      images: [...item.images, ...files].slice(0, MAX_IMAGES),
+    }));
+    event.target.value = "";
+  };
+
+  const removeBatchImage = (itemId: string, imageIndex: number) => {
+    updateBatchItem(itemId, (item) => ({
+      ...item,
+      images: item.images.filter((_, currentIndex) => currentIndex !== imageIndex),
+    }));
+  };
+
+  const addBatchItem = () => {
+    setError("");
+    setSuccess(null);
+    if (batchItems.length >= MAX_BATCH_ITEMS) {
+      setError(
+        `You can add up to ${MAX_BATCH_ITEMS} items in one batch. Submit this batch, then add more.`
+      );
+      return;
+    }
+
+    setBatchItems((current) => [
+      ...current,
+      createBatchItem(details.unitOptions[0], form.deliveryScope),
+    ]);
+  };
+
+  const removeBatchItem = (itemId: string) => {
+    setBatchItems((current) => {
+      if (current.length <= 1) return current;
+      return current.filter((item) => item.id !== itemId);
+    });
   };
 
   const handlePlaceSelected = (selection: GooglePlaceSelection) => {
@@ -246,35 +376,60 @@ export default function CreateListingCategoryForm({
     }));
   };
 
-  const validate = () => {
+  const validateSharedFields = () => {
+    if (!form.county.trim()) return "Choose the county where the listing is based.";
+    if (!form.contact.trim()) return "Add the phone or email buyers should use.";
+    return "";
+  };
+
+  const validateSingle = () => {
+    const sharedError = validateSharedFields();
+    if (sharedError) return sharedError;
     if (!form.title.trim()) return "Add a clear listing title.";
     if (!form.description.trim()) return "Describe what you are listing clearly.";
     if (!form.price.trim()) return "Set the listing price.";
-    if (!form.county.trim()) return "Choose the county where the listing is based.";
-    if (!form.contact.trim()) return "Add the phone or email buyers should use.";
     if (!form.images.length) return "Upload at least one real image for the listing.";
     return "";
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError("");
-    setSuccess(null);
-
-    const validationMessage = validate();
-    if (validationMessage) {
-      setError(validationMessage);
-      return;
+  const validateBatch = () => {
+    const sharedError = validateSharedFields();
+    if (sharedError) return sharedError;
+    if (!batchItems.length) return "Add at least one item to the batch.";
+    if (batchItems.length > MAX_BATCH_ITEMS) {
+      return `A batch can contain up to ${MAX_BATCH_ITEMS} items.`;
     }
 
+    for (let index = 0; index < batchItems.length; index += 1) {
+      const item = batchItems[index];
+      const itemLabel = `Item ${index + 1}`;
+
+      if (!item.title.trim()) return `${itemLabel}: add a listing title.`;
+      if (!item.description.trim()) return `${itemLabel}: add a description.`;
+      if (!item.price.trim()) return `${itemLabel}: set the listing price.`;
+      if (!item.images.length) return `${itemLabel}: upload at least one real image.`;
+    }
+
+    return "";
+  };
+
+  const postListing = async (payloadItem: {
+    title: string;
+    description: string;
+    price: string;
+    quantity: string;
+    unit: string;
+    deliveryScope: DeliveryScope;
+    images: File[];
+  }) => {
     const payload = new FormData();
-    payload.append("title", form.title.trim());
-    payload.append("description", form.description.trim());
+    payload.append("title", payloadItem.title.trim());
+    payload.append("description", payloadItem.description.trim());
     payload.append("category", category.apiCategory);
     payload.append("listingType", "sell");
-    payload.append("price", form.price.trim());
-    if (form.quantity.trim()) payload.append("quantity", form.quantity.trim());
-    if (form.unit.trim()) payload.append("unit", form.unit.trim());
+    payload.append("price", payloadItem.price.trim());
+    if (payloadItem.quantity.trim()) payload.append("quantity", payloadItem.quantity.trim());
+    if (payloadItem.unit.trim()) payload.append("unit", payloadItem.unit.trim());
     payload.append("county", form.county.trim());
     if (form.constituency.trim()) payload.append("constituency", form.constituency.trim());
     if (form.ward.trim()) payload.append("ward", form.ward.trim());
@@ -286,34 +441,121 @@ export default function CreateListingCategoryForm({
       payload.append("longitude", String(form.longitude));
     }
     if (form.availableFrom) payload.append("availableFrom", form.availableFrom);
-    payload.append("deliveryScope", form.deliveryScope);
+    payload.append("deliveryScope", payloadItem.deliveryScope);
     payload.append("contact", form.contact.trim());
-    form.images.forEach((image) => payload.append("images", image));
+    payloadItem.images.forEach((image) => payload.append("images", image));
+
+    const response = await apiRequest(API_ENDPOINTS.products.create, {
+      method: "POST",
+      body: payload,
+    });
+
+    const listing = response?.data ?? response;
+    return {
+      publishStatus: String(listing?.publishStatus || "").toLowerCase(),
+      listingId: listing?._id ? String(listing._id) : undefined,
+    };
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError("");
+    setSuccess(null);
+
+    const validationMessage = entryMode === "batch" ? validateBatch() : validateSingle();
+    if (validationMessage) {
+      setError(validationMessage);
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
-      const response = await apiRequest(API_ENDPOINTS.products.create, {
-        method: "POST",
-        body: payload,
-      });
+      if (entryMode === "single") {
+        const result = await postListing({
+          title: form.title,
+          description: form.description,
+          price: form.price,
+          quantity: form.quantity,
+          unit: form.unit,
+          deliveryScope: form.deliveryScope,
+          images: form.images,
+        });
 
-      const listing = response?.data ?? response;
-      const publishStatus = String(listing?.publishStatus || "").toLowerCase();
-      const listingId = listing?._id ? String(listing._id) : undefined;
+        setSuccess({
+          mode: "single",
+          publishStatus: result.publishStatus,
+          listingId: result.listingId,
+        });
+
+        if (result.publishStatus === "active" && result.listingId) {
+          startTransition(() => {
+            router.push(`/listings/${result.listingId}`);
+          });
+        }
+
+        return;
+      }
+
+      const failedItems: Array<{ item: BatchListingItem; errorMsg: string }> = [];
+      let createdCount = 0;
+      let activeCount = 0;
+
+      for (const item of batchItems) {
+        try {
+          const result = await postListing({
+            title: item.title,
+            description: item.description,
+            price: item.price,
+            quantity: item.quantity,
+            unit: item.unit,
+            deliveryScope: item.deliveryScope,
+            images: item.images,
+          });
+
+          createdCount += 1;
+          if (result.publishStatus === "active") {
+            activeCount += 1;
+          }
+        } catch (submitError: any) {
+          failedItems.push({
+            item,
+            errorMsg:
+              submitError?.message || "Unable to publish one of the batch listings right now.",
+          });
+        }
+      }
+
+      if (createdCount === 0) {
+        setError(failedItems[0]?.errorMsg || "Unable to publish the batch right now.");
+        return;
+      }
 
       setSuccess({
-        publishStatus,
-        listingId,
+        mode: "batch",
+        createdCount,
+        activeCount,
+        failedCount: failedItems.length,
       });
 
-      if (publishStatus === "active") {
-        startTransition(() => {
-          if (listingId) {
-            router.push(`/listings/${listingId}`);
-          }
-        });
+      if (failedItems.length > 0) {
+        setBatchItems(
+          failedItems.map((entry) => ({
+            ...entry.item,
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          }))
+        );
+        setError(
+          `${failedItems.length} item(s) still need fixes before they can be published. Update the remaining cards and submit again.`
+        );
+        return;
       }
+
+      setBatchItems([createBatchItem(details.unitOptions[0], form.deliveryScope)]);
     } catch (submitError: any) {
       setError(submitError?.message || "Unable to publish the listing right now.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -358,6 +600,47 @@ export default function CreateListingCategoryForm({
             </div>
           </div>
 
+          <div className="mt-6 rounded-[24px] border border-stone-200 bg-white p-5">
+            <p className="text-sm font-semibold text-stone-900">Listing mode</p>
+            <p className="mt-1 text-sm leading-relaxed text-stone-600">
+              Single is fastest for one listing. Batch restores the old PWA pattern and lets you
+              publish up to {MAX_BATCH_ITEMS} listings in one go while sharing the same location and
+              contact details.
+            </p>
+            <div className="mt-4 inline-flex rounded-full border border-stone-200 bg-stone-50 p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setEntryMode("single");
+                  setError("");
+                  setSuccess(null);
+                }}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  entryMode === "single"
+                    ? "bg-terra-500 text-white"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                Single
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEntryMode("batch");
+                  setError("");
+                  setSuccess(null);
+                }}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  entryMode === "batch"
+                    ? "bg-terra-500 text-white"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                Batch
+              </button>
+            </div>
+          </div>
+
           {error ? (
             <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
               {error}
@@ -369,32 +652,55 @@ export default function CreateListingCategoryForm({
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-5 w-5" />
                 <div>
-                  <p className="font-semibold">
-                    {success.publishStatus === "active"
-                      ? "Listing published successfully."
-                      : "Listing submitted for review."}
-                  </p>
-                  <p className="mt-1 leading-relaxed">
-                    {success.publishStatus === "active"
-                      ? "The listing is now live in the marketplace."
-                      : "Admin approval is required before this listing becomes public because the seller profile is not fully verified yet."}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-3">
-                    {success.publishStatus === "active" && success.listingId ? (
-                      <Link href={`/listings/${success.listingId}`} className="text-sm font-semibold text-forest-800 underline underline-offset-2">
-                        View live listing
-                      </Link>
-                    ) : null}
-                    <Link href="/browse" className="text-sm font-semibold text-forest-800 underline underline-offset-2">
-                      Browse marketplace
-                    </Link>
-                  </div>
+                  {success.mode === "single" ? (
+                    <>
+                      <p className="font-semibold">
+                        {success.publishStatus === "active"
+                          ? "Listing published successfully."
+                          : "Listing submitted for review."}
+                      </p>
+                      <p className="mt-1 leading-relaxed">
+                        {success.publishStatus === "active"
+                          ? "The listing is now live in the marketplace."
+                          : "Admin approval is required before this listing becomes public because the seller profile is not fully verified yet."}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-3">
+                        {success.publishStatus === "active" && success.listingId ? (
+                          <Link href={`/listings/${success.listingId}`} className="text-sm font-semibold text-forest-800 underline underline-offset-2">
+                            View live listing
+                          </Link>
+                        ) : null}
+                        <Link href="/browse" className="text-sm font-semibold text-forest-800 underline underline-offset-2">
+                          Browse marketplace
+                        </Link>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-semibold">
+                        {success.createdCount} listing(s) submitted successfully.
+                      </p>
+                      <p className="mt-1 leading-relaxed">
+                        {success.activeCount > 0 ? `${success.activeCount} are already live. ` : ""}
+                        {success.failedCount > 0
+                          ? `${success.failedCount} item(s) still need fixes before they can be published.`
+                          : "The full batch went through successfully."}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-3">
+                        <Link href="/browse" className="text-sm font-semibold text-forest-800 underline underline-offset-2">
+                          Browse marketplace
+                        </Link>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
           ) : null}
 
           <div className="mt-8 grid gap-6">
+            {entryMode === "single" ? (
+              <>
             <div>
               <label className="field-label">Listing title</label>
               <input
@@ -462,6 +768,237 @@ export default function CreateListingCategoryForm({
               </div>
             </div>
 
+              </>
+            ) : (
+              <div className="space-y-5">
+                <div className="rounded-[24px] border border-stone-200 bg-stone-50 px-4 py-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-stone-900">
+                        {batchReadiness.readyCount}/{batchReadiness.itemCount} items ready
+                      </p>
+                      <p className="mt-1 text-sm text-stone-600">
+                        Each item needs a title, description, price, and at least one real image.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addBatchItem}
+                      className="secondary-button"
+                      disabled={batchItems.length >= MAX_BATCH_ITEMS}
+                    >
+                      Add item
+                    </button>
+                  </div>
+                </div>
+
+                {batchItems.map((item, index) => {
+                  const previews =
+                    batchPreviewGroups.find((group) => group.id === item.id)?.previews || [];
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="rounded-[24px] border border-stone-200 bg-white p-5"
+                    >
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-stone-900">
+                            Item {index + 1}
+                          </p>
+                          <p className="mt-1 text-sm text-stone-500">
+                            This becomes its own marketplace listing.
+                          </p>
+                        </div>
+                        {batchItems.length > 1 ? (
+                          <button
+                            type="button"
+                            onClick={() => removeBatchItem(item.id)}
+                            className="inline-flex items-center gap-1 rounded-full border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                          >
+                            <X className="h-4 w-4" />
+                            Remove
+                          </button>
+                        ) : null}
+                      </div>
+
+                      <div className="grid gap-5">
+                        <div>
+                          <label className="field-label">Listing title</label>
+                          <input
+                            type="text"
+                            value={item.title}
+                            onChange={(event) =>
+                              updateBatchItem(item.id, (current) => ({
+                                ...current,
+                                title: event.target.value,
+                              }))
+                            }
+                            placeholder={details.placeholderTitle}
+                            className="field-input"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="field-label">Description</label>
+                          <textarea
+                            value={item.description}
+                            onChange={(event) =>
+                              updateBatchItem(item.id, (current) => ({
+                                ...current,
+                                description: event.target.value,
+                              }))
+                            }
+                            placeholder={details.placeholderDescription}
+                            className="field-textarea"
+                          />
+                        </div>
+
+                        <div className="grid gap-5 md:grid-cols-4">
+                          <div>
+                            <label className="field-label">
+                              Price (KES){item.unit ? ` - per ${item.unit}` : ""}
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={item.price}
+                              onChange={(event) =>
+                                updateBatchItem(item.id, (current) => ({
+                                  ...current,
+                                  price: event.target.value,
+                                }))
+                              }
+                              placeholder="Example: 4500"
+                              className="field-input"
+                            />
+                          </div>
+                          <div>
+                            <label className="field-label">{details.quantityLabel}</label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="1"
+                              value={item.quantity}
+                              onChange={(event) =>
+                                updateBatchItem(item.id, (current) => ({
+                                  ...current,
+                                  quantity: event.target.value,
+                                }))
+                              }
+                              placeholder={details.quantityHint}
+                              className="field-input"
+                            />
+                          </div>
+                          <div>
+                            <label className="field-label">Unit</label>
+                            <select
+                              value={item.unit}
+                              onChange={(event) =>
+                                updateBatchItem(item.id, (current) => ({
+                                  ...current,
+                                  unit: event.target.value,
+                                }))
+                              }
+                              className="field-select"
+                            >
+                              {details.unitOptions.map((unit) => (
+                                <option key={unit} value={unit}>
+                                  {unit}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="field-label">Delivery scope</label>
+                            <select
+                              value={item.deliveryScope}
+                              onChange={(event) =>
+                                updateBatchItem(item.id, (current) => ({
+                                  ...current,
+                                  deliveryScope: event.target.value as DeliveryScope,
+                                }))
+                              }
+                              className="field-select"
+                            >
+                              {DELIVERY_SCOPE_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="mb-2 flex items-center justify-between gap-3">
+                            <label className="field-label">Listing images</label>
+                            <span className="text-xs text-stone-500">
+                              {item.images.length}/{MAX_IMAGES} uploaded
+                            </span>
+                          </div>
+                          <label className="flex cursor-pointer flex-col items-center justify-center rounded-[24px] border border-dashed border-stone-300 bg-stone-50 px-6 py-8 text-center transition hover:border-terra-300 hover:bg-white">
+                            <UploadCloud className="h-8 w-8 text-terra-600" />
+                            <p className="mt-3 text-sm font-semibold text-stone-900">
+                              Upload photos for this item
+                            </p>
+                            <p className="mt-1 text-xs text-stone-500">
+                              JPG, PNG, or WebP. Up to {MAX_IMAGES} images.
+                            </p>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              className="hidden"
+                              onChange={(event) => handleBatchImageSelection(item.id, event)}
+                            />
+                          </label>
+
+                          {previews.length > 0 ? (
+                            <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                              {previews.map((preview, imageIndex) => (
+                                <div
+                                  key={`${preview.key}-${imageIndex}`}
+                                  className="overflow-hidden rounded-[24px] border border-stone-200 bg-white"
+                                >
+                                  <div className="relative aspect-[4/3] bg-stone-100">
+                                    <Image
+                                      src={preview.url}
+                                      alt={`Batch upload ${index + 1}-${imageIndex + 1}`}
+                                      fill
+                                      sizes="(max-width: 1024px) 50vw, 33vw"
+                                      className="object-cover"
+                                      unoptimized
+                                    />
+                                  </div>
+                                  <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-stone-600">
+                                    <span className="truncate">{preview.file.name}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeBatchImage(item.id, imageIndex)}
+                                      className="inline-flex items-center gap-1 text-red-600 hover:text-red-700"
+                                    >
+                                      <X className="h-4 w-4" />
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="mt-4 rounded-[24px] border border-stone-200 bg-stone-50 px-4 py-5 text-sm text-stone-500">
+                              No photos uploaded yet. Each batch item needs its own real photos.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             <div className="rounded-[24px] border border-stone-200 bg-stone-50 p-5">
               <div className="flex items-start gap-3">
                 <MapPin className="mt-1 h-5 w-5 text-terra-600" />
@@ -469,6 +1006,7 @@ export default function CreateListingCategoryForm({
                   <h2 className="text-lg font-semibold text-stone-900">Location</h2>
                   <p className="mt-1 text-sm leading-relaxed text-stone-600">
                     County is required. Add a town or map pin so nearby buyers can find you faster.
+                    In batch mode, this applies to every listing in the batch.
                   </p>
                 </div>
               </div>
@@ -590,95 +1128,114 @@ export default function CreateListingCategoryForm({
                   required
                 />
               </div>
-              <div>
-                <label className="field-label">Delivery scope</label>
-                <select
-                  value={form.deliveryScope}
-                  onChange={(event) =>
-                    handleChange("deliveryScope", event.target.value as DeliveryScope)
-                  }
-                  className="field-select"
-                >
-                  {DELIVERY_SCOPE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-2 text-xs text-stone-500">
-                  {
-                    DELIVERY_SCOPE_OPTIONS.find(
-                      (option) => option.value === form.deliveryScope
-                    )?.helper
-                  }
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <label className="field-label">Listing images</label>
-                <span className="text-xs text-stone-500">
-                  {form.images.length}/{MAX_IMAGES} uploaded
-                </span>
-              </div>
-              <label className="flex cursor-pointer flex-col items-center justify-center rounded-[24px] border border-dashed border-stone-300 bg-stone-50 px-6 py-8 text-center transition hover:border-terra-300 hover:bg-white">
-                <UploadCloud className="h-8 w-8 text-terra-600" />
-                <p className="mt-3 text-sm font-semibold text-stone-900">
-                  Upload real photos, not URLs
-                </p>
-                <p className="mt-1 text-xs text-stone-500">
-                  JPG, PNG, or WebP. Up to {MAX_IMAGES} images.
-                </p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleImageSelection}
-                />
-              </label>
-
-              {previewImages.length > 0 ? (
-                <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {previewImages.map((item, index) => (
-                    <div
-                      key={item.key}
-                      className="overflow-hidden rounded-[24px] border border-stone-200 bg-white"
-                    >
-                      <div className="relative aspect-[4/3] bg-stone-100">
-                        <Image
-                          src={item.url}
-                          alt={`Listing upload ${index + 1}`}
-                          fill
-                          sizes="(max-width: 1024px) 50vw, 33vw"
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
-                      <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-stone-600">
-                        <span className="truncate">{item.file.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="inline-flex items-center gap-1 text-red-600 hover:text-red-700"
-                        >
-                          <X className="h-4 w-4" />
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+              {entryMode === "single" ? (
+                <div>
+                  <label className="field-label">Delivery scope</label>
+                  <select
+                    value={form.deliveryScope}
+                    onChange={(event) =>
+                      handleChange("deliveryScope", event.target.value as DeliveryScope)
+                    }
+                    className="field-select"
+                  >
+                    {DELIVERY_SCOPE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-2 text-xs text-stone-500">
+                    {
+                      DELIVERY_SCOPE_OPTIONS.find(
+                        (option) => option.value === form.deliveryScope
+                      )?.helper
+                    }
+                  </p>
                 </div>
               ) : (
-                <div className="mt-4 rounded-[24px] border border-stone-200 bg-stone-50 px-4 py-5 text-sm text-stone-500">
-                  No photos uploaded yet. Clear photos help buyers trust the listing faster.
+                <div className="rounded-[24px] border border-stone-200 bg-stone-50 px-4 py-4 text-sm text-stone-600">
+                  Delivery scope is set inside each batch item so you can vary it per listing when
+                  needed.
                 </div>
               )}
             </div>
 
-            <button type="submit" disabled={isPending} className="primary-button w-full">
-              {isPending ? "Publishing..." : "Publish listing"}
+            {entryMode === "single" ? (
+              <div>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <label className="field-label">Listing images</label>
+                  <span className="text-xs text-stone-500">
+                    {form.images.length}/{MAX_IMAGES} uploaded
+                  </span>
+                </div>
+                <label className="flex cursor-pointer flex-col items-center justify-center rounded-[24px] border border-dashed border-stone-300 bg-stone-50 px-6 py-8 text-center transition hover:border-terra-300 hover:bg-white">
+                  <UploadCloud className="h-8 w-8 text-terra-600" />
+                  <p className="mt-3 text-sm font-semibold text-stone-900">
+                    Upload real photos, not URLs
+                  </p>
+                  <p className="mt-1 text-xs text-stone-500">
+                    JPG, PNG, or WebP. Up to {MAX_IMAGES} images.
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleImageSelection}
+                  />
+                </label>
+
+                {previewImages.length > 0 ? (
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {previewImages.map((item, index) => (
+                      <div
+                        key={item.key}
+                        className="overflow-hidden rounded-[24px] border border-stone-200 bg-white"
+                      >
+                        <div className="relative aspect-[4/3] bg-stone-100">
+                          <Image
+                            src={item.url}
+                            alt={`Listing upload ${index + 1}`}
+                            fill
+                            sizes="(max-width: 1024px) 50vw, 33vw"
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                        <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-stone-600">
+                          <span className="truncate">{item.file.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="inline-flex items-center gap-1 text-red-600 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-4 rounded-[24px] border border-stone-200 bg-stone-50 px-4 py-5 text-sm text-stone-500">
+                    No photos uploaded yet. Clear photos help buyers trust the listing faster.
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={isSubmitting || isPending}
+              className="primary-button w-full"
+            >
+              {isSubmitting || isPending
+                ? entryMode === "batch"
+                  ? "Publishing batch..."
+                  : "Publishing..."
+                : entryMode === "batch"
+                ? "Publish batch listings"
+                : "Publish listing"}
             </button>
           </div>
         </form>
@@ -687,9 +1244,29 @@ export default function CreateListingCategoryForm({
           <div className="surface-card p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="section-kicker">Preview</p>
-                <p className="mt-3 text-sm font-semibold text-stone-900 xl:hidden">
+                <p className="section-kicker">
+                  {entryMode === "batch" ? "Batch summary" : "Preview"}
+                </p>
+                <p className="hidden">
                   {publishPreview} · {form.images.length} image{form.images.length === 1 ? "" : "s"}
+                </p>
+                <p className="hidden">
+                  {entryMode === "batch"
+                    ? `${batchReadiness.itemCount} item${
+                        batchReadiness.itemCount === 1 ? "" : "s"
+                      } · ${batchImageCount} image${batchImageCount === 1 ? "" : "s"}`
+                    : `${publishPreview} · ${form.images.length} image${
+                        form.images.length === 1 ? "" : "s"
+                      }`}
+                </p>
+                <p className="mt-3 text-sm font-semibold text-stone-900 xl:hidden">
+                  {entryMode === "batch"
+                    ? `${batchReadiness.itemCount} item${
+                        batchReadiness.itemCount === 1 ? "" : "s"
+                      } / ${batchImageCount} image${batchImageCount === 1 ? "" : "s"}`
+                    : `${publishPreview} / ${form.images.length} image${
+                        form.images.length === 1 ? "" : "s"
+                      }`}
                 </p>
               </div>
               <button
@@ -707,35 +1284,102 @@ export default function CreateListingCategoryForm({
               </button>
             </div>
             <div className={`${showMobilePreview ? "mt-4 block" : "hidden"} xl:mt-4 xl:block`}>
-              <h2 className="text-3xl font-bold text-stone-900">
-                {form.title.trim() || details.placeholderTitle}
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-stone-600">
-                {form.description.trim() || details.placeholderDescription}
-              </p>
-              <div className="mt-5 grid gap-3">
-                <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Price</p>
-                  <p className="mt-1 font-semibold text-stone-900">
-                    {publishPreview}
-                    {form.unit && form.price ? (
-                      <span className="ml-1 text-sm font-normal text-stone-500">per {form.unit}</span>
-                    ) : null}
+              {entryMode === "batch" ? (
+                <>
+                  <h2 className="text-3xl font-bold text-stone-900">
+                    {batchReadiness.itemCount} listing
+                    {batchReadiness.itemCount === 1 ? "" : "s"} in this batch
+                  </h2>
+                  <p className="mt-3 text-sm leading-relaxed text-stone-600">
+                    Each item publishes as its own marketplace listing while sharing the same
+                    contact details and location.
                   </p>
-                </div>
-                <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Coverage</p>
-                  <p className="mt-1 font-semibold text-stone-900">
-                    {locationPreview || "County and town not set yet"}
+                  <div className="mt-5 grid gap-3">
+                    <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">
+                        Ready
+                      </p>
+                      <p className="mt-1 font-semibold text-stone-900">
+                        {batchReadiness.readyCount}/{batchReadiness.itemCount} items ready
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">
+                        Coverage
+                      </p>
+                      <p className="mt-1 font-semibold text-stone-900">
+                        {locationPreview || "County and town not set yet"}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">
+                        Images
+                      </p>
+                      <p className="mt-1 font-semibold text-stone-900">
+                        {batchImageCount} image{batchImageCount === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-5 rounded-[24px] border border-stone-200 bg-white px-4 py-4">
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">
+                      Items in batch
+                    </p>
+                    {batchTitlePreview.length > 0 ? (
+                      <ul className="mt-3 space-y-2 text-sm text-stone-700">
+                        {batchTitlePreview.map((title) => (
+                          <li key={title} className="truncate">
+                            {title}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-3 text-sm text-stone-500">
+                        Add item titles and they will appear here.
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-3xl font-bold text-stone-900">
+                    {form.title.trim() || details.placeholderTitle}
+                  </h2>
+                  <p className="mt-3 text-sm leading-relaxed text-stone-600">
+                    {form.description.trim() || details.placeholderDescription}
                   </p>
-                </div>
-                <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Images</p>
-                  <p className="mt-1 font-semibold text-stone-900">
-                    {form.images.length} image{form.images.length === 1 ? "" : "s"}
-                  </p>
-                </div>
-              </div>
+                  <div className="mt-5 grid gap-3">
+                    <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">
+                        Price
+                      </p>
+                      <p className="mt-1 font-semibold text-stone-900">
+                        {publishPreview}
+                        {form.unit && form.price ? (
+                          <span className="ml-1 text-sm font-normal text-stone-500">
+                            per {form.unit}
+                          </span>
+                        ) : null}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">
+                        Coverage
+                      </p>
+                      <p className="mt-1 font-semibold text-stone-900">
+                        {locationPreview || "County and town not set yet"}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">
+                        Images
+                      </p>
+                      <p className="mt-1 font-semibold text-stone-900">
+                        {form.images.length} image{form.images.length === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
