@@ -6,7 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function B2BPage() {
   const { user } = useAuth();
-  const applyLink = user ? "/bulk" : `/login?mode=signup&redirect=${encodeURIComponent("/bulk")}`;
+  const portalLink = user ? "/b2b/dashboard" : "/b2b/login";
+  const applyLink = user ? "/b2b/dashboard" : `/b2b/register?from=${encodeURIComponent("/b2b/dashboard")}`;
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
@@ -21,6 +22,9 @@ export default function B2BPage() {
             Built for restaurants, schools, processors, and distributors. Buyers post clear demand. Sellers submit offers. You close with verifiable profiles.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Link href={portalLink} className="inline-flex min-h-[46px] items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
+              Open B2B portal
+            </Link>
             <Link href={applyLink} className="inline-flex min-h-[46px] items-center justify-center rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700">
               Apply for bulk access
             </Link>
