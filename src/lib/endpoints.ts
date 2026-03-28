@@ -57,7 +57,7 @@ export const API_ENDPOINTS = {
     byProduct: (productKey: string) =>
       `${API_BASE_URL}/market-intelligence/products/${productKey}`,
     history: (productKey: string) =>
-      `${API_BASE_URL}/market-intelligence/products/${productKey}/history`,
+      `${API_BASE_URL}/market-intelligence/products/${productKey}/history?days=1095`,
     submissions: `${API_BASE_URL}/market-intelligence/submissions`,
     admin: {
       submissions: `${API_BASE_URL}/admin/market-intelligence/submissions`,
