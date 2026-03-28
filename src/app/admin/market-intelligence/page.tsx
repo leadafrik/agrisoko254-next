@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 import {
+  ALL_KENYA_COUNTIES,
   TRACKED_INTELLIGENCE_MARKETS,
   TRACKED_INTELLIGENCE_PRODUCTS,
   formatIntelligenceDate,
@@ -57,6 +58,9 @@ export default function AdminMarketIntelligencePage() {
   );
   const [loading, setLoading] = useState(true);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [editingSubmission, setEditingSubmission] = useState<Submission | null>(null);
+  const [editForm, setEditForm] = useState<{ price: string; county: string; marketName: string; unit: string; notes: string; observationDate: string }>({ price: "", county: "", marketName: "", unit: "", notes: "", observationDate: "" });
+  const [editSaving, setEditSaving] = useState(false);
   const [form, setForm] = useState(defaultAdminForm);
   const [saving, setSaving] = useState(false);
   const [seedingBaseline, setSeedingBaseline] = useState<
@@ -135,6 +139,42 @@ export default function AdminMarketIntelligencePage() {
     }
   };
 
+  const openEdit = (submission: Submission) => {
+    setEditingSubmission(submission);
+    setEditForm({
+      price: String(submission.price),
+      county: submission.county,
+      marketName: submission.marketName,
+      unit: submission.unit,
+      notes: submission.notes,
+      observationDate: submission.observationDate?.slice(0, 10) ?? "",
+    });
+  };
+
+  const handleEditSave = async () => {
+    if (!editingSubmission) return;
+    setEditSaving(true);
+    try {
+      await adminApiRequest(API_ENDPOINTS.marketIntelligence.admin.edit(editingSubmission.id), {
+        method: "PATCH",
+        body: JSON.stringify({
+          price: Number(editForm.price),
+          county: editForm.county,
+          marketName: editForm.marketName,
+          unit: editForm.unit,
+          notes: editForm.notes,
+          observationDate: editForm.observationDate,
+        }),
+      });
+      setEditingSubmission(null);
+      await fetchSubmissions(statusFilter);
+    } catch {
+      // Keep modal open so admin can retry.
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   const handleSeedBaseline = async (
     commodity: "maize" | "onions" | "fertilizer" | "broilers"
   ) => {
@@ -169,6 +209,57 @@ export default function AdminMarketIntelligencePage() {
 
   return (
     <div>
+      {editingSubmission ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-lg rounded-[28px] border border-stone-200 bg-white p-6 shadow-2xl">
+            <h2 className="text-xl font-bold text-stone-900">Edit submission</h2>
+            <p className="mt-1 text-sm text-stone-500">
+              {editingSubmission.productName} · {editingSubmission.contributorName || "Unknown contributor"}
+            </p>
+            <div className="mt-5 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label>
+                  <span className="mb-1 block text-sm font-medium text-stone-700">Price (KES)</span>
+                  <input type="number" min="1" step="1" value={editForm.price} onChange={(e) => setEditForm((c) => ({ ...c, price: e.target.value }))} className="field-input font-bold" required />
+                </label>
+                <label>
+                  <span className="mb-1 block text-sm font-medium text-stone-700">Unit</span>
+                  <input value={editForm.unit} onChange={(e) => setEditForm((c) => ({ ...c, unit: e.target.value }))} className="field-input" required />
+                </label>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label>
+                  <span className="mb-1 block text-sm font-medium text-stone-700">County</span>
+                  <select value={editForm.county} onChange={(e) => setEditForm((c) => ({ ...c, county: e.target.value }))} className="field-select">
+                    {ALL_KENYA_COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span className="mb-1 block text-sm font-medium text-stone-700">Market name</span>
+                  <input value={editForm.marketName} onChange={(e) => setEditForm((c) => ({ ...c, marketName: e.target.value }))} className="field-input" required />
+                </label>
+              </div>
+              <label>
+                <span className="mb-1 block text-sm font-medium text-stone-700">Observation date</span>
+                <input type="date" value={editForm.observationDate} onChange={(e) => setEditForm((c) => ({ ...c, observationDate: e.target.value }))} className="field-input" />
+              </label>
+              <label>
+                <span className="mb-1 block text-sm font-medium text-stone-700">Notes</span>
+                <textarea value={editForm.notes} onChange={(e) => setEditForm((c) => ({ ...c, notes: e.target.value }))} className="field-textarea min-h-[60px]" />
+              </label>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button type="button" onClick={handleEditSave} disabled={editSaving} className="primary-button flex-1">
+                {editSaving ? "Saving..." : "Save changes"}
+              </button>
+              <button type="button" onClick={() => setEditingSubmission(null)} className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-600 hover:bg-stone-50">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-stone-900">Market Intelligence</h1>
@@ -493,6 +584,13 @@ export default function AdminMarketIntelligencePage() {
                           {submission.reviewStatus}
                         </span>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => openEdit(submission)}
+                        className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-600 transition hover:border-terra-200 hover:text-terra-700"
+                      >
+                        Edit
+                      </button>
                     </div>
                   </div>
                 </article>

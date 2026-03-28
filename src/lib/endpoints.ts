@@ -67,6 +67,8 @@ export const API_ENDPOINTS = {
       submissions: `${API_BASE_URL}/admin/market-intelligence/submissions`,
       review: (submissionId: string) =>
         `${API_BASE_URL}/admin/market-intelligence/submissions/${submissionId}/review`,
+      edit: (submissionId: string) =>
+        `${API_BASE_URL}/admin/market-intelligence/submissions/${submissionId}`,
       seedMaizeBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/maize-baseline`,
       seedOnionBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/onion-baseline`,
       seedFertilizerBaseline: `${API_BASE_URL}/admin/market-intelligence/seed/fertilizer-baseline`,
