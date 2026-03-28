@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
+import PasswordField from "@/components/auth/PasswordField";
 import { apiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 import { isLikelyPhoneNumber, normalizeKenyanPhone } from "@/lib/phone";
@@ -229,20 +230,20 @@ export default function ForgotPasswordPage() {
                     required
                     autoFocus
                   />
-                  <input
-                    type="password"
+                  <PasswordField
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="field-input"
                     placeholder="New password"
+                    autoComplete="new-password"
                     required
                   />
-                  <input
-                    type="password"
+                  <PasswordField
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="field-input"
                     placeholder="Confirm new password"
+                    autoComplete="new-password"
                     required
                   />
                   <p className="text-xs text-stone-500">{PASSWORD_HINT}</p>

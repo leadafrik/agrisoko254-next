@@ -16,10 +16,9 @@ export default function CreateListingPage() {
     <div className="page-shell py-10 sm:py-12">
       <section className="hero-panel p-6 sm:p-8">
         <p className="section-kicker">Create listing</p>
-        <h1 className="mt-4 text-4xl font-bold text-stone-900">Choose what you want to publish</h1>
+        <h1 className="mt-4 text-4xl font-bold text-stone-900">Choose your listing type</h1>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-stone-600">
-          Pick the right category first so the listing form stays focused, faster to complete, and
-          easier for buyers to understand.
+          Pick the category that best matches what you want to publish.
         </p>
       </section>
 
@@ -45,10 +44,9 @@ export default function CreateListingPage() {
 
       <section className="mt-8">
         <div className="soft-panel p-6">
-          <h2 className="text-2xl font-bold text-stone-900">Need demand instead of supply?</h2>
+          <h2 className="text-2xl font-bold text-stone-900">Need to buy instead?</h2>
           <p className="mt-3 text-sm leading-relaxed text-stone-600">
-            If you are sourcing instead of selling, use a buyer request so suppliers can respond to
-            what you actually need.
+            Post a buyer request and let suppliers respond.
           </p>
           <Link href="/request/new" className="primary-button mt-5">
             Post a buyer request

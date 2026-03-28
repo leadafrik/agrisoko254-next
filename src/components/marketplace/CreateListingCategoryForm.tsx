@@ -26,6 +26,8 @@ import {
 } from "@/utils/googleMaps";
 import {
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   ImagePlus,
   MapPin,
   ShieldCheck,
@@ -124,6 +126,7 @@ export default function CreateListingCategoryForm({
     publishStatus: string;
     listingId?: string;
   } | null>(null);
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
 
   const constituencyOptions = useMemo(
     () => (form.county ? getConstituenciesByCounty(form.county) : []),
@@ -329,8 +332,7 @@ export default function CreateListingCategoryForm({
           <p className="section-kicker">{category.label}</p>
           <h1 className="mt-4 text-4xl font-bold text-stone-900">{details.heading}</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
-            {details.intro} Upload actual photos, pin the location if you can, and keep the copy
-            practical so buyers know what is real.
+            {details.intro}
           </p>
 
           <div className="mt-6 rounded-[24px] border border-stone-200 bg-stone-50 p-4">
@@ -339,13 +341,13 @@ export default function CreateListingCategoryForm({
               <div className="text-sm text-stone-700">
                 <p className="font-semibold text-stone-900">
                   {verifiedSeller
-                    ? "Your profile is verified. Listings can go live immediately."
+                    ? "Your profile is verified. Your listing can go live immediately."
                     : "Your profile is not verified yet."}
                 </p>
                 <p className="mt-1 leading-relaxed text-stone-600">
                   {verifiedSeller
-                    ? "Admin approval is still available for moderation, but verified listings are eligible to publish straight away."
-                    : "Unverified listings are submitted for admin review. Keep the county accurate and the photos clear so approval is faster."}
+                    ? "Moderation may still review listings when needed."
+                    : "Your listing will go to review before it goes live."}
                 </p>
                 {!verifiedSeller ? (
                   <Link href="/verify" className="mt-3 inline-flex text-sm font-semibold text-terra-600 hover:text-terra-700">
@@ -466,8 +468,7 @@ export default function CreateListingCategoryForm({
                 <div className="min-w-0 flex-1">
                   <h2 className="text-lg font-semibold text-stone-900">Location</h2>
                   <p className="mt-1 text-sm leading-relaxed text-stone-600">
-                    County is required. Constituency and ward remain available, but the
-                    approximate location is the main matching signal for most marketplace use.
+                    County is required. Add a town or map pin so nearby buyers can find you faster.
                   </p>
                 </div>
               </div>
@@ -478,7 +479,7 @@ export default function CreateListingCategoryForm({
                   value={form.approximateLocation}
                   onChange={(value) => handleChange("approximateLocation", value)}
                   onPlaceSelected={handlePlaceSelected}
-                  helperText="Search a town, market, road, or landmark in Kenya. The form will try to auto-fill county, constituency, ward, and map coordinates."
+                  helperText="Search a town, market, road, or landmark."
                 />
 
                 <div className="grid gap-5 md:grid-cols-3">
@@ -671,8 +672,7 @@ export default function CreateListingCategoryForm({
                 </div>
               ) : (
                 <div className="mt-4 rounded-[24px] border border-stone-200 bg-stone-50 px-4 py-5 text-sm text-stone-500">
-                  No photos uploaded yet. Listings with clear images feel substantially more
-                  credible and convert faster.
+                  No photos uploaded yet. Clear photos help buyers trust the listing faster.
                 </div>
               )}
             </div>
@@ -685,56 +685,69 @@ export default function CreateListingCategoryForm({
 
         <aside className="space-y-6">
           <div className="surface-card p-6">
-            <p className="section-kicker">Preview</p>
-            <h2 className="mt-4 text-3xl font-bold text-stone-900">
-              {form.title.trim() || details.placeholderTitle}
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-stone-600">
-              {form.description.trim() || details.placeholderDescription}
-            </p>
-            <div className="mt-5 grid gap-3">
-              <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Price</p>
-                <p className="mt-1 font-semibold text-stone-900">
-                  {publishPreview}
-                  {form.unit && form.price ? (
-                    <span className="ml-1 text-sm font-normal text-stone-500">per {form.unit}</span>
-                  ) : null}
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="section-kicker">Preview</p>
+                <p className="mt-3 text-sm font-semibold text-stone-900 xl:hidden">
+                  {publishPreview} · {form.images.length} image{form.images.length === 1 ? "" : "s"}
                 </p>
               </div>
-              <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Coverage</p>
-                <p className="mt-1 font-semibold text-stone-900">
-                  {locationPreview || "County and town not set yet"}
-                </p>
-              </div>
-              <div className="rounded-2xl bg-stone-50 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Images</p>
-                <p className="mt-1 font-semibold text-stone-900">
-                  {form.images.length} image{form.images.length === 1 ? "" : "s"}
-                </p>
+              <button
+                type="button"
+                onClick={() => setShowMobilePreview((current) => !current)}
+                className="inline-flex items-center gap-2 rounded-full border border-stone-200 px-3 py-1.5 text-sm font-semibold text-stone-600 transition hover:border-terra-200 hover:text-terra-700 xl:hidden"
+                aria-expanded={showMobilePreview}
+              >
+                {showMobilePreview ? "Hide" : "Show"}
+                {showMobilePreview ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            <div className={`${showMobilePreview ? "mt-4 block" : "hidden"} xl:mt-4 xl:block`}>
+              <h2 className="text-3xl font-bold text-stone-900">
+                {form.title.trim() || details.placeholderTitle}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-stone-600">
+                {form.description.trim() || details.placeholderDescription}
+              </p>
+              <div className="mt-5 grid gap-3">
+                <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Price</p>
+                  <p className="mt-1 font-semibold text-stone-900">
+                    {publishPreview}
+                    {form.unit && form.price ? (
+                      <span className="ml-1 text-sm font-normal text-stone-500">per {form.unit}</span>
+                    ) : null}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Coverage</p>
+                  <p className="mt-1 font-semibold text-stone-900">
+                    {locationPreview || "County and town not set yet"}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Images</p>
+                  <p className="mt-1 font-semibold text-stone-900">
+                    {form.images.length} image{form.images.length === 1 ? "" : "s"}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="soft-panel p-6">
-            <h2 className="text-2xl font-bold text-stone-900">Why this structure works</h2>
-            <ul className="mt-4 space-y-3 text-sm leading-relaxed text-stone-600">
-              <li>Photos are uploaded directly, so the listing matches the PWA trust posture.</li>
-              <li>County remains structured, but town and map pin reduce location friction.</li>
-              <li>Verified profiles can publish immediately while unverified sellers go to admin review.</li>
-            </ul>
           </div>
 
           <div className="surface-card p-6">
             <div className="flex items-center gap-3">
               <ImagePlus className="h-5 w-5 text-terra-600" />
-              <h2 className="text-2xl font-bold text-stone-900">Good listing habits</h2>
+              <h2 className="text-2xl font-bold text-stone-900">Quick tips</h2>
             </div>
             <ul className="mt-4 space-y-3 text-sm leading-relaxed text-stone-600">
-              <li>Show actual stock or the exact item buyers will receive.</li>
-              <li>Use the town or trading centre buyers already know, not only internal admin geography.</li>
-              <li>State packaging, quality, timing, and delivery reality instead of generic marketing copy.</li>
+              <li>Use real photos of the actual stock or service.</li>
+              <li>Name the town or trading centre buyers already know.</li>
+              <li>State quantity, quality, timing, and delivery clearly.</li>
             </ul>
           </div>
         </aside>

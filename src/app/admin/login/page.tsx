@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ShieldCheck, ArrowRight, LogOut } from "lucide-react";
 import FacebookLoginButton from "@/components/auth/FacebookLoginButton";
 import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
+import PasswordField from "@/components/auth/PasswordField";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
@@ -166,13 +167,13 @@ function AdminLoginContent() {
               onChange={(event) => setForm({ ...form, identifier: event.target.value })}
               className="field-input"
             />
-            <input
-              type="password"
+            <PasswordField
               required
               placeholder="Password"
               value={form.password}
               onChange={(event) => setForm({ ...form, password: event.target.value })}
               className="field-input"
+              autoComplete="current-password"
             />
             <button type="submit" disabled={loading} className="primary-button w-full">
               {loading ? "Signing in..." : "Sign In"}

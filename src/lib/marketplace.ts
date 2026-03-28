@@ -72,7 +72,7 @@ export const CREATE_LISTING_CATEGORY_DETAILS: Record<
 > = {
   produce: {
     heading: "List produce",
-    intro: "Post harvest-ready stock with a clear county, quantity, and buyer-ready description.",
+    intro: "Post harvest-ready stock with clear quantity, price, and location.",
     placeholderTitle: "Example: Dry maize in 90kg bags",
     placeholderDescription: "Mention variety, moisture, packaging, harvest timing, and how delivery works.",
     quantityLabel: "Available quantity",
@@ -90,7 +90,7 @@ export const CREATE_LISTING_CATEGORY_DETAILS: Record<
   },
   livestock: {
     heading: "List livestock",
-    intro: "Give buyers enough confidence to contact you without needing a long back-and-forth first.",
+    intro: "Show the animals, count, and condition so buyers can decide quickly.",
     placeholderTitle: "Example: Dairy heifers, in-calf",
     placeholderDescription: "Mention breed, age, health, feeding routine, and whether transport can be arranged.",
     quantityLabel: "Animals available",
@@ -105,7 +105,7 @@ export const CREATE_LISTING_CATEGORY_DETAILS: Record<
   },
   inputs: {
     heading: "List farm inputs",
-    intro: "Show what you stock, where you operate, and the commercial terms farmers need to see quickly.",
+    intro: "Show what you stock, pack size, location, and price.",
     placeholderTitle: "Example: DAP fertilizer, 50kg bags",
     placeholderDescription: "Mention brand, pack size, crop fit, and any minimum order or delivery detail.",
     quantityLabel: "Stock available",
@@ -122,7 +122,7 @@ export const CREATE_LISTING_CATEGORY_DETAILS: Record<
   },
   service: {
     heading: "List a service",
-    intro: "Explain the actual service you deliver, your coverage area, and what a customer can expect.",
+    intro: "Explain the service, where you work, and how you charge.",
     placeholderTitle: "Example: Tractor ploughing in Nakuru",
     placeholderDescription: "Describe the service, response time, pricing basis, and whether operator cost is included.",
     quantityLabel: "Coverage or capacity",

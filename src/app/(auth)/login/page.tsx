@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import FacebookLoginButton from "@/components/auth/FacebookLoginButton";
 import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
+import PasswordField from "@/components/auth/PasswordField";
 import { useAuth, type LegalConsents } from "@/contexts/AuthContext";
 import { isLikelyPhoneNumber, normalizeKenyanPhone } from "@/lib/phone";
 
@@ -241,12 +242,12 @@ function LoginForm() {
                   placeholder="Email or phone"
                   required
                 />
-                <input
-                  type="password"
+                <PasswordField
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="field-input"
                   placeholder="Password"
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   required
                 />
 
