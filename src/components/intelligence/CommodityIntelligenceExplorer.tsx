@@ -88,8 +88,8 @@ export default function CommodityIntelligenceExplorer({
 
   useEffect(() => {
     let cancelled = false;
-    const timer = window.setInterval(async () => {
-      if (cancelled) return;
+
+    const fetchFresh = async () => {
       try {
         const [productResponse, historyResponse] = await Promise.all([
           fetch(API_ENDPOINTS.marketIntelligence.byProduct(initialProduct.productKey), {
@@ -115,7 +115,11 @@ export default function CommodityIntelligenceExplorer({
           if (nextHistory) setHistory(nextHistory);
         }
       } catch {}
-    }, 60_000);
+    };
+
+    // Fetch immediately on mount, then poll every 60s
+    fetchFresh();
+    const timer = window.setInterval(fetchFresh, 60_000);
 
     return () => {
       cancelled = true;

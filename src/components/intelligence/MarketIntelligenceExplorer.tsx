@@ -122,8 +122,8 @@ export default function MarketIntelligenceExplorer({ initialOverview }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    const timer = window.setInterval(async () => {
-      if (cancelled) return;
+
+    const fetchFresh = async () => {
       try {
         const response = await fetch(API_ENDPOINTS.marketIntelligence.overview, {
           cache: "no-store",
@@ -136,7 +136,11 @@ export default function MarketIntelligenceExplorer({ initialOverview }: Props) {
       } catch {
         // Ignore intermittent polling failures.
       }
-    }, REFRESH_MS);
+    };
+
+    // Fetch immediately on mount, then poll
+    fetchFresh();
+    const timer = window.setInterval(fetchFresh, REFRESH_MS);
 
     return () => {
       cancelled = true;
