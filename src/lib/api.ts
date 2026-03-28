@@ -67,7 +67,10 @@ const doRefresh = async (): Promise<string | null> => {
     .then(async (response) => {
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.accessToken) {
-        clearSession();
+        // Only clear session on explicit auth rejection — not server errors or cold-start timeouts
+        if (response.status === 401 || response.status === 403) {
+          clearSession();
+        }
         return null;
       }
 
@@ -80,7 +83,7 @@ const doRefresh = async (): Promise<string | null> => {
       return data.accessToken as string;
     })
     .catch(() => {
-      clearSession();
+      // Network error / timeout — don't clear session, user may just be offline temporarily
       return null;
     })
     .finally(() => {
@@ -213,9 +216,12 @@ export const apiRequest = async (
       headers.Authorization = `Bearer ${refreshedToken}`;
       response = await executeRequest(url, requestOptions, headers);
     } else {
-      clearSession();
-      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
-        window.location.href = "/login";
+      // Only hard-redirect to login if refresh explicitly failed with 401 (session is already cleared)
+      // A null from a network error should not redirect — it's a transient failure
+      if (!getRefreshToken()) {
+        if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
+          window.location.href = "/login";
+        }
       }
     }
   }

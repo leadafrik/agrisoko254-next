@@ -7,6 +7,7 @@ import {
   clearAdminSession,
   clearSession,
   getAdminToken,
+  getRefreshToken,
   getStoredUser,
   getToken,
   storeAdminSession,
@@ -146,10 +147,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       setUser(nextUser);
       setToken(existingToken);
-    } catch {
-      clearSession();
-      setUser(null);
-      setToken(null);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      // Only clear session on explicit auth rejection — not network errors or server errors
+      if (status === 401 || status === 403) {
+        clearSession();
+        setUser(null);
+        setToken(null);
+      }
+      // For network errors / 5xx — keep the stored session so user stays logged in
     } finally {
       setIsLoading(false);
     }
@@ -165,6 +171,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     void refreshUser();
+
+    // Proactively refresh the access token every 13 minutes (token TTL is 15 min)
+    // This prevents expiry during active sessions without waiting for a 401
+    const proactiveRefresh = window.setInterval(async () => {
+      if (!getRefreshToken()) return;
+      try {
+        const res = await fetch(API_ENDPOINTS.auth.refreshToken, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refreshToken: getRefreshToken() }),
+        });
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (data.accessToken) {
+            storeSession({ token: data.accessToken, refreshToken: data.refreshToken, expiresIn: data.expiresIn });
+            setToken(data.accessToken);
+          }
+        }
+      } catch {
+        // Silently ignore — next request will trigger a reactive refresh
+      }
+    }, 13 * 60 * 1000);
+
+    return () => window.clearInterval(proactiveRefresh);
   }, [refreshUser]);
 
   const login = useCallback(async (identifier: string, password: string) => {
