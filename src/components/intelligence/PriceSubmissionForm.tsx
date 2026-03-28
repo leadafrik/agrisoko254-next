@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import CommodityQuickPicker from "@/components/intelligence/CommodityQuickPicker";
 import DecisionSnapshotCard from "@/components/intelligence/DecisionSnapshotCard";
 import IntelligenceStatusStrip from "@/components/intelligence/IntelligenceStatusStrip";
@@ -38,6 +38,17 @@ type SubmissionState = {
   marketName: string;
   unit: string;
   feedback: IntelligenceSubmissionFeedback | null;
+};
+
+type MySubmission = {
+  _id: string;
+  productName: string;
+  county: string;
+  marketName: string;
+  price: number;
+  unit: string;
+  reviewStatus: string;
+  observationDate: string;
 };
 
 const CATEGORY_LABELS: Record<IntelligenceCategory, string> = {
@@ -92,6 +103,8 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
   const [success, setSuccess] = useState<SubmissionState | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showContact, setShowContact] = useState(Boolean(user?.phone || user?.fullName || user?.name));
+  const [mySubmissions, setMySubmissions] = useState<MySubmission[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const selectedProduct =
     TRACKED_INTELLIGENCE_PRODUCTS.find((product) => product.key === form.productKey) ||
@@ -246,6 +259,16 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
 
       setForm((current) => ({ ...current, price: "", notes: "" }));
 
+      // Load user's own submissions so they can delete if needed
+      if (user) {
+        fetch(API_ENDPOINTS.marketIntelligence.mySubmissions, { credentials: "include" })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((payload) => {
+            if (payload?.data) setMySubmissions(payload.data);
+          })
+          .catch(() => {});
+      }
+
       fetch(API_ENDPOINTS.marketIntelligence.overview, {
         cache: "no-store",
         credentials: "include",
@@ -261,6 +284,18 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
       setError(submitError?.message || "Could not save right now. Please try again.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const deleteSubmission = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await apiRequest(API_ENDPOINTS.marketIntelligence.deleteSubmission(id), { method: "DELETE" });
+      setMySubmissions((current) => current.filter((s) => s._id !== id));
+    } catch {
+      // silently ignore
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -313,6 +348,40 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
             </button>
           </div>
         </div>
+
+        {mySubmissions.length > 0 && (
+          <div className="mt-6 rounded-[24px] border border-stone-200 bg-white p-5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+              Your recent submissions
+            </p>
+            <ul className="mt-3 divide-y divide-stone-100">
+              {mySubmissions.map((sub) => (
+                <li key={sub._id} className="flex items-center justify-between gap-3 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-stone-900">
+                      {sub.productName} — {sub.marketName}, {sub.county}
+                    </p>
+                    <p className="mt-0.5 text-xs text-stone-500">
+                      KES {sub.price.toLocaleString()} / {sub.unit} ·{" "}
+                      <span className={sub.reviewStatus === "approved" ? "text-forest-700" : sub.reviewStatus === "rejected" ? "text-red-600" : "text-amber-600"}>
+                        {sub.reviewStatus}
+                      </span>
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => deleteSubmission(sub._id)}
+                    disabled={deletingId === sub._id}
+                    className="shrink-0 rounded-xl p-2 text-stone-400 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                    title="Remove this submission"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     );
   }

@@ -139,7 +139,7 @@ export const TRACKED_INTELLIGENCE_PRODUCTS = [
   { key: "beans", name: "Beans", category: "produce", defaultUnit: "90kg bag" },
   { key: "tomatoes", name: "Tomatoes", category: "produce", defaultUnit: "crate" },
   { key: "onions", name: "Onions", category: "produce", defaultUnit: "kg" },
-  { key: "potatoes", name: "Potatoes", category: "produce", defaultUnit: "120kg bag" },
+  { key: "potatoes", name: "Potatoes", category: "produce", defaultUnit: "50kg bag" },
   { key: "beef", name: "Beef Cattle", category: "livestock", defaultUnit: "kg live weight" },
   { key: "broilers", name: "Broilers", category: "livestock", defaultUnit: "kg live weight" },
   { key: "dap-fertilizer", name: "DAP Fertilizer", category: "inputs", defaultUnit: "50kg bag" },

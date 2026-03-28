@@ -61,6 +61,8 @@ export const API_ENDPOINTS = {
     recentHistory: (productKey: string) =>
       `${API_BASE_URL}/market-intelligence/products/${productKey}/history?days=90`,
     submissions: `${API_BASE_URL}/market-intelligence/submissions`,
+    mySubmissions: `${API_BASE_URL}/market-intelligence/my-submissions`,
+    deleteSubmission: (id: string) => `${API_BASE_URL}/market-intelligence/submissions/${id}`,
     admin: {
       submissions: `${API_BASE_URL}/admin/market-intelligence/submissions`,
       review: (submissionId: string) =>
