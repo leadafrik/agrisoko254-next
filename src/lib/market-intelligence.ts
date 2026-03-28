@@ -1514,3 +1514,18 @@ export function getDealSignal(
   if (market.avgPrice <= midpoint * 0.94) return "Good buying market";
   return "Near market average";
 }
+
+/**
+ * Returns how many kilograms one unit represents.
+ * Used to convert between per-unit and per-kg price display modes.
+ * Returns 0 when no meaningful kg conversion exists (head, bird, acre, etc.).
+ */
+export const getUnitKgFactor = (unit: string): number => {
+  const u = String(unit || "").toLowerCase().trim();
+  if (u === "90kg bag") return 90;
+  if (u === "120kg bag") return 120;
+  if (u === "50kg bag") return 50;
+  if (u === "25kg bag") return 25;
+  if (u === "crate") return 64; // tomato crate ≈ 64 kg net
+  return 0; // kg, kg live weight, head, bird, tray, dozen, acre, hour → no conversion
+};

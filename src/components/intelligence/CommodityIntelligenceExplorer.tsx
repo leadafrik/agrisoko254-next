@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import CountyPriceChart from "@/components/intelligence/CountyPriceChart";
 import DecisionSnapshotCard from "@/components/intelligence/DecisionSnapshotCard";
 import IntelligenceStatusStrip from "@/components/intelligence/IntelligenceStatusStrip";
 import MarketBoardTable from "@/components/intelligence/MarketBoardTable";
 import MarketPulsePanel from "@/components/intelligence/MarketPulsePanel";
+import PriceSparkline from "@/components/intelligence/PriceSparkline";
 import ShareIntelligenceSnapshotButton from "@/components/intelligence/ShareIntelligenceSnapshotButton";
 import PriceSubmitModal from "@/components/intelligence/PriceSubmitModal";
 import TradingActionBar from "@/components/intelligence/TradingActionBar";
@@ -29,39 +31,10 @@ type Props = {
   initialHistory: IntelligenceProductHistory;
 };
 
-type HistoryMode = "market" | "county" | "daily";
-
 const getRangeLabel = (product: IntelligenceProductSnapshot) => {
   const prices = product.markets.map((market) => market.avgPrice).filter((value) => value > 0);
   if (!prices.length) return "No approved range yet";
   return `${formatKes(Math.min(...prices))} to ${formatKes(Math.max(...prices))}`;
-};
-
-const getHistoryRows = (history: IntelligenceProductHistory, mode: HistoryMode) => {
-  if (mode === "county") {
-    return history.countyAverages.map((row) => ({
-      key: `${row.county}-${row.lastUpdated}`,
-      label: row.county || "County",
-      value: formatKes(row.averagePrice),
-      helper: `${row.submissionsCount} reports`,
-    }));
-  }
-
-  if (mode === "daily") {
-    return history.dailyAverageSeries.map((row) => ({
-      key: `${row.date}-${row.lastUpdated}`,
-      label: row.date || "Latest day",
-      value: formatKes(row.averagePrice),
-      helper: `${row.submissionsCount} reports`,
-    }));
-  }
-
-  return history.marketAverages.map((row) => ({
-    key: `${row.marketName}-${row.county}-${row.lastUpdated}`,
-    label: row.marketName || "Market",
-    value: formatKes(row.averagePrice),
-    helper: row.county || "Kenya",
-  }));
 };
 
 export default function CommodityIntelligenceExplorer({
@@ -74,7 +47,7 @@ export default function CommodityIntelligenceExplorer({
   const [selectedMarketKey, setSelectedMarketKey] = useState(
     initialProduct.bestMarket?.marketKey || initialProduct.markets[0]?.marketKey || ""
   );
-  const [historyMode, setHistoryMode] = useState<HistoryMode>("market");
+  const [priceMode, setPriceMode] = useState<"unit" | "kg">("unit");
   const [refreshing, setRefreshing] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
 
@@ -100,8 +73,6 @@ export default function CommodityIntelligenceExplorer({
     scopedProduct.markets.find((market) => market.marketKey === selectedMarketKey) ||
     scopedProduct.bestMarket ||
     null;
-
-  const historyRows = getHistoryRows(history, historyMode).slice(0, 8);
 
   useEffect(() => {
     if (!scopedProduct.markets.length) {
@@ -244,7 +215,12 @@ export default function CommodityIntelligenceExplorer({
       />
 
       <div className="mt-8 grid gap-6 xl:grid-cols-[1.35fr,0.95fr]">
-        <DecisionSnapshotCard product={scopedProduct} focusMarket={focusMarket} />
+        <DecisionSnapshotCard
+          product={scopedProduct}
+          focusMarket={focusMarket}
+          priceMode={priceMode}
+          onPriceModeChange={setPriceMode}
+        />
         <MarketPulsePanel
           items={buildProductPulseItems(scopedProduct, focusMarket)}
           title="Farmer takeaway"
@@ -304,47 +280,93 @@ export default function CommodityIntelligenceExplorer({
         markets={scopedProduct.markets}
         selectedMarketKey={focusMarket?.marketKey}
         onSelectMarket={setSelectedMarketKey}
+        priceMode={priceMode}
+        onPriceModeChange={setPriceMode}
       />
 
-      <div className="mt-8 rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_20px_55px_-36px_rgba(120,83,47,0.28)]">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500">
-              Historical averages
-            </p>
-            <h2 className="mt-2 text-2xl font-bold text-stone-900">
-              Compare the cleaner historical view
-            </h2>
-          </div>
+      {/* ── Visual history section ─────────────────────────────────────── */}
+      <div className="mt-8 grid gap-5 lg:grid-cols-[1.4fr_1fr]">
 
-          <div className="inline-flex rounded-full border border-stone-200 bg-stone-50 p-1">
-            {(["market", "county", "daily"] as HistoryMode[]).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setHistoryMode(mode)}
-                className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${
-                  historyMode === mode
-                    ? "bg-stone-900 text-white"
-                    : "text-stone-500 hover:text-stone-900"
-                }`}
-              >
-                {mode === "market" ? "By market" : mode === "county" ? "By county" : "Daily"}
-              </button>
-            ))}
-          </div>
+        {/* Daily price trend sparkline */}
+        <div className="overflow-hidden rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_20px_55px_-36px_rgba(120,83,47,0.22)]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500">
+            Price trend
+          </p>
+          <h2 className="mt-2 text-xl font-bold text-stone-900">
+            Daily movement — {product.productName}
+          </h2>
+
+          {history.dailyAverageSeries.length >= 2 ? (
+            <PriceSparkline
+              className="mt-5"
+              points={history.dailyAverageSeries.map((row) => ({
+                date: row.date || "",
+                price: row.averagePrice,
+              }))}
+              height={140}
+              unit={product.unit}
+            />
+          ) : (
+            <p className="mt-5 text-sm text-stone-400">
+              Not enough daily data yet. More points appear as reports come in.
+            </p>
+          )}
+
+          {/* Summary row */}
+          {history.dailyAverageSeries.length >= 2 && (
+            <div className="mt-4 grid grid-cols-3 gap-3 rounded-[20px] bg-[#fbf8f2] p-3">
+              {[
+                {
+                  label: "Earliest",
+                  value: formatKes(history.dailyAverageSeries[0]?.averagePrice),
+                },
+                {
+                  label: "Latest",
+                  value: formatKes(
+                    history.dailyAverageSeries[history.dailyAverageSeries.length - 1]?.averagePrice
+                  ),
+                },
+                {
+                  label: "Data points",
+                  value: history.dailyAverageSeries.length.toString(),
+                },
+              ].map((stat) => (
+                <div key={stat.label}>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">
+                    {stat.label}
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-stone-900">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {historyRows.map((row) => (
-            <div key={row.key} className="rounded-[20px] border border-stone-200 bg-[#fbf8f2] p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
-                {row.label}
-              </p>
-              <p className="mt-2 text-xl font-bold text-stone-900">{row.value}</p>
-              <p className="mt-2 text-sm text-stone-600">{row.helper}</p>
-            </div>
-          ))}
+        {/* County price comparison */}
+        <div className="overflow-hidden rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_20px_55px_-36px_rgba(120,83,47,0.22)]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500">
+            County comparison
+          </p>
+          <h2 className="mt-2 text-xl font-bold text-stone-900">
+            Price by county
+          </h2>
+
+          {history.countyAverages.length > 0 ? (
+            <CountyPriceChart
+              className="mt-5"
+              bars={history.countyAverages.map((row) => ({
+                county: row.county || "Unknown",
+                price: row.averagePrice,
+                submissionsCount: row.submissionsCount,
+              }))}
+              unit={product.unit}
+              avgPrice={scopedProduct.overallAverage}
+            />
+          ) : (
+            <p className="mt-5 text-sm text-stone-400">
+              County breakdown will appear once enough reports have been approved.
+            </p>
+          )}
         </div>
       </div>
     </div>

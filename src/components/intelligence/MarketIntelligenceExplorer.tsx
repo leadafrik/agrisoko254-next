@@ -55,6 +55,7 @@ export default function MarketIntelligenceExplorer({ initialOverview }: Props) {
   );
   const [selectedMarketKey, setSelectedMarketKey] = useState("");
   const [countyFilter, setCountyFilter] = useState("all");
+  const [priceMode, setPriceMode] = useState<"unit" | "kg">("unit");
   const [refreshing, setRefreshing] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
 
@@ -269,7 +270,12 @@ export default function MarketIntelligenceExplorer({ initialOverview }: Props) {
           {scopedProduct ? (
             <>
               <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.42fr)_380px]">
-                <DecisionSnapshotCard product={scopedProduct} focusMarket={focusMarket} />
+                <DecisionSnapshotCard
+                  product={scopedProduct}
+                  focusMarket={focusMarket}
+                  priceMode={priceMode}
+                  onPriceModeChange={setPriceMode}
+                />
 
                 <div className="space-y-6">
                   <MarketPulsePanel items={pulseItems} title="What should I do?" />
@@ -349,6 +355,8 @@ export default function MarketIntelligenceExplorer({ initialOverview }: Props) {
                   markets={scopedProduct.markets}
                   selectedMarketKey={focusMarket?.marketKey}
                   onSelectMarket={setSelectedMarketKey}
+                  priceMode={priceMode}
+                  onPriceModeChange={setPriceMode}
                 />
 
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-[26px] border border-stone-200 bg-[#faf7f2] px-5 py-4">

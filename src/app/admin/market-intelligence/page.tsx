@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { adminApiRequest } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/endpoints";
@@ -176,6 +177,12 @@ export default function AdminMarketIntelligencePage() {
             prices from the Agrisoko market desk when needed.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/admin/market-intelligence/bulk-upload"
+              className="rounded-xl border border-terra-200 bg-terra-50 px-4 py-2 text-sm font-semibold text-terra-800 transition hover:bg-terra-100"
+            >
+              Bulk upload from spreadsheet
+            </Link>
             <button
               type="button"
               onClick={() => void handleSeedBaseline("maize")}
