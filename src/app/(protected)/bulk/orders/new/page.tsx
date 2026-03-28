@@ -118,8 +118,8 @@ export default function BulkOrderCreatePage() {
     <div className="max-w-3xl mx-auto px-4 py-8">
       <div className="mb-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-terra-600">Bulk buying</p>
-        <h1 className="mt-1 text-2xl font-bold text-stone-900">Post institutional demand</h1>
-        <p className="mt-1 text-sm text-stone-500">Add quantity, budget, and delivery details so suppliers can bid clearly.</p>
+        <h1 className="mt-1 text-2xl font-bold text-stone-900">Post bulk demand</h1>
+        <p className="mt-1 text-sm text-stone-500">This is separate from the normal buyer-request board. Add quantity, budget, and delivery details so suppliers can bid clearly.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="rounded-2xl border border-stone-100 bg-white p-6 space-y-4">

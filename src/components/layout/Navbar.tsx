@@ -29,7 +29,7 @@ const navLinks = [
   { href: "/request", label: "Buy Requests" },
   { href: "/market-intelligence", label: "Market Intel" },
   { href: "/learn", label: "Learn" },
-  { href: "/b2b", label: "Bulk / B2B" },
+  { href: "/bulk", label: "Bulk" },
   { href: "/about", label: "About" },
 ];
 
@@ -65,7 +65,7 @@ const isActive = (pathname: string, href: string) => {
   if (href === "/request") return pathname === "/request" || pathname.startsWith("/request/");
   if (href === "/market-intelligence") return pathname === "/market-intelligence" || pathname.startsWith("/market-intelligence/");
   if (href === "/learn") return pathname === "/learn" || pathname.startsWith("/learn/") || pathname.startsWith("/blog/");
-  if (href === "/b2b") return pathname === "/b2b" || pathname.startsWith("/b2b/");
+  if (href === "/bulk") return pathname === "/bulk" || pathname.startsWith("/bulk/") || pathname === "/b2b" || pathname.startsWith("/b2b/");
   return pathname === href;
 };
 

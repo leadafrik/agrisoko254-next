@@ -97,11 +97,12 @@ export default function BulkAccessPage() {
     return (
       <div className="page-shell py-10 sm:py-12">
         <div className="hero-panel p-6 sm:p-8">
-          <p className="section-kicker">Bulk / B2B access</p>
-          <h1 className="mt-4 text-4xl font-bold text-stone-900">Apply for institutional trade workflows</h1>
+          <p className="section-kicker">Bulk access</p>
+          <h1 className="mt-4 text-4xl font-bold text-stone-900">Apply for structured bulk trade</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
-            Bulk trade is designed for schools, restaurants, hospitals, processors, distributors,
-            and approved large-volume suppliers.
+            Bulk orders are separate from standard buyer requests. Use this flow when one buyer
+            needs bigger supply, multiple sellers may bid, one offer gets accepted, payment is made
+            through Agrisoko, and delivery follow-up is managed cleanly.
           </p>
           <Link href="/login?mode=signup&redirect=/bulk" className="primary-button mt-6">
             Sign in to apply
@@ -114,11 +115,12 @@ export default function BulkAccessPage() {
   return (
     <div className="page-shell py-10 sm:py-12">
       <section className="hero-panel p-6 sm:p-8">
-        <p className="section-kicker">Bulk / B2B</p>
-        <h1 className="mt-4 text-4xl font-bold text-stone-900">Apply for larger procurement and supply workflows</h1>
+        <p className="section-kicker">Bulk trade</p>
+        <h1 className="mt-4 text-4xl font-bold text-stone-900">Apply for larger demand and supply workflows</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
-          This access layer supports institutional buyers and serious suppliers who need a cleaner
-          way to manage volume, compare offers, and track awarded work.
+          This is the in-app bulk layer for bigger transactions. Buyers post structured demand,
+          approved suppliers place bids, one offer is accepted, payment goes through Agrisoko, and
+          the trade moves into delivery follow-up.
         </p>
       </section>
 
@@ -335,9 +337,9 @@ export default function BulkAccessPage() {
           <div className="soft-panel p-6">
             <h2 className="text-2xl font-bold text-stone-900">After approval</h2>
             <ul className="mt-4 space-y-3 text-sm leading-relaxed text-stone-600">
-              <li>Buyers can post structured demand for institutional sourcing.</li>
-              <li>Sellers can review the bulk order board and place offers where they qualify.</li>
-              <li>Accepted work flows into a more operational delivery process.</li>
+              <li>Buyers can post bulk demand separately from the normal buyer-request board.</li>
+              <li>Sellers can review bulk orders and place formal bids where they qualify.</li>
+              <li>Accepted offers move into payment and delivery follow-up.</li>
             </ul>
             <Link href="/bulk/orders" className="secondary-button mt-5 w-full">
               Open bulk order board

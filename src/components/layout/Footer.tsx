@@ -141,7 +141,7 @@ export default function Footer() {
 
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">
-              Bulk / B2B
+              Bulk
             </h4>
             <ul className="mt-4 space-y-3 text-sm text-stone-700">
               {BULK_USE_CASES.map((useCase) => (
@@ -149,7 +149,7 @@ export default function Footer() {
               ))}
             </ul>
             <Link
-              href="/b2b"
+              href="/bulk"
               className="mt-4 inline-flex text-sm font-semibold text-terra-600 hover:text-terra-700"
             >
               Explore bulk workflows

@@ -141,7 +141,7 @@ export default function BulkSellerOrdersPage() {
       <section className="rounded-2xl border border-stone-100 bg-white p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-terra-600">Seller portal</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-terra-600">Bulk seller</p>
             <h1 className="mt-1 text-2xl font-bold text-stone-900">Bulk seller workflow</h1>
             <p className="mt-1 text-sm text-stone-500">Review awarded orders, accept fast, and issue invoices cleanly.</p>
           </div>

@@ -7,5 +7,5 @@ type Props = {
 };
 
 export default function B2BRfqDetailRedirect({ params }: Props) {
-  redirect(`/request/${params.id}`);
+  redirect(`/bulk/orders/${params.id}`);
 }

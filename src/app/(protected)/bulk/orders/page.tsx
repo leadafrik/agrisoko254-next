@@ -87,7 +87,7 @@ function BulkOrdersBoardInner() {
       <div className="rounded-2xl border border-stone-100 bg-white p-8">
         <p className="text-xs font-semibold uppercase tracking-wide text-terra-600">Bulk buying</p>
         <h1 className="mt-2 text-2xl font-bold text-stone-900">Bulk demand board</h1>
-        <p className="mt-2 text-sm text-stone-500">Sign in first to access institutional demand.</p>
+        <p className="mt-2 text-sm text-stone-500">Sign in first to access structured bulk demand.</p>
         <Link href="/login?redirect=/bulk/orders" className="mt-5 inline-block rounded-xl bg-terra-500 px-5 py-3 text-sm font-semibold text-white hover:bg-terra-600">Sign in to continue</Link>
       </div>
     </div>
@@ -108,13 +108,13 @@ function BulkOrdersBoardInner() {
       <section className="rounded-2xl border border-stone-100 bg-white p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-terra-600">Agrisoko B2B</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-terra-600">Bulk trade</p>
             <h1 className="mt-1 text-2xl font-bold text-stone-900">Bulk demand board</h1>
-            <p className="mt-1 text-sm text-stone-500">Institutional orders, supplier bids, and buyer decisions in one buyer-first workflow.</p>
+            <p className="mt-1 text-sm text-stone-500">Bulk orders stay separate from standard buyer requests. Buyers post larger demand, suppliers bid, buyers accept one offer, then checkout and delivery follow-up take over.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {canPost && <Link href="/bulk/orders/new" className="rounded-xl bg-terra-500 px-4 py-2 text-sm font-semibold text-white hover:bg-terra-600">Post bulk order</Link>}
-            {canRespond && <Link href="/bulk/seller/orders" className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50">Seller portal</Link>}
+            {canRespond && <Link href="/bulk/seller/orders" className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50">Seller workspace</Link>}
             <Link href="/bulk" className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50">Bulk access status</Link>
           </div>
         </div>
