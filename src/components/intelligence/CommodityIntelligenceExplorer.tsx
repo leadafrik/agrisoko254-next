@@ -43,6 +43,7 @@ export default function CommodityIntelligenceExplorer({
 }: Props) {
   const [product, setProduct] = useState(initialProduct);
   const [history, setHistory] = useState(initialHistory);
+  const [recentHistory, setRecentHistory] = useState<IntelligenceProductHistory | null>(null);
   const [countyFilter, setCountyFilter] = useState("all");
   const [selectedMarketKey, setSelectedMarketKey] = useState(
     initialProduct.bestMarket?.marketKey || initialProduct.markets[0]?.marketKey || ""
@@ -91,28 +92,33 @@ export default function CommodityIntelligenceExplorer({
 
     const fetchFresh = async () => {
       try {
-        const [productResponse, historyResponse] = await Promise.all([
+        const [productResponse, historyResponse, recentResponse] = await Promise.all([
           fetch(API_ENDPOINTS.marketIntelligence.byProduct(initialProduct.productKey), {
-            cache: "no-store",
-            credentials: "include",
+            cache: "no-store", credentials: "include",
           }),
           fetch(API_ENDPOINTS.marketIntelligence.history(initialProduct.productKey), {
-            cache: "no-store",
-            credentials: "include",
+            cache: "no-store", credentials: "include",
+          }),
+          fetch(API_ENDPOINTS.marketIntelligence.recentHistory(initialProduct.productKey), {
+            cache: "no-store", credentials: "include",
           }),
         ]);
 
         const productPayload = productResponse.ok ? await productResponse.json().catch(() => null) : null;
         const historyPayload = historyResponse.ok ? await historyResponse.json().catch(() => null) : null;
+        const recentPayload = recentResponse.ok ? await recentResponse.json().catch(() => null) : null;
 
         if (!cancelled && productPayload) {
           const nextProduct = normalizeIntelligenceProduct(productPayload, initialProduct.productKey);
           if (nextProduct) setProduct(nextProduct);
         }
-
         if (!cancelled && historyPayload) {
           const nextHistory = normalizeIntelligenceHistory(historyPayload, initialProduct.productKey);
           if (nextHistory) setHistory(nextHistory);
+        }
+        if (!cancelled && recentPayload) {
+          const nextRecent = normalizeIntelligenceHistory(recentPayload, initialProduct.productKey);
+          if (nextRecent) setRecentHistory(nextRecent);
         }
       } catch {}
     };
@@ -346,19 +352,19 @@ export default function CommodityIntelligenceExplorer({
           )}
         </div>
 
-        {/* County price comparison */}
+        {/* County price comparison — uses last 90 days so prices match current market */}
         <div className="overflow-hidden rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_20px_55px_-36px_rgba(120,83,47,0.22)]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500">
             County comparison
           </p>
           <h2 className="mt-2 text-xl font-bold text-stone-900">
-            Price by county
+            Price by county <span className="text-sm font-normal text-stone-400">· last 90 days</span>
           </h2>
 
-          {history.countyAverages.length > 0 ? (
+          {(recentHistory ?? history).countyAverages.length > 0 ? (
             <CountyPriceChart
               className="mt-5"
-              bars={history.countyAverages.map((row) => ({
+              bars={(recentHistory ?? history).countyAverages.map((row) => ({
                 county: row.county || "Unknown",
                 price: row.averagePrice,
                 submissionsCount: row.submissionsCount,
