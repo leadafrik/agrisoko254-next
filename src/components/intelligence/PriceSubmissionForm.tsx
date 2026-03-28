@@ -61,6 +61,22 @@ const todayInputValue = new Date().toISOString().slice(0, 10);
 
 const normalizeText = (value?: string | null) => String(value || "").trim().toLowerCase();
 
+const UNIT_OPTIONS: Record<string, string[]> = {
+  maize:             ["90kg bag", "50kg bag", "kg"],
+  beans:             ["90kg bag", "50kg bag", "kg"],
+  tomatoes:          ["crate", "kg"],
+  onions:            ["kg", "50kg bag"],
+  potatoes:          ["50kg bag", "110kg bag", "120kg bag", "kg"],
+  beef:              ["kg live weight", "kg carcass weight"],
+  broilers:          ["kg live weight", "bird"],
+  "dap-fertilizer":  ["50kg bag", "kg"],
+  "urea-fertilizer": ["50kg bag", "kg"],
+  "can-fertilizer":  ["50kg bag", "kg"],
+  "npk-fertilizer":  ["50kg bag", "kg"],
+  "npsb-fertilizer": ["50kg bag", "kg"],
+  "korn-kali":       ["50kg bag", "kg"],
+};
+
 const buildFeedbackCopy = (feedback: IntelligenceSubmissionFeedback) => {
   if (feedback.comparisonLabel === "above") {
     return `Your price is ${Math.abs(feedback.deltaPercentage).toFixed(1)}% above the current average.`;
@@ -88,9 +104,9 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
   );
   const [form, setForm] = useState({
     productKey: defaults?.product || "maize",
-    county: defaults?.county || "Nairobi",
-    marketName: defaults?.market || "Wakulima Market",
-    unit: defaults?.unit || "90kg bag",
+    county: defaults?.county || "",
+    marketName: defaults?.market || "",
+    unit: defaults?.unit || "",
     price: "",
     observationDate: todayInputValue,
     notes: "",
@@ -172,15 +188,6 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
   }, [user?.fullName, user?.name, user?.phone]);
 
   useEffect(() => {
-    if (defaults?.unit) return;
-    setForm((current) =>
-      current.unit === selectedProduct.defaultUnit
-        ? current
-        : { ...current, unit: selectedProduct.defaultUnit }
-    );
-  }, [defaults?.unit, selectedProduct.defaultUnit]);
-
-  useEffect(() => {
     if (!selectedSnapshot.markets.length) return;
 
     const exactMatch = selectedSnapshot.markets.find(
@@ -198,19 +205,15 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
   const selectProduct = (productKey: string) => {
     const nextProduct =
       TRACKED_INTELLIGENCE_PRODUCTS.find((product) => product.key === productKey) || selectedProduct;
-    const nextSnapshot =
-      allBoards.find((product) => product.productKey === productKey) ||
-      getFallbackProductSnapshot(productKey);
-    const preferredMarket = nextSnapshot?.bestMarket || nextSnapshot?.markets[0];
 
     setActiveCategory(nextProduct.category);
-    setSelectedMarketKey(preferredMarket?.marketKey || "");
+    setSelectedMarketKey("");
     setForm((current) => ({
       ...current,
       productKey,
-      unit: defaults?.unit || nextProduct.defaultUnit,
-      county: preferredMarket?.county || current.county,
-      marketName: preferredMarket?.marketName || current.marketName,
+      unit: defaults?.unit || "",
+      county: "",
+      marketName: "",
     }));
   };
 
@@ -480,19 +483,14 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
 
       <div className="mt-8 rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_20px_60px_-36px_rgba(120,83,47,0.3)] sm:p-8">
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
-                Add your price
-              </p>
-              <h2 className="mt-2 text-2xl font-bold text-stone-900">Share today&apos;s price</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-600">
-                Start with the market and price. Notes, date, and contact details are optional.
-              </p>
-            </div>
-            <div className="rounded-[22px] border border-stone-200 bg-[#faf7f2] px-4 py-3 text-sm text-stone-600">
-              Unit: <span className="font-semibold text-stone-900">{form.unit}</span>
-            </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-terra-600">
+              Add your price
+            </p>
+            <h2 className="mt-2 text-2xl font-bold text-stone-900">Share today&apos;s price</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-600">
+              Select the market and unit, then enter the price you are seeing today.
+            </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -516,20 +514,17 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
                 value={form.county}
                 onChange={(event) => {
                   const nextCounty = event.target.value;
-                  const preferredMarket = selectedSnapshot.markets.find(
-                    (market) => market.county === nextCounty
-                  );
                   setForm((current) => ({
                     ...current,
                     county: nextCounty,
-                    marketName: preferredMarket?.marketName || current.marketName,
+                    marketName: "",
                   }));
-                  if (preferredMarket) {
-                    setSelectedMarketKey(preferredMarket.marketKey);
-                  }
+                  setSelectedMarketKey("");
                 }}
                 className="field-select"
+                required
               >
+                <option value="">Select county...</option>
                 {countyList.map((county) => (
                   <option key={county} value={county}>
                     {county}
@@ -546,24 +541,39 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
                 value={form.marketName}
                 onChange={(event) => setForm((current) => ({ ...current, marketName: event.target.value }))}
                 className="field-input"
-                placeholder="Wakulima Market"
+                placeholder="e.g. Wakulima Market"
                 required
               />
             </label>
             <label>
-              <span className="field-label">Price (KES)</span>
-              <input
-                type="number"
-                min="1"
-                step="1"
-                value={form.price}
-                onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))}
-                className="field-input text-lg font-bold"
-                placeholder="e.g. 4500"
+              <span className="field-label">Unit</span>
+              <select
+                value={form.unit}
+                onChange={(event) => setForm((current) => ({ ...current, unit: event.target.value }))}
+                className="field-select"
                 required
-              />
+              >
+                <option value="">Select unit...</option>
+                {(UNIT_OPTIONS[form.productKey] ?? []).map((u) => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
             </label>
           </div>
+
+          <label>
+            <span className="field-label">Price (KES)</span>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={form.price}
+              onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))}
+              className="field-input text-lg font-bold"
+              placeholder="e.g. 4500"
+              required
+            />
+          </label>
 
           <div className="grid gap-3 rounded-[24px] border border-stone-200 bg-[#fcf8f2] p-4 sm:grid-cols-2">
             <div>
@@ -607,30 +617,18 @@ export default function PriceSubmissionForm({ defaults, initialOverview }: Props
 
           {showAdvanced ? (
             <div className="grid gap-4 rounded-[24px] border border-stone-200 bg-[#fcf8f2] p-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label>
-                  <span className="field-label">Observed on</span>
-                  <input
-                    type="date"
-                    value={form.observationDate}
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, observationDate: event.target.value }))
-                    }
-                    className="field-input"
-                    required
-                  />
-                </label>
-                <label>
-                  <span className="field-label">Unit</span>
-                  <input
-                    value={form.unit}
-                    onChange={(event) => setForm((current) => ({ ...current, unit: event.target.value }))}
-                    className="field-input"
-                    placeholder="90kg bag"
-                    required
-                  />
-                </label>
-              </div>
+              <label>
+                <span className="field-label">Observed on</span>
+                <input
+                  type="date"
+                  value={form.observationDate}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, observationDate: event.target.value }))
+                  }
+                  className="field-input"
+                  required
+                />
+              </label>
 
               <label>
                 <span className="field-label">Notes - optional</span>
