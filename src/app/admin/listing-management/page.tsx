@@ -72,6 +72,19 @@ export default function AdminListingManagementPage() {
     }
   };
 
+  const handleMarkSold = async (id: string) => {
+    if (!window.confirm("Mark this listing as sold? It will remain visible with a SOLD banner.")) return;
+    try {
+      setActionLoading(id);
+      await adminApiRequest(API_ENDPOINTS.unifiedListings.markSold(id), { method: "POST" });
+      setListings((prev) => prev.map((item) => item._id === id ? { ...item, sold: true } : item));
+    } catch (err: any) {
+      setError(err?.message || "Failed to mark listing as sold.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this listing? This cannot be undone.")) return;
     try {
@@ -153,6 +166,7 @@ export default function AdminListingManagementPage() {
                     <h3 className="text-lg font-semibold text-stone-900">{item.title || "Listing"}</h3>
                     {item.listingType && <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold capitalize">{item.listingType.replace("_", " ")}</span>}
                     {item.category && <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${CATEGORY_COLORS[item.category] || "bg-stone-100 text-stone-700 border-stone-200"}`}>{item.category}</span>}
+                    {item.sold && <span className="rounded-full bg-stone-900 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">Sold</span>}
                   </div>
                   <p className="mt-2 text-sm text-stone-600 line-clamp-2">{item.description || "No description provided."}</p>
                   <div className="mt-3 text-sm text-stone-600 space-y-1">
@@ -172,6 +186,9 @@ export default function AdminListingManagementPage() {
                   )}
                   {item.listingType === "product" && (
                     <button onClick={() => openEdit(item)} disabled={actionLoading === item._id} className="rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50">Edit</button>
+                  )}
+                  {!item.sold && (
+                    <button onClick={() => handleMarkSold(item._id)} disabled={actionLoading === item._id} className="rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50">Mark sold</button>
                   )}
                   <button onClick={() => handleDelete(item._id)} disabled={actionLoading === item._id} className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50">Delete</button>
                 </div>

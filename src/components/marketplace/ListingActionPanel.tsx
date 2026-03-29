@@ -16,8 +16,10 @@ import {
   isVerifiedProfile,
   normalizeMarketplaceListing,
 } from "@/lib/marketplace";
-import { Bookmark, BookmarkCheck, Phone, Share2, Truck, Zap, CheckCircle } from "lucide-react";
+import { Bookmark, BookmarkCheck, Phone, Share2, Truck, Zap, CheckCircle, BadgeCheck } from "lucide-react";
 import { normalizeKenyanPhone } from "@/lib/phone";
+import { apiRequest } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/endpoints";
 
 type ListingActionPanelProps = {
   listing: any;
@@ -31,6 +33,8 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
   const [quantity, setQuantity] = useState(1);
   const [shareFeedback, setShareFeedback] = useState("");
   const [favLoading, setFavLoading] = useState(false);
+  const [soldLoading, setSoldLoading] = useState(false);
+  const [isSold, setIsSold] = useState(Boolean(n?.sold));
 
   const n = normalizeMarketplaceListing(listing);
   const sellerId = n?.seller?._id || n?.userId || n?.owner?._id;
@@ -81,6 +85,17 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
     finally { setFavLoading(false); }
   };
 
+  const isOwner = user && sellerId && (user._id === sellerId || (user as any).id === sellerId);
+
+  const handleMarkSold = async () => {
+    setSoldLoading(true);
+    try {
+      await apiRequest(API_ENDPOINTS.unifiedListings.markSold(listingId), { method: "POST" });
+      setIsSold(true);
+    } catch { /* ignore */ }
+    finally { setSoldLoading(false); }
+  };
+
   const handleShare = async () => {
     const url = `${typeof window !== "undefined" ? window.location.href : ""}`;
     try {
@@ -100,6 +115,13 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
 
   return (
     <div className="surface-card p-5 space-y-5">
+      {/* Sold strip */}
+      {isSold && (
+        <div className="flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-3 text-sm font-semibold text-white">
+          <BadgeCheck className="h-4 w-4 shrink-0" />
+          This listing has been marked as sold
+        </div>
+      )}
       {/* Price + badges */}
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -185,6 +207,20 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
           <Link href="/request" className="secondary-button w-full">Check buyer requests</Link>
         )}
       </div>
+
+      {/* Owner actions */}
+      {isOwner && !isSold && (
+        <div className="border-t border-stone-100 pt-4">
+          <button
+            onClick={handleMarkSold}
+            disabled={soldLoading}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-stone-200 py-2.5 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:opacity-50"
+          >
+            <BadgeCheck className="h-4 w-4" />
+            {soldLoading ? "Updating..." : "Mark as sold"}
+          </button>
+        </div>
+      )}
 
       {/* Save + Share */}
       <div className="flex gap-2 border-t border-stone-100 pt-4">

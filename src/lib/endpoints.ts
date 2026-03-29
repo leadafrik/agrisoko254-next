@@ -98,6 +98,7 @@ export const API_ENDPOINTS = {
       `${API_BASE_URL}/unified-listings${params ? `?${String(params)}` : ""}`,
     create: `${API_BASE_URL}/unified-listings`,
     publish: (id: string) => `${API_BASE_URL}/unified-listings/${id}/publish`,
+    markSold: (id: string) => `${API_BASE_URL}/unified-listings/${id}/mark-sold`,
     myListings: `${API_BASE_URL}/unified-listings/user/my-listings`,
     trending: (category?: string, limit = 8) => {
       const p = new URLSearchParams({ limit: String(limit) });

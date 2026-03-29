@@ -81,6 +81,7 @@ export default function ListingCard({
     seller?.lastActive || seller?.updatedAt || normalized?.updatedAt
   );
   const responseTime = seller?.responseTime || seller?.responseTimeLabel || null;
+  const isSold = Boolean(normalized?.sold);
   const hasEngagement =
     engagement.views > 0 || engagement.saves > 0 || engagement.reachOuts > 0;
   const imageSizes = compact
@@ -93,10 +94,15 @@ export default function ListingCard({
         href={listingHref}
         className="group flex h-full flex-col overflow-hidden rounded-[26px] border border-stone-200 bg-white shadow-[0_20px_50px_-35px_rgba(120,83,47,0.45)] transition duration-200 hover:-translate-y-1 hover:border-terra-200 hover:shadow-[0_30px_60px_-35px_rgba(120,83,47,0.55)]"
       >
-        <div className="aspect-[4/3] overflow-hidden bg-stone-100">
+        <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
           <div className="h-full transition duration-300 group-hover:scale-[1.03]">
             <ListingImage src={image} alt={title} sizes={imageSizes} />
           </div>
+          {isSold && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+              <span className="rounded-full bg-white px-4 py-1.5 text-sm font-bold uppercase tracking-widest text-stone-900 shadow">Sold</span>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-1 flex-col p-5">
@@ -125,10 +131,15 @@ export default function ListingCard({
 
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-[26px] border border-stone-200 bg-white shadow-[0_20px_50px_-35px_rgba(120,83,47,0.3)] transition duration-200 hover:-translate-y-0.5 hover:border-terra-200 hover:shadow-[0_30px_60px_-35px_rgba(120,83,47,0.45)]">
-      <Link href={listingHref} className="block aspect-[4/3] overflow-hidden bg-stone-100">
+      <Link href={listingHref} className="relative block aspect-[4/3] overflow-hidden bg-stone-100">
         <div className="h-full transition duration-300 group-hover:scale-[1.03]">
           <ListingImage src={image} alt={title} sizes={imageSizes} />
         </div>
+        {isSold && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+            <span className="rounded-full bg-white px-4 py-1.5 text-sm font-bold uppercase tracking-widest text-stone-900 shadow">Sold</span>
+          </div>
+        )}
       </Link>
 
       <div className="flex flex-1 flex-col p-5">
