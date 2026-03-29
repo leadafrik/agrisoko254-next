@@ -26,7 +26,7 @@ type ListingActionPanelProps = {
 };
 
 export default function ListingActionPanel({ listing }: ListingActionPanelProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { addItem } = useCart();
   const { isFavorited, toggleFavorite } = useFavorites();
   const router = useRouter();
@@ -34,9 +34,9 @@ export default function ListingActionPanel({ listing }: ListingActionPanelProps)
   const [shareFeedback, setShareFeedback] = useState("");
   const [favLoading, setFavLoading] = useState(false);
   const [soldLoading, setSoldLoading] = useState(false);
-  const [isSold, setIsSold] = useState(Boolean(n?.sold));
 
   const n = normalizeMarketplaceListing(listing);
+  const [isSold, setIsSold] = useState(Boolean(n?.sold));
   const sellerId = n?.seller?._id || n?.userId || n?.owner?._id;
   const sellerObj = n?.seller || n?.owner || n?.user;
   const sellerName = getUserDisplayName(sellerObj);

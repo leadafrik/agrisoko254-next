@@ -16,7 +16,6 @@ import {
   type IntelligenceOverview,
   type IntelligenceSubmissionFeedback,
   ALL_KENYA_COUNTIES,
-  TRACKED_INTELLIGENCE_MARKETS,
   TRACKED_INTELLIGENCE_PRODUCTS,
   formatKes,
   getFallbackIntelligenceOverview,
