@@ -27,10 +27,10 @@ export function generateMetadata(): Metadata {
       "agrisoko learn",
       "market insights kenya",
     ],
-    alternates: { canonical: "https://www.agrisoko254.com/learn" },
+    alternates: { canonical: "https://agrisoko254.com/learn" },
     openGraph: {
       type: "website",
-      url: "https://www.agrisoko254.com/learn",
+      url: "https://agrisoko254.com/learn",
       title: pageTitle,
       description:
         "Practical farming guides, market insights, and trade-readiness content for Kenyan agriculture.",
@@ -70,13 +70,13 @@ export default async function LearnIndexPage() {
     name: "Agrisoko Learn Hub",
     description:
       "Practical farming guides, market insights, and trade-readiness content for Kenyan farmers and buyers.",
-    url: "https://www.agrisoko254.com/learn",
+    url: "https://agrisoko254.com/learn",
     mainEntity: {
       "@type": "ItemList",
       itemListElement: featuredGuides.slice(0, 4).map((guide, index) => ({
         "@type": "ListItem",
         position: index + 1,
-        url: `https://www.agrisoko254.com/learn/${guide.category}/${guide.slug}`,
+        url: `https://agrisoko254.com/learn/${guide.category}/${guide.slug}`,
         name: guide.title,
       })),
     },

@@ -130,12 +130,12 @@ const faqItems = [
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "@id": "https://www.agrisoko254.com/#organization",
+  "@id": "https://agrisoko254.com/#organization",
   name: BRAND_NAME,
   legalName: LEGAL_ENTITY_NAME,
   alternateName: "Agrisoko254",
-  url: "https://www.agrisoko254.com",
-  logo: "https://www.agrisoko254.com/logo512.png",
+  url: "https://agrisoko254.com",
+  logo: "https://agrisoko254.com/logo512.png",
   email: SUPPORT_EMAIL,
   telephone: "+254796389192",
   slogan: "Trusted agricultural marketplace across Kenya",
@@ -170,7 +170,7 @@ const peopleSchema = [
     "@type": "Person",
     name: FOUNDER_NAME,
     jobTitle: "Founder, Agrisoko",
-    image: `https://www.agrisoko254.com${FOUNDER_IMAGE}`,
+    image: `https://agrisoko254.com${FOUNDER_IMAGE}`,
     sameAs: [FOUNDER_LINKEDIN],
     worksFor: { "@type": "Organization", name: BRAND_NAME, legalName: LEGAL_ENTITY_NAME },
     address: { "@type": "PostalAddress", addressCountry: "KE" },
@@ -180,7 +180,7 @@ const peopleSchema = [
     "@type": "Person",
     name: leader.name,
     jobTitle: leader.title,
-    image: `https://www.agrisoko254.com${leader.image}`,
+    image: `https://agrisoko254.com${leader.image}`,
     description: leader.summary,
     sameAs: leader.linkedin ? [leader.linkedin] : undefined,
     worksFor: { "@type": "Organization", name: BRAND_NAME, legalName: LEGAL_ENTITY_NAME },
@@ -191,7 +191,7 @@ const peopleSchema = [
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntityOfPage: "https://www.agrisoko254.com/about",
+  mainEntityOfPage: "https://agrisoko254.com/about",
   mainEntity: faqItems.map((item) => ({
     "@type": "Question",
     name: item.question,
@@ -207,13 +207,13 @@ export const metadata: Metadata = {
   description:
     "Learn how Agrisoko is building direct, trusted agricultural trade across Kenya through verified profiles, practical marketplace workflows, and county-wide coverage.",
   alternates: {
-    canonical: "https://www.agrisoko254.com/about",
+    canonical: "https://agrisoko254.com/about",
   },
   openGraph: {
     title: "About Agrisoko | Built in Kenya for Agricultural Trade",
     description:
       "Agrisoko connects farmers, traders, agrovets, and buyers across Kenya through direct-market workflows and trust-first operations.",
-    url: "https://www.agrisoko254.com/about",
+    url: "https://agrisoko254.com/about",
   },
 };
 

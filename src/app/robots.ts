@@ -66,7 +66,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/"],
       },
     ],
-    sitemap: "https://www.agrisoko254.com/sitemap.xml",
-    host: "https://www.agrisoko254.com",
+    sitemap: "https://agrisoko254.com/sitemap.xml",
+    host: "https://agrisoko254.com",
   };
 }

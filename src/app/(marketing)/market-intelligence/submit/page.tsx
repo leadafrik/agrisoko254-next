@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: "Submit Market Price | Agrisoko",
   description:
     "Share a current market price on Agrisoko to help build cleaner Kenyan agricultural intelligence.",
-  alternates: { canonical: "https://www.agrisoko254.com/market-intelligence/submit" },
+  alternates: { canonical: "https://agrisoko254.com/market-intelligence/submit" },
 };
 
 const getSingleValue = (value?: string | string[]) =>

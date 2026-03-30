@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const name = getUserDisplayName(user);
   const county = user?.county || user?.location?.county || user?.address?.county || null;
   const verified = isVerifiedProfile(user);
-  const canonicalUrl = `https://www.agrisoko254.com/sellers/${params.id}`;
+  const canonicalUrl = `https://agrisoko254.com/sellers/${params.id}`;
 
   const descParts = [
     verified ? `Verified seller on Agrisoko.` : null,
@@ -94,7 +94,7 @@ export default async function SellerProfilePage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": verified ? "Person" : "Person",
     name: displayName,
-    url: `https://www.agrisoko254.com/sellers/${params.id}`,
+    url: `https://agrisoko254.com/sellers/${params.id}`,
     ...(avatar ? { image: avatar } : {}),
     ...(user?.bio ? { description: user.bio } : {}),
     ...(county
@@ -124,7 +124,7 @@ export default async function SellerProfilePage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Marketplace", item: "https://www.agrisoko254.com/browse" },
+      { "@type": "ListItem", position: 1, name: "Marketplace", item: "https://agrisoko254.com/browse" },
       { "@type": "ListItem", position: 2, name: displayName },
     ],
   };

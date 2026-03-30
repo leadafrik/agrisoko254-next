@@ -106,7 +106,7 @@ export const getDefaultContentCover = () => PREFERRED_POOL[0];
 
 export const getAbsoluteContentImageUrl = (value?: string | null) => {
   const resolved = value || getDefaultContentCover();
-  return resolved.startsWith("http") ? resolved : `https://www.agrisoko254.com${resolved}`;
+  return resolved.startsWith("http") ? resolved : `https://agrisoko254.com${resolved}`;
 };
 
 export const buildSocialImageMetadata = (

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { API_BASE_URL } from "@/lib/endpoints";
 
-const BASE = "https://www.agrisoko254.com";
+const BASE = "https://agrisoko254.com";
 
 const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: BASE, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },

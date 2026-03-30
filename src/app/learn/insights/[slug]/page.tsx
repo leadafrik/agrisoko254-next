@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.title,
       description: post.excerpt,
       type: "article",
-      url: `https://www.agrisoko254.com/learn/insights/${params.slug}`,
+      url: `https://agrisoko254.com/learn/insights/${params.slug}`,
       publishedTime: post.publishedAt ?? undefined,
       images: socialImages.openGraph,
       tags: post.tags,
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: socialImages.twitter,
     },
     alternates: {
-      canonical: `https://www.agrisoko254.com/learn/insights/${params.slug}`,
+      canonical: `https://agrisoko254.com/learn/insights/${params.slug}`,
     },
   };
 }
@@ -61,7 +61,7 @@ export default async function LearnInsightDetailPage({ params }: Props) {
 
   const related = posts.filter((candidate) => candidate.slug !== post.slug).slice(0, 4);
 
-  const canonicalUrl = `https://www.agrisoko254.com/learn/insights/${params.slug}`;
+  const canonicalUrl = `https://agrisoko254.com/learn/insights/${params.slug}`;
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -75,7 +75,7 @@ export default async function LearnInsightDetailPage({ params }: Props) {
     publisher: {
       "@type": "Organization",
       name: "Agrisoko",
-      logo: { "@type": "ImageObject", url: "https://www.agrisoko254.com/logo192.png" },
+      logo: { "@type": "ImageObject", url: "https://agrisoko254.com/logo192.png" },
     },
     keywords: post.tags.join(", "),
     ...(post.coverImage ? { image: getAbsoluteContentImageUrl(post.coverImage) } : {}),
@@ -85,8 +85,8 @@ export default async function LearnInsightDetailPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Learn", item: "https://www.agrisoko254.com/learn" },
-      { "@type": "ListItem", position: 2, name: "Insights", item: "https://www.agrisoko254.com/learn/insights" },
+      { "@type": "ListItem", position: 1, name: "Learn", item: "https://agrisoko254.com/learn" },
+      { "@type": "ListItem", position: 2, name: "Insights", item: "https://agrisoko254.com/learn/insights" },
       { "@type": "ListItem", position: 3, name: post.title },
     ],
   };

@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   ].filter(Boolean);
   const description = descriptionParts.join(" ") || "View listing details on Agrisoko, Kenya's agricultural marketplace.";
 
-  const canonicalUrl = `https://www.agrisoko254.com/listings/${params.id}`;
+  const canonicalUrl = `https://agrisoko254.com/listings/${params.id}`;
 
   return {
     title,
@@ -62,13 +62,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       images: images[0]
         ? [{ url: images[0], width: 1200, height: 630, alt: title }]
-        : [{ url: "https://www.agrisoko254.com/og-image.png", width: 1200, height: 630 }],
+        : [{ url: "https://agrisoko254.com/og-image.png", width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: images[0] ? [images[0]] : ["https://www.agrisoko254.com/og-image.png"],
+      images: images[0] ? [images[0]] : ["https://agrisoko254.com/og-image.png"],
     },
   };
 }
@@ -139,11 +139,11 @@ export default async function ListingDetailPage({ params }: Props) {
       price: numericPrice > 0 ? numericPrice : undefined,
       priceValidUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       availability: "https://schema.org/InStock",
-      url: `https://www.agrisoko254.com/listings/${listingId}`,
+      url: `https://agrisoko254.com/listings/${listingId}`,
       seller: {
         "@type": "Person",
         name: sellerName,
-        ...(sellerId ? { url: `https://www.agrisoko254.com/sellers/${sellerId}` } : {}),
+        ...(sellerId ? { url: `https://agrisoko254.com/sellers/${sellerId}` } : {}),
       },
       availableAtOrFrom: county
         ? {
@@ -162,9 +162,9 @@ export default async function ListingDetailPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Browse", item: "https://www.agrisoko254.com/browse" },
+      { "@type": "ListItem", position: 1, name: "Browse", item: "https://agrisoko254.com/browse" },
       ...(category
-        ? [{ "@type": "ListItem", position: 2, name: category.label, item: `https://www.agrisoko254.com/browse/${category.slug}` }]
+        ? [{ "@type": "ListItem", position: 2, name: category.label, item: `https://agrisoko254.com/browse/${category.slug}` }]
         : []),
       { "@type": "ListItem", position: category ? 3 : 2, name: listing?.title || listing?.name },
     ],

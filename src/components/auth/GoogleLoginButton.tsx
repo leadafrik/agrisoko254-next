@@ -14,7 +14,7 @@ type GoogleLoginButtonProps = {
   className?: string;
 };
 
-const GOOGLE_CANONICAL_HOST = "www.agrisoko254.com";
+const GOOGLE_CANONICAL_HOST = "agrisoko254.com";
 
 const getGoogleUnavailableMessage = () => {
   if (typeof window === "undefined") {

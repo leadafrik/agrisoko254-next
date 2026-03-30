@@ -13,10 +13,10 @@ export const metadata: Metadata = {
     "farm produce demand kenya",
     "agrisoko buyer requests",
   ],
-  alternates: { canonical: "https://www.agrisoko254.com/request" },
+  alternates: { canonical: "https://agrisoko254.com/request" },
   openGraph: {
     type: "website",
-    url: "https://www.agrisoko254.com/request",
+    url: "https://agrisoko254.com/request",
     title: "Buyer Requests in Kenya | Agrisoko",
     description:
       "See what buyers across Kenya are looking for right now and respond with direct supply on Agrisoko.",

@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = getArticle(params.category, params.slug);
   if (!article) return {};
 
-  const canonical = `https://www.agrisoko254.com/learn/${params.category}/${params.slug}`;
+  const canonical = `https://agrisoko254.com/learn/${params.category}/${params.slug}`;
   const socialImages = buildSocialImageMetadata(article.coverImage, article.title);
 
   return {
@@ -58,8 +58,8 @@ export default function ArticlePage({ params }: Props) {
 
   if (!article) notFound();
 
-  const canonicalUrl = `https://www.agrisoko254.com/learn/${params.category}/${params.slug}`;
-  const categoryUrl = `https://www.agrisoko254.com/learn/${params.category}`;
+  const canonicalUrl = `https://agrisoko254.com/learn/${params.category}/${params.slug}`;
+  const categoryUrl = `https://agrisoko254.com/learn/${params.category}`;
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -73,7 +73,7 @@ export default function ArticlePage({ params }: Props) {
     publisher: {
       "@type": "Organization",
       name: "Agrisoko",
-      logo: { "@type": "ImageObject", url: "https://www.agrisoko254.com/logo192.png" },
+      logo: { "@type": "ImageObject", url: "https://agrisoko254.com/logo192.png" },
     },
     keywords: article.tags?.join(", "),
     ...(article.coverImage ? { image: getAbsoluteContentImageUrl(article.coverImage) } : {}),
@@ -83,7 +83,7 @@ export default function ArticlePage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Learn", item: "https://www.agrisoko254.com/learn" },
+      { "@type": "ListItem", position: 1, name: "Learn", item: "https://agrisoko254.com/learn" },
       { "@type": "ListItem", position: 2, name: meta?.label ?? params.category, item: categoryUrl },
       { "@type": "ListItem", position: 3, name: article.title },
     ],

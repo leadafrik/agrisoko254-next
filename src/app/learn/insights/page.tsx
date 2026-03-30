@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: "Market Insights",
       description: pageDescription,
       type: "website",
-      url: "https://www.agrisoko254.com/learn/insights",
+      url: "https://agrisoko254.com/learn/insights",
       images: socialImages.openGraph,
     },
     twitter: {
@@ -39,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: pageDescription,
       images: socialImages.twitter,
     },
-    alternates: { canonical: "https://www.agrisoko254.com/learn/insights" },
+    alternates: { canonical: "https://agrisoko254.com/learn/insights" },
   };
 }
 
@@ -63,14 +63,14 @@ export default async function LearnInsightsPage() {
     "@type": "CollectionPage",
     name: "Agrisoko Market Insights",
     description: pageDescription,
-    url: "https://www.agrisoko254.com/learn/insights",
+    url: "https://agrisoko254.com/learn/insights",
     mainEntity: {
       "@type": "ItemList",
       itemListElement: posts.map((post, index) => ({
         "@type": "ListItem",
         position: index + 1,
         name: post.title,
-        url: `https://www.agrisoko254.com/learn/insights/${post.slug}`,
+        url: `https://agrisoko254.com/learn/insights/${post.slug}`,
       })),
     },
   };

@@ -3,7 +3,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.agrisoko254.com"),
+  metadataBase: new URL("https://agrisoko254.com"),
   title: {
     default: "Agrisoko | Kenya's Agricultural Marketplace",
     template: "%s | Agrisoko",
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_KE",
-    url: "https://www.agrisoko254.com",
+    url: "https://agrisoko254.com",
     siteName: "Agrisoko",
     title: "Agrisoko | Kenya's Agricultural Marketplace",
     description:
@@ -105,7 +105,7 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
   },
-  alternates: { canonical: "https://www.agrisoko254.com" },
+  alternates: { canonical: "https://agrisoko254.com" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

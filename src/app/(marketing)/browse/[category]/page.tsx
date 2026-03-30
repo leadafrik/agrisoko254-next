@@ -17,7 +17,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const category = normalizeBrowseCategory(params.category);
   if (!category) return {};
-  const canonicalUrl = `https://www.agrisoko254.com/browse/${category.slug}`;
+  const canonicalUrl = `https://agrisoko254.com/browse/${category.slug}`;
   const title = `Buy & Sell ${category.label} in Kenya | Agrisoko`;
   const description = `${category.description} Browse verified ${category.shortLabel.toLowerCase()} listings from farmers and traders across all 47 Kenyan counties. Buy direct, no middlemen.`;
 

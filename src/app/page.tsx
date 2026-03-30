@@ -41,10 +41,10 @@ export const metadata: Metadata = {
   title: "Agrisoko | Kenya's Agricultural Marketplace - Buy & Sell Direct",
   description:
     "Kenya's agricultural marketplace. Buy and sell maize, livestock, farm inputs, and services directly from verified farmers and traders. Live price signals across all 47 counties.",
-  alternates: { canonical: "https://www.agrisoko254.com" },
+  alternates: { canonical: "https://agrisoko254.com" },
   openGraph: {
     type: "website",
-    url: "https://www.agrisoko254.com",
+    url: "https://agrisoko254.com",
     title: "Agrisoko | Kenya's Agricultural Marketplace",
     description:
       "Buy and sell produce, livestock, farm inputs, and services directly across Kenya. Live price intelligence. No middlemen.",
@@ -57,8 +57,8 @@ const organizationSchema = {
   "@type": "Organization",
   name: "Agrisoko",
   alternateName: "Agrisoko Kenya",
-  url: "https://www.agrisoko254.com",
-  logo: "https://www.agrisoko254.com/logo192.png",
+  url: "https://agrisoko254.com",
+  logo: "https://agrisoko254.com/logo192.png",
   description:
     "Kenya's agricultural marketplace connecting farmers, traders, agrovets, and buyers across all 47 counties. Direct trade, verified trust signals, and live price intelligence.",
   foundingLocation: { "@type": "Place", name: "Nairobi, Kenya" },
@@ -83,14 +83,14 @@ const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "Agrisoko",
-  url: "https://www.agrisoko254.com",
+  url: "https://agrisoko254.com",
   description: "Kenya's agricultural marketplace - produce, livestock, inputs, services, and live price intelligence.",
   inLanguage: "en-KE",
   potentialAction: {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: "https://www.agrisoko254.com/browse?q={search_term_string}",
+      urlTemplate: "https://agrisoko254.com/browse?q={search_term_string}",
     },
     "query-input": "required name=search_term_string",
   },
@@ -168,13 +168,9 @@ const categoryIconMap: Record<string, React.ComponentType<{ className?: string }
 
 // Full founder letter - aligned to the PWA message
 const founderLetterParagraphs = [
-  "When I started Agrisoko, many people told me it would not work.",
   "I grew up watching farmers work incredibly hard - waking before sunrise, tending their land through drought and disease - and then watching brokers take the largest share of the profit at the farm gate. A farmer who grew maize for four months might sell it for KES 28 per kilo. By the time it reached Nairobi, it sold for KES 55. The farmer saw none of that difference. The broker made it all.",
-  "I asked myself: what if the farmer could see the buyer directly? What if the buyer could trust the quality of what they were getting? What if we removed the unnecessary steps between the person who grew the food and the person who needed it?",
   "That question became Agrisoko.",
   "We are not just building an app. We are building trust infrastructure for Kenyan agriculture - a place where a smallholder in Meru can reach a buyer in Mombasa, where a fresh produce trader in Limuru can post what she has and be found by restaurants in Nairobi, where a livestock farmer in Kajiado does not have to wait for someone to pass through his road to know what his animals are worth.",
-  "Agrisoko is building a future where farmers keep more of what they earn, buyers trade with confidence, and agriculture in Kenya becomes more direct, more trusted, and more connected.",
-  "If you believe in that vision, join us. Sign up today. Tell a friend to tell a friend. And together, let us build the future of agriculture in Kenya.",
 ];
 
 function formatBlogDate(value?: string) {
@@ -287,22 +283,7 @@ export default async function HomePage() {
                     </Link>
                   </div>
 
-                  {/* Stats chips */}
-                  <div className="mt-6 flex flex-wrap gap-2 text-sm text-stone-600">
-                    <span className="rounded-full border border-stone-200 bg-white/80 px-3 py-1.5 font-medium">
-                      {activeListings > 0
-                        ? `${activeListings.toLocaleString()} active listings`
-                        : "Active listings updated frequently"}
-                    </span>
-                    {intelligence.meta.approvedSubmissions > 0 && (
-                      <span className="rounded-full border border-stone-200 bg-white/80 px-3 py-1.5 font-medium">
-                        {intelligence.meta.approvedSubmissions.toLocaleString()} approved price reports
-                      </span>
-                    )}
-                    <span className="rounded-full border border-stone-200 bg-white/80 px-3 py-1.5 font-medium">
-                      {SUPPORTED_DELIVERY_COUNTIES.length} checkout counties
-                    </span>
-                  </div>
+
                 </div>
 
                 {/* Right — price intelligence card */}
@@ -557,7 +538,7 @@ export default async function HomePage() {
                   <Link
                     key={category.slug}
                     href={`/browse/${category.slug}`}
-                    className="group surface-card p-6 transition duration-200 hover:-translate-y-1 hover:border-terra-200 hover:shadow-lg"
+                    className="group surface-card p-4 transition duration-200 hover:-translate-y-1 hover:border-terra-200 hover:shadow-lg"
                   >
                     <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-terra-50 text-terra-700 transition group-hover:bg-terra-100">
                       <Icon className="h-5 w-5" />
@@ -566,7 +547,6 @@ export default async function HomePage() {
                     <p className="mt-2 text-sm leading-relaxed text-stone-600">
                       {category.description}
                     </p>
-                    <p className="mt-3 text-xs text-stone-400">{category.examples}</p>
                   </Link>
                 );
               })}
@@ -592,17 +572,17 @@ export default async function HomePage() {
                 {
                   Icon: ShieldCheck,
                   title: "Verified trust signals",
-                  copy: "ID-verified sellers, profile verification, and listing context help serious buyers judge credibility before they pick up the phone.",
+                  copy: "ID-verified sellers and listing context give buyers the confidence to act.",
                 },
                 {
                   Icon: BarChart3,
                   title: "Live market intelligence",
-                  copy: "Price submissions, best-market signals, and trend direction from field contributors — not stale averages from three months ago.",
+                  copy: "Real price submissions and trend direction from field contributors — not stale averages from three months ago.",
                 },
                 {
                   Icon: MessageCircle,
                   title: "Direct market access",
-                  copy: "Farmers, traders, buyers, agrovets, and service providers connect without the broker layer eating into every margin.",
+                  copy: "Connect without the broker layer eating into every margin.",
                 },
               ].map(({ Icon, title, copy }) => (
                 <div key={title} className="surface-card p-6">

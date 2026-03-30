@@ -65,11 +65,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       `agrisoko ${product.productName.toLowerCase()}`,
     ],
     alternates: {
-      canonical: `https://www.agrisoko254.com/market-intelligence/${product.productKey}`,
+      canonical: `https://agrisoko254.com/market-intelligence/${product.productKey}`,
     },
     openGraph: {
       type: "website",
-      url: `https://www.agrisoko254.com/market-intelligence/${product.productKey}`,
+      url: `https://agrisoko254.com/market-intelligence/${product.productKey}`,
       title: `${product.productName} Prices Kenya - Live Market Board`,
       description: descParts.join(" "),
       images: [
@@ -121,11 +121,11 @@ export default async function CommodityIntelligencePage({ params }: Props) {
       "market intelligence kenya",
       "agrisoko",
     ],
-    url: `https://www.agrisoko254.com/market-intelligence/${product.productKey}`,
+    url: `https://agrisoko254.com/market-intelligence/${product.productKey}`,
     provider: {
       "@type": "Organization",
       name: "Agrisoko",
-      url: "https://www.agrisoko254.com",
+      url: "https://agrisoko254.com",
     },
     spatialCoverage: { "@type": "Place", name: "Kenya" },
     temporalCoverage: new Date().getFullYear().toString(),
@@ -142,7 +142,7 @@ export default async function CommodityIntelligencePage({ params }: Props) {
         "@type": "ListItem",
         position: 1,
         name: "Market Intelligence",
-        item: "https://www.agrisoko254.com/market-intelligence",
+        item: "https://agrisoko254.com/market-intelligence",
       },
       { "@type": "ListItem", position: 2, name: product.productName },
     ],

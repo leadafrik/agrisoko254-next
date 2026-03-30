@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!meta) return {};
 
   const description = `${meta.description}. Practical guides, pricing context, and selling tips for Kenyan farmers.`;
-  const canonical = `https://www.agrisoko254.com/learn/${params.category}`;
+  const canonical = `https://agrisoko254.com/learn/${params.category}`;
   const leadImage = getArticlesByCategory(params.category)[0]?.coverImage ?? null;
   const socialImages = buildSocialImageMetadata(leadImage, `${meta.label} farming guides`);
 
@@ -62,12 +62,12 @@ export default function CategoryPage({ params }: Props) {
     "@type": "CollectionPage",
     name: `${meta.label} Farming Guides for Kenya`,
     description: `${meta.description}. Practical guides, pricing context, and selling tips for Kenyan farmers.`,
-    url: `https://www.agrisoko254.com/learn/${params.category}`,
+    url: `https://agrisoko254.com/learn/${params.category}`,
     ...(articles[0]?.coverImage ? { image: getAbsoluteContentImageUrl(articles[0].coverImage) } : {}),
     isPartOf: {
       "@type": "WebSite",
       name: "Agrisoko",
-      url: "https://www.agrisoko254.com",
+      url: "https://agrisoko254.com",
     },
     mainEntity: {
       "@type": "ItemList",
@@ -75,7 +75,7 @@ export default function CategoryPage({ params }: Props) {
         "@type": "ListItem",
         position: index + 1,
         name: article.title,
-        url: `https://www.agrisoko254.com/learn/${params.category}/${article.slug}`,
+        url: `https://agrisoko254.com/learn/${params.category}/${article.slug}`,
       })),
     },
   };

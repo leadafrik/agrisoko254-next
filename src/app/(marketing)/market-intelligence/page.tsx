@@ -23,10 +23,10 @@ export const metadata: Metadata = {
     "agricultural market prices kenya",
     "agrisoko market intelligence",
   ],
-  alternates: { canonical: "https://www.agrisoko254.com/market-intelligence" },
+  alternates: { canonical: "https://agrisoko254.com/market-intelligence" },
   openGraph: {
     type: "website",
-    url: "https://www.agrisoko254.com/market-intelligence",
+    url: "https://agrisoko254.com/market-intelligence",
     title: "Kenya Market Intelligence | Agrisoko",
     description:
       "Live Kenyan price signals, best markets to sell, cheapest markets to buy, and reviewed field reports.",
@@ -54,11 +54,11 @@ export default async function MarketIntelligencePage() {
     name: "Agrisoko Market Intelligence Kenya",
     description:
       "Live Kenyan agricultural market signals built from reviewed field reports across produce, livestock, and farm inputs.",
-    url: "https://www.agrisoko254.com/market-intelligence",
+    url: "https://agrisoko254.com/market-intelligence",
     provider: {
       "@type": "Organization",
       name: "Agrisoko",
-      url: "https://www.agrisoko254.com",
+      url: "https://agrisoko254.com",
     },
     spatialCoverage: { "@type": "Place", name: "Kenya" },
     keywords: overview.meta.commoditiesCovered,
