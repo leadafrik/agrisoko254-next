@@ -320,7 +320,9 @@ export default async function LearnIndexPage() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
               Browse by topic
             </p>
-            <h2 className="mt-3 text-3xl font-bold text-stone-900">The guide library still keeps its structured topic paths</h2>
+            <h2 className="mt-3 text-3xl font-bold text-stone-900">
+              Explore practical guides by topic
+            </h2>
           </div>
         </div>
 

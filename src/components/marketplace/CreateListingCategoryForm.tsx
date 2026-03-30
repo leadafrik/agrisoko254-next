@@ -588,7 +588,7 @@ export default function CreateListingCategoryForm({
                 </p>
                 <p className="mt-1 leading-relaxed text-stone-600">
                   {verifiedSeller
-                    ? "Moderation may still review listings when needed."
+                    ? "Clear photos, price, and location help buyers respond faster."
                     : "Your listing will go to review before it goes live."}
                 </p>
                 {!verifiedSeller ? (
@@ -603,9 +603,8 @@ export default function CreateListingCategoryForm({
           <div className="mt-6 rounded-[24px] border border-stone-200 bg-white p-5">
             <p className="text-sm font-semibold text-stone-900">Listing mode</p>
             <p className="mt-1 text-sm leading-relaxed text-stone-600">
-              Single is fastest for one listing. Batch restores the old PWA pattern and lets you
-              publish up to {MAX_BATCH_ITEMS} listings in one go while sharing the same location and
-              contact details.
+              Single is fastest for one listing. Batch lets you publish up to {MAX_BATCH_ITEMS}
+              listings at once while sharing the same location and contact details.
             </p>
             <div className="mt-4 inline-flex rounded-full border border-stone-200 bg-stone-50 p-1">
               <button

@@ -173,7 +173,7 @@ export const ABOUT_FAQS = [
   {
     question: "How does checkout work today?",
     answer:
-      "Marketplace checkout is managed through manual payment verification using the Agrisoko till and supported delivery counties.",
+      "Buyers pay to the Agrisoko till, share the payer phone, and Agrisoko confirms the order before delivery starts.",
   },
   {
     question: "Who is the platform for?",

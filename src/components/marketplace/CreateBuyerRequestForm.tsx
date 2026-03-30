@@ -563,8 +563,8 @@ export default function CreateBuyerRequestForm() {
                 <div className="rounded-[24px] border border-stone-200 bg-stone-50 p-5">
                   <h2 className="text-lg font-semibold text-stone-900">Delivery location</h2>
                   <p className="mt-1 text-sm text-stone-600">
-                    County is still the core market signal. Constituency and ward are available,
-                    but the approximate location is what most suppliers will understand first.
+                    County is required. Add a town, market, or landmark so suppliers can respond
+                    faster.
                   </p>
 
                   <div className="mt-5 space-y-5">

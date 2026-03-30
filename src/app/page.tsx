@@ -373,7 +373,7 @@ export default async function HomePage() {
                   <div className="mt-4 flex items-center justify-between border-t border-[#4a2e0a]/30 pt-4 text-xs">
                     <span className="text-white/35">
                       {intelligence.isFallback
-                        ? "Starter board while live submissions build"
+                        ? "Reference market snapshot"
                         : "Built from approved field submissions"}
                     </span>
                     <SharePriceButton className="font-semibold text-amber-400 transition hover:text-amber-300" />

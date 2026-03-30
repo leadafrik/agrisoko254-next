@@ -108,8 +108,8 @@ export default function CheckoutPage() {
         <p className="section-kicker">Managed checkout</p>
         <h1 className="mt-4 text-4xl font-bold text-stone-900">Confirm delivery and payment details</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
-          Checkout on Agrisoko uses manual payment verification. Pay the till, submit the payer
-          phone, and the order moves into review before fulfillment.
+          Pay to the Agrisoko till, add the payer phone, and we will confirm your order before
+          delivery starts.
         </p>
       </div>
 
@@ -234,7 +234,7 @@ export default function CheckoutPage() {
                 value={form.notes}
                 onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
                 className="field-textarea"
-                placeholder="Anything the seller or admin should know about delivery or contact."
+                placeholder="Anything we should know about delivery or contact."
               />
             </div>
 

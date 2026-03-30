@@ -74,12 +74,12 @@ const LOCAL_INSIGHT_POSTS: InsightPost[] = [
     slug: "why-kenyan-maize-still-has-no-single-price",
     title: "Why Kenyan Maize Still Has No Single Price in March 2026",
     excerpt:
-      "Starter field signals from March 25-26, 2026 show maize quotes stretching from about KES 2,500 in weaker Nakuru signals to KES 3,800 in stronger premium desks. The deeper lesson is that farmers should compare destination markets, not just local harvest prices.",
-    content: `Kenya does not have one maize price right now. The seed data coming into Agrisoko from March 25-26, 2026 makes that plain.
+      "Field reports from March 25-26, 2026 show maize quotes stretching from about KES 2,500 in weaker Nakuru signals to KES 3,800 in stronger premium desks. The deeper lesson is that farmers should compare destination markets, not just local harvest prices.",
+    content: `Kenya does not have one maize price right now. Field reports from March 25-26, 2026 make that plain.
 
 ${buildMarkdownTable(maizeMarketRows, ["Location", "Observed price", "Context"])}
 
-## What this starter board is saying
+## What the current board is showing
 
 1. Harvest-zone prices are still under pressure. Lower Nakuru and Trans Nzoia quotes are materially weaker than the firmer premium and destination-style desks.
 2. Location is doing more work than headline demand. A farmer who only checks the nearest buyer can easily undersell.

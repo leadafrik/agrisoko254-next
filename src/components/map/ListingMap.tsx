@@ -17,7 +17,7 @@ export default function ListingMap({ lat, lng, height = "250px" }: Props) {
     if (!mapRef.current) return;
 
     if (!isGoogleMapsConfigured()) {
-      setError("Map view is temporarily unavailable right now.");
+      setError("Map view is not available right now.");
       return;
     }
 

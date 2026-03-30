@@ -49,7 +49,7 @@ export default function GooglePlacesInput({
       if (disabled || !inputRef.current) return;
 
       if (!isGoogleMapsConfigured()) {
-        setLoadError("Location search is temporarily unavailable. Use the manual location fields below.");
+        setLoadError("Location search is not available right now. Enter the location manually below.");
         return;
       }
 
@@ -78,7 +78,7 @@ export default function GooglePlacesInput({
         setLoadError(null);
       } catch (err: any) {
         if (!cancelled) {
-          setLoadError(err?.message || "Location search is temporarily unavailable. Use the manual location fields below.");
+          setLoadError(err?.message || "Location search is not available right now. Enter the location manually below.");
         }
       }
     };

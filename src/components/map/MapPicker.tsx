@@ -23,7 +23,7 @@ export default function MapPicker({ onChange, defaultCenter = NAIROBI, height = 
     if (!mapRef.current) return;
 
     if (!isGoogleMapsConfigured()) {
-      setError("Map selection is temporarily unavailable right now.");
+      setError("Map selection is not available right now.");
       return;
     }
 

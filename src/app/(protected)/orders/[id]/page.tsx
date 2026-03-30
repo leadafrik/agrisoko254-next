@@ -164,9 +164,9 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                 ) : null}
               </div>
               <div className="soft-panel p-4 text-sm text-stone-700">
-                <p className="font-semibold text-stone-900">Payment review note</p>
+                <p className="font-semibold text-stone-900">Payment confirmation</p>
                 <p className="mt-2">
-                  Agrisoko verifies the till payment manually before the seller starts delivery.
+                  Agrisoko confirms payment to the till before delivery starts.
                 </p>
               </div>
             </div>
