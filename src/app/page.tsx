@@ -25,7 +25,6 @@ import { getInsightPosts } from "@/lib/content-hub";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/endpoints";
 import {
   MARKETPLACE_CATEGORIES,
-  SUPPORTED_DELIVERY_COUNTIES,
 } from "@/lib/marketplace";
 import {
   formatKes,
@@ -194,7 +193,13 @@ export default async function HomePage() {
   const requests = requestsData?.data ?? requestsData?.requests ?? requestsData ?? [];
   const intelligence = normalizeIntelligenceOverview(intelligenceData);
   const featuredSignals = intelligence.topSignals.slice(0, 4);
-  const produceBoard = intelligence.produceBoard.slice(0, 6);
+
+  // Cross-category board for sidebar: 3 produce + 2 livestock + 1 fertilizer, capped at 6
+  const crossCategoryBoard = [
+    ...intelligence.produceBoard.slice(0, 3).map((i) => ({ ...i, categoryLabel: "Produce" })),
+    ...(intelligence.livestockBoard ?? []).slice(0, 2).map((i) => ({ ...i, categoryLabel: "Livestock" })),
+    ...intelligence.fertilizerBoard.slice(0, 1).map((i) => ({ ...i, categoryLabel: "Inputs" })),
+  ].slice(0, 6);
 
   // All boards combined — produce + inputs + livestock — for the live pulse strip
   const allPulseBoards = [
@@ -422,9 +427,9 @@ export default async function HomePage() {
                       </h3>
                     </div>
                   </div>
-                  {produceBoard.length > 0 ? (
+                  {crossCategoryBoard.length > 0 ? (
                     <div className="divide-y divide-stone-100">
-                      {produceBoard.slice(0, 5).map((item) => (
+                      {crossCategoryBoard.map((item) => (
                         <Link
                           key={item.productKey}
                           href={`/market-intelligence/${item.productKey}`}
@@ -432,9 +437,10 @@ export default async function HomePage() {
                         >
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-stone-900">{item.productName}</p>
-                            {item.bestMarket?.county && (
-                              <p className="text-[11px] text-stone-400">{item.bestMarket.county}</p>
-                            )}
+                            <p className="text-[11px] text-stone-400">
+                              {item.categoryLabel}
+                              {item.bestMarket?.county ? ` · ${item.bestMarket.county}` : ""}
+                            </p>
                           </div>
                           <div className="flex shrink-0 items-center gap-2">
                             <p className="font-mono text-sm font-bold text-terra-600">
