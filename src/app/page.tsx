@@ -287,16 +287,16 @@ export default async function HomePage() {
                 </div>
 
                 {/* Right — price intelligence card */}
-                <div className="rounded-[28px] bg-gradient-to-b from-[#1e1106] to-[#170e04] p-6 text-white shadow-[0_28px_80px_-28px_rgba(20,12,4,0.65)] ring-1 ring-[#4a2e0a]/40">
+                <div className="rounded-[28px] border border-[#dcc4a1] bg-[linear-gradient(160deg,#fff8ec_0%,#f4e5cf_45%,#ebdece_100%)] p-6 text-stone-900 shadow-[0_28px_80px_-34px_rgba(88,64,39,0.34)]">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#c4a060]/70">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#9f7434]/78">
                         Today&apos;s price edges
                       </p>
-                      <h2 className="mt-1.5 text-xl font-bold text-white">Live market intelligence</h2>
+                      <h2 className="mt-1.5 text-xl font-bold text-[#2f2418]">Live market intelligence</h2>
                     </div>
-                    <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-green-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-green-400">
-                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />
+                    <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200/90 bg-emerald-50/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
                       Live
                     </span>
                   </div>
@@ -317,26 +317,26 @@ export default async function HomePage() {
                         <Link
                           key={signal.productKey}
                           href={`/market-intelligence/${signal.productKey}`}
-                          className="signal-row flex items-center justify-between gap-3 rounded-[18px] border border-[#4a2e0a]/40 bg-[#2a1508]/50 px-4 py-3 transition-colors hover:border-[#7a4e1a]/50 hover:bg-[#2a1508]/70"
+                          className="signal-row flex items-center justify-between gap-3 rounded-[18px] border border-[#dcc5a6] bg-white/78 px-4 py-3 transition-colors hover:border-[#c79c63] hover:bg-white"
                           style={{ animationDelay: `${i * 90}ms` }}
                         >
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-white/90">{signal.productName}</p>
-                            <p className="mt-0.5 truncate text-[11px] text-[#c4a060]/60">
+                            <p className="text-sm font-semibold text-stone-900">{signal.productName}</p>
+                            <p className="mt-0.5 truncate text-[11px] text-stone-500">
                               {signal.bestMarketName} · {signal.bestCounty}
                             </p>
                           </div>
                           <div className="shrink-0 text-right">
-                            <p className="font-mono text-base font-bold text-amber-300">
+                            <p className="font-mono text-base font-bold text-terra-700">
                               {formatKes(signal.bestPrice)}
                             </p>
                             <p
                               className={`mt-0.5 text-[11px] font-semibold ${
                                 signal.trendDirection === "up"
-                                  ? "text-green-400"
+                                  ? "text-emerald-700"
                                   : signal.trendDirection === "down"
-                                    ? "text-red-400"
-                                    : "text-white/30"
+                                    ? "text-rose-600"
+                                    : "text-stone-500"
                               }`}
                             >
                               {formatTrendLabel(signal.trendDirection, signal.trendPercentage)}
@@ -345,19 +345,19 @@ export default async function HomePage() {
                         </Link>
                       ))
                     ) : (
-                      <div className="rounded-[18px] border border-[#4a2e0a]/30 bg-[#2a1508]/40 px-4 py-5 text-center text-sm text-white/30">
+                      <div className="rounded-[18px] border border-[#dcc5a6] bg-white/65 px-4 py-5 text-center text-sm text-stone-500">
                         Price data grows as field contributors submit reports.
                       </div>
                     )}
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between border-t border-[#4a2e0a]/30 pt-4 text-xs">
-                    <span className="text-white/35">
+                  <div className="mt-4 flex items-center justify-between border-t border-[#d7c2a3] pt-4 text-xs">
+                    <span className="text-stone-500">
                       {intelligence.isFallback
                         ? "Reference market snapshot"
                         : "Built from approved field submissions"}
                     </span>
-                    <SharePriceButton className="font-semibold text-amber-400 transition hover:text-amber-300" />
+                    <SharePriceButton className="font-semibold text-terra-700 transition hover:text-terra-800" />
                   </div>
                 </div>
               </div>
