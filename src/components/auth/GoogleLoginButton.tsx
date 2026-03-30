@@ -52,7 +52,9 @@ export default function GoogleLoginButton({
 
     const load = async () => {
       try {
-        if (typeof window !== "undefined" && window.location.hostname === "agrisoko254.com") {
+        // Redirect non-canonical preview deployments to the canonical domain for Google OAuth.
+        // Must NOT fire when already on the canonical host — would cause an infinite redirect loop.
+        if (typeof window !== "undefined" && window.location.hostname !== GOOGLE_CANONICAL_HOST) {
           const nextUrl = new URL(window.location.href);
           nextUrl.hostname = GOOGLE_CANONICAL_HOST;
           window.location.replace(nextUrl.toString());
