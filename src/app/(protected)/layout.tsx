@@ -11,25 +11,13 @@ import { getToken } from "@/lib/auth";
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isLoading) return;
     if (!getToken()) {
       router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
     }
-  }, [isLoading, pathname, router]);
-
-  if (isLoading) {
-    return (
-      <>
-        <Navbar />
-        <main className="page-shell py-16 pb-[calc(5.5rem+env(safe-area-inset-bottom))] text-center text-stone-500 lg:pb-16">Loading your account...</main>
-        <Footer />
-        <MobileBottomNav />
-      </>
-    );
-  }
+  }, [pathname, router]);
 
   if (!isAuthenticated && !getToken()) {
     return (

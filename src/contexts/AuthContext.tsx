@@ -97,7 +97,12 @@ const pickToken = (payload: any) => payload?.token || payload?.accessToken || nu
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Start as not-loading if we already have stored credentials — validate in background.
+  // This prevents a 30s "Loading your account..." screen on Render cold starts.
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return false; // Always render immediately; refreshUser() validates silently
+  });
 
   const applyAuthResponse = useCallback(async (payload: any) => {
     const nextToken = pickToken(payload);
