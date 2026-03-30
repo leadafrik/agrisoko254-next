@@ -1482,8 +1482,11 @@ export function formatIntelligenceDate(value?: string | null) {
 }
 
 export function formatTrendLabel(direction: TrendDirection, percentage: number) {
-  if (direction === "up") return `Rising ${Math.abs(percentage).toFixed(1)}%`;
-  if (direction === "down") return `Falling ${Math.abs(percentage).toFixed(1)}%`;
+  if (direction === "stable") return "Stable";
+  const abs = Math.abs(percentage);
+  if (abs > 200) return "Stable"; // suppress implausible values (unit mismatch artefact)
+  if (direction === "up") return `Rising ${abs.toFixed(1)}%`;
+  if (direction === "down") return `Falling ${abs.toFixed(1)}%`;
   return "Stable";
 }
 
