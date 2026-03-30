@@ -126,14 +126,8 @@ export default function AdminDashboardPage() {
     setLoading(true);
     setError("");
 
-    try {
-      const [
-        dashboardResponse,
-        usersResponse,
-        reportsResponse,
-        profilesResponse,
-        idResponse,
-      ] = await Promise.all([
+    const [dashboardResult, usersResult, reportsResult, profilesResult, idResult] =
+      await Promise.allSettled([
         adminApiRequest(API_ENDPOINTS.admin.dashboard),
         adminApiRequest(`${API_ENDPOINTS.admin.users.search}?limit=6&page=1&sortBy=createdAt`),
         adminApiRequest(`${API_ENDPOINTS.admin.reports.getAll}?status=pending&limit=6&page=1`),
@@ -141,19 +135,27 @@ export default function AdminDashboardPage() {
         adminApiRequest(API_ENDPOINTS.admin.verification.pending),
       ]);
 
-      setStats(dashboardResponse?.data || null);
-      setRecentUsers(Array.isArray(usersResponse?.data) ? usersResponse.data : []);
-      setRecentReports(Array.isArray(reportsResponse?.data) ? reportsResponse.data : []);
-      setPendingProfiles(Array.isArray(profilesResponse?.data) ? profilesResponse.data : []);
-      setPendingIdChecks(
-        Array.isArray(idResponse?.verifications) ? idResponse.verifications.slice(0, 6) : []
-      );
-      setLastSyncLabel(new Date().toLocaleTimeString("en-KE"));
-    } catch (loadError: any) {
-      setError(loadError?.message || "Unable to load the admin control snapshot.");
-    } finally {
-      setLoading(false);
+    const val = <T,>(r: PromiseSettledResult<T>) =>
+      r.status === "fulfilled" ? r.value : null;
+
+    setStats(val(dashboardResult)?.data ?? null);
+    setRecentUsers(Array.isArray(val(usersResult)?.data) ? val(usersResult).data : []);
+    setRecentReports(Array.isArray(val(reportsResult)?.data) ? val(reportsResult).data : []);
+    setPendingProfiles(Array.isArray(val(profilesResult)?.data) ? val(profilesResult).data : []);
+    setPendingIdChecks(
+      Array.isArray(val(idResult)?.verifications) ? val(idResult).verifications.slice(0, 6) : []
+    );
+
+    const failures = [dashboardResult, usersResult, reportsResult, profilesResult, idResult]
+      .filter((r) => r.status === "rejected").length;
+    if (failures === 5) {
+      setError("Unable to reach the backend. Check your connection or try again.");
+    } else if (failures > 0) {
+      setError(`${failures} section(s) failed to load — partial data shown.`);
     }
+
+    setLastSyncLabel(new Date().toLocaleTimeString("en-KE"));
+    setLoading(false);
   };
 
   useEffect(() => {
